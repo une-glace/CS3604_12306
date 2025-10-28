@@ -1,4 +1,7 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { loginUser } from '../services/auth';
+import { useAuth } from '../contexts/AuthContext';
 import './Login.css';
 
 interface LoginFormData {
@@ -10,11 +13,13 @@ interface LoginFormData {
 }
 
 interface LoginProps {
-  onLogin: (formData: LoginFormData) => void;
+  onLogin?: (formData: LoginFormData) => void;
   onNavigateToRegister: () => void;
 }
 
-const Login: React.FC<LoginProps> = ({ onLogin, onNavigateToRegister }) => {
+const Login: React.FC<LoginProps> = ({ onNavigateToRegister }) => {
+  const navigate = useNavigate();
+  const { login } = useAuth();
   const [formData, setFormData] = useState<LoginFormData>({
     username: '',
     password: '',
@@ -98,11 +103,33 @@ const Login: React.FC<LoginProps> = ({ onLogin, onNavigateToRegister }) => {
     setIsLoading(true);
     
     try {
-      // 模拟登录请求延迟
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      onLogin(formData);
-    } catch (error) {
+      const loginData = {
+        username: formData.username,
+        password: formData.password
+      };
+
+      const response = await loginUser(loginData);
+      
+      if (response.success) {
+        // 使用AuthContext的login方法
+        login(response.data!.user, response.data!.token);
+        alert('登录成功！');
+        navigate('/');
+      } else {
+        // 处理服务器返回的错误
+        if (response.message === '用户不存在') {
+          setErrors({ username: '用户名不存在' });
+        } else if (response.message === '密码错误') {
+          setErrors({ password: '密码错误' });
+        } else if (response.message === '账户已被禁用') {
+          setErrors({ username: '账户已被禁用，请联系客服' });
+        } else {
+          alert(response.message || '登录失败，请重试');
+        }
+      }
+    } catch (error: any) {
       console.error('登录失败:', error);
+      alert(error.message || '登录失败，请检查网络连接');
     } finally {
       setIsLoading(false);
     }

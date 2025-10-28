@@ -1,31 +1,31 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { registerUser } from '../services/auth';
+import { useAuth } from '../contexts/AuthContext';
 import './Register.css';
 
 interface RegisterFormData {
-  // 账户信息
   username: string;
   password: string;
   confirmPassword: string;
-  
-  // 个人信息
   idType: string;
   realName: string;
   idNumber: string;
   email: string;
   phoneNumber: string;
   passengerType: string;
-  
-  // 验证信息
   phoneVerificationCode: string;
   agreementAccepted: boolean;
 }
 
 interface RegisterProps {
-  onRegister: (formData: RegisterFormData) => void;
+  onRegister?: (formData: RegisterFormData) => void;
   onNavigateToLogin: () => void;
 }
 
-const Register: React.FC<RegisterProps> = ({ onRegister, onNavigateToLogin }) => {
+const Register: React.FC<RegisterProps> = ({ onNavigateToLogin }) => {
+  const navigate = useNavigate();
+  const { login } = useAuth();
   const [currentStep, setCurrentStep] = useState(1);
   const [formData, setFormData] = useState<RegisterFormData>({
     username: '',
@@ -232,11 +232,40 @@ const Register: React.FC<RegisterProps> = ({ onRegister, onNavigateToLogin }) =>
 
     setIsLoading(true);
     try {
-      // 模拟注册请求
-      await new Promise(resolve => setTimeout(resolve, 2000));
-      onRegister(formData);
-    } catch (error) {
+      const registerData = {
+        username: formData.username,
+        password: formData.password,
+        confirmPassword: formData.confirmPassword,
+        idType: formData.idType,
+        realName: formData.realName,
+        idNumber: formData.idNumber,
+        email: formData.email,
+        phoneNumber: formData.phoneNumber,
+        passengerType: formData.passengerType
+      };
+
+      const response = await registerUser(registerData);
+      
+      if (response.success) {
+        // 使用AuthContext的login方法自动登录
+        login(response.data!.user, response.data!.token);
+        alert('注册成功！');
+        navigate('/');
+      } else {
+        // 处理服务器返回的错误
+        if (response.errors) {
+          const newErrors: Record<string, string> = {};
+          Object.keys(response.errors).forEach(key => {
+            newErrors[key] = response.errors![key];
+          });
+          setErrors(newErrors);
+        } else {
+          alert(response.message || '注册失败，请重试');
+        }
+      }
+    } catch (error: any) {
       console.error('注册失败:', error);
+      alert(error.message || '注册失败，请检查网络连接');
     } finally {
       setIsLoading(false);
     }

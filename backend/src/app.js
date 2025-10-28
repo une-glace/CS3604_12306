@@ -4,22 +4,34 @@ const helmet = require('helmet');
 const morgan = require('morgan');
 require('dotenv').config();
 
+// 导入数据库和路由
+const { testConnection, syncDatabase } = require('./models');
+const authRoutes = require('./routes/auth');
+
 const app = express();
 const PORT = process.env.PORT || 3000;
 
 // 中间件配置
 app.use(helmet());
-app.use(cors());
+app.use(cors({
+  origin: process.env.CORS_ORIGIN || 'http://localhost:5173',
+  credentials: true
+}));
 app.use(morgan('combined'));
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+app.use(express.json({ limit: '10mb' }));
+app.use(express.urlencoded({ extended: true, limit: '10mb' }));
+
+// API路由
+const apiPrefix = process.env.API_PREFIX || '/api/v1';
+app.use(`${apiPrefix}/auth`, authRoutes);
 
 // 基础路由
 app.get('/', (req, res) => {
   res.json({
     message: '12306 像素级复刻 API 服务',
     version: '1.0.0',
-    status: 'running'
+    status: 'running',
+    apiPrefix
   });
 });
 
@@ -48,10 +60,19 @@ app.use((err, req, res, next) => {
   });
 });
 
-app.listen(PORT, () => {
+app.listen(PORT, async () => {
   console.log(`🚄 12306 API Server running on port ${PORT}`);
   console.log(`📍 Environment: ${process.env.NODE_ENV || 'development'}`);
   console.log(`🔗 Health check: http://localhost:${PORT}/health`);
+  console.log(`🔗 API Base URL: http://localhost:${PORT}${process.env.API_PREFIX || '/api/v1'}`);
+  
+  // 测试数据库连接
+  await testConnection();
+  
+  // 同步数据库表结构（开发环境）
+  if (process.env.NODE_ENV === 'development') {
+    await syncDatabase(false); // false表示不强制重建表
+  }
 });
 
 module.exports = app;

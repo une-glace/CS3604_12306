@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../contexts/AuthContext';
 import AddPassengerModal from '../components/AddPassengerModal';
 import './ProfilePage.css';
 
@@ -35,27 +36,40 @@ interface Order {
 
 const ProfilePage: React.FC = () => {
   const navigate = useNavigate();
+  const { user, isLoggedIn, logout, isLoading } = useAuth();
   const [activeSection, setActiveSection] = useState('personal-info');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingPassenger, setEditingPassenger] = useState<Passenger | null>(null);
   const [orderFilter, setOrderFilter] = useState('all');
   const [dateFilter, setDateFilter] = useState('');
 
-  // 模拟用户数据
-  const [user] = useState<User>({
-    name: '张三',
-    idCard: '110101199001011234',
-    phone: '13800138000',
-    email: 'zhangsan@example.com'
-  });
+  // 检查登录状态
+  useEffect(() => {
+    if (!isLoading && !isLoggedIn) {
+      navigate('/login');
+    }
+  }, [isLoggedIn, isLoading, navigate]);
+
+  // 如果正在加载或未登录，显示加载状态
+  if (isLoading) {
+    return (
+      <div className="profile-container">
+        <div className="loading">加载中...</div>
+      </div>
+    );
+  }
+
+  if (!isLoggedIn || !user) {
+    return null; // 会被重定向到登录页面
+  }
 
   // 乘客数据
   const [passengers, setPassengers] = useState<Passenger[]>([
     {
       id: '1',
-      name: '张三',
-      idCard: '110101199001011234',
-      phone: '13800138000',
+      name: user.realName,
+      idCard: user.idNumber,
+      phone: user.phoneNumber,
       passengerType: '成人'
     },
     {
@@ -115,6 +129,13 @@ const ProfilePage: React.FC = () => {
 
   const handleBackToHome = () => {
     navigate('/');
+  };
+
+  const handleLogout = async () => {
+    if (window.confirm('确定要退出登录吗？')) {
+      await logout();
+      navigate('/');
+    }
   };
 
   const handleSectionChange = (section: string) => {
@@ -200,6 +221,9 @@ const ProfilePage: React.FC = () => {
             <span>中国铁路12306</span>
           </div>
           <div className="header-actions">
+            <button className="logout-btn" onClick={handleLogout}>
+              退出登录
+            </button>
             <button className="back-home-btn" onClick={handleBackToHome}>
               返回首页
             </button>
@@ -213,11 +237,11 @@ const ProfilePage: React.FC = () => {
         <aside className="profile-sidebar">
           <div className="user-info-card">
             <div className="avatar">
-              <span>{user.name.charAt(0)}</span>
+              <span>{user.realName.charAt(0)}</span>
             </div>
             <div className="user-details">
-              <h3>{user.name}</h3>
-              <p>{user.phone}</p>
+              <h3>{user.realName}</h3>
+              <p>{user.phoneNumber}</p>
             </div>
           </div>
 
@@ -283,21 +307,49 @@ const ProfilePage: React.FC = () => {
                 <h3>基本信息</h3>
                 <div className="info-grid">
                   <div className="info-item">
-                    <label>姓名：</label>
-                    <span>{user.name}</span>
+                    <label>用户名：</label>
+                    <span>{user.username}</span>
                   </div>
                   <div className="info-item">
-                    <label>身份证号：</label>
-                    <span>{user.idCard}</span>
+                    <label>姓名：</label>
+                    <span>{user.realName}</span>
+                  </div>
+                  <div className="info-item">
+                    <label>证件类型：</label>
+                    <span>{user.idType === 'id_card' ? '身份证' : user.idType}</span>
+                  </div>
+                  <div className="info-item">
+                    <label>证件号码：</label>
+                    <span>{user.idNumber}</span>
                   </div>
                   <div className="info-item">
                     <label>手机号：</label>
-                    <span>{user.phone}</span>
+                    <span>{user.phoneNumber}</span>
                   </div>
                   <div className="info-item">
                     <label>邮箱：</label>
-                    <span>{user.email}</span>
+                    <span>{user.email || '未设置'}</span>
                   </div>
+                  <div className="info-item">
+                    <label>乘客类型：</label>
+                    <span>{user.passengerType === 'adult' ? '成人' : user.passengerType === 'child' ? '儿童' : '学生'}</span>
+                  </div>
+                  <div className="info-item">
+                    <label>账户状态：</label>
+                    <span className={user.status === 'active' ? 'status-active' : 'status-inactive'}>
+                      {user.status === 'active' ? '正常' : '禁用'}
+                    </span>
+                  </div>
+                  <div className="info-item">
+                    <label>注册时间：</label>
+                    <span>{new Date(user.createdAt).toLocaleString()}</span>
+                  </div>
+                  {user.lastLoginAt && (
+                    <div className="info-item">
+                      <label>最后登录：</label>
+                      <span>{new Date(user.lastLoginAt).toLocaleString()}</span>
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
