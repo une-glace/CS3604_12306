@@ -114,7 +114,7 @@ const Login: React.FC<LoginProps> = ({ onNavigateToRegister }) => {
         // 使用AuthContext的login方法
         login(response.data!.user, response.data!.token);
         alert('登录成功！');
-        navigate('/');
+        navigate('/profile'); // 跳转到个人中心页面
       } else {
         // 处理服务器返回的错误
         if (response.message === '用户不存在') {

@@ -1,5 +1,6 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../contexts/AuthContext';
 import Carousel from '../components/Carousel';
 import BookingForm from '../components/BookingForm';
 import './HomePage.css';
@@ -20,6 +21,7 @@ interface BookingData {
 
 const HomePage: React.FC = () => {
   const navigate = useNavigate();
+  const { user, isLoggedIn, logout } = useAuth();
 
   const carouselItems: CarouselItem[] = [
     {
@@ -62,7 +64,19 @@ const HomePage: React.FC = () => {
   };
 
   const handleProfileClick = () => {
-    navigate('/profile');
+    if (isLoggedIn) {
+      navigate('/profile');
+    } else {
+      navigate('/login');
+    }
+  };
+
+  const handleLogout = async () => {
+    if (window.confirm('确定要退出登录吗？')) {
+      await logout();
+      // 退出后刷新页面状态
+      window.location.reload();
+    }
   };
 
   return (
@@ -76,8 +90,21 @@ const HomePage: React.FC = () => {
           </div>
           <div className="user-actions">
             <button className="profile-btn" onClick={handleProfileClick}>我的12306</button>
-            <button className="login-btn" onClick={handleLoginClick}>登录</button>
-            <button className="register-btn" onClick={handleRegisterClick}>注册</button>
+            {isLoggedIn ? (
+              <>
+                <span className="welcome-text">您好，
+                  <button className="username-btn" onClick={handleProfileClick}>
+                    {user?.realName || user?.username}
+                  </button>
+                </span>
+                <button className="logout-btn" onClick={handleLogout}>退出</button>
+              </>
+            ) : (
+              <>
+                <button className="login-btn" onClick={handleLoginClick}>登录</button>
+                <button className="register-btn" onClick={handleRegisterClick}>注册</button>
+              </>
+            )}
           </div>
         </div>
       </header>

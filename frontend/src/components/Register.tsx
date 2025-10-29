@@ -250,7 +250,7 @@ const Register: React.FC<RegisterProps> = ({ onNavigateToLogin }) => {
         // 使用AuthContext的login方法自动登录
         login(response.data!.user, response.data!.token);
         alert('注册成功！');
-        navigate('/');
+        navigate('/profile'); // 跳转到个人中心页面
       } else {
         // 处理服务器返回的错误
         if (response.errors) {
