@@ -1,6 +1,7 @@
 const User = require('../models/User');
 const { validateRegisterData, validateUsername, validatePassword } = require('../utils/validation');
 const { hashPassword, comparePassword, generateToken } = require('../utils/auth');
+const { createDefaultPassenger } = require('./passengerController');
 
 // 用户注册
 const register = async (req, res) => {
@@ -90,6 +91,9 @@ const register = async (req, res) => {
       phone_number: phoneNumber,
       passenger_type: passengerType || '1'
     });
+
+    // 为新用户创建默认乘车人（自己）
+    await createDefaultPassenger(newUser);
 
     // 生成JWT token
     const token = generateToken({

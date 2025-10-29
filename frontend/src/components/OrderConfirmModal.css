@@ -1,0 +1,280 @@
+.order-confirm-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.order-confirm-modal {
+  background: white;
+  border-radius: 8px;
+  width: 90%;
+  max-width: 600px;
+  max-height: 80vh;
+  overflow-y: auto;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px 24px;
+  border-bottom: 1px solid #e5e5e5;
+}
+
+.modal-header h3 {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 600;
+  color: #333;
+}
+
+.close-btn {
+  background: none;
+  border: none;
+  font-size: 24px;
+  color: #999;
+  cursor: pointer;
+  padding: 0;
+  width: 30px;
+  height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  transition: all 0.2s;
+}
+
+.close-btn:hover {
+  background-color: #f5f5f5;
+  color: #666;
+}
+
+.modal-content {
+  padding: 24px;
+}
+
+.train-info-section,
+.passengers-section,
+.price-section {
+  margin-bottom: 24px;
+}
+
+.train-info-section h4,
+.passengers-section h4 {
+  margin: 0 0 16px 0;
+  font-size: 16px;
+  font-weight: 600;
+  color: #333;
+  border-bottom: 2px solid #1890ff;
+  padding-bottom: 8px;
+}
+
+.train-details {
+  background: #f8f9fa;
+  padding: 16px;
+  border-radius: 6px;
+  border-left: 4px solid #1890ff;
+}
+
+.train-number {
+  font-size: 18px;
+  font-weight: 600;
+  color: #1890ff;
+  margin-bottom: 8px;
+}
+
+.route-info {
+  display: flex;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.station {
+  font-size: 16px;
+  font-weight: 500;
+  color: #333;
+}
+
+.arrow {
+  margin: 0 12px;
+  color: #666;
+  font-size: 14px;
+}
+
+.time-info {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  font-size: 14px;
+  color: #666;
+}
+
+.duration {
+  color: #999;
+}
+
+.passengers-list {
+  background: #f8f9fa;
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.passenger-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px;
+  border-bottom: 1px solid #e5e5e5;
+}
+
+.passenger-item:last-child {
+  border-bottom: none;
+}
+
+.passenger-name {
+  font-size: 16px;
+  font-weight: 500;
+  color: #333;
+}
+
+.passenger-details {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  font-size: 14px;
+}
+
+.seat-type {
+  color: #1890ff;
+  font-weight: 500;
+}
+
+.ticket-type {
+  color: #666;
+}
+
+.price {
+  color: #f5222d;
+  font-weight: 600;
+}
+
+.price-section {
+  border-top: 1px solid #e5e5e5;
+  padding-top: 16px;
+}
+
+.price-breakdown {
+  background: #f8f9fa;
+  padding: 16px;
+  border-radius: 6px;
+}
+
+.price-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+  font-size: 14px;
+  color: #666;
+}
+
+.price-item:last-child {
+  margin-bottom: 0;
+}
+
+.price-item.total {
+  border-top: 1px solid #e5e5e5;
+  padding-top: 12px;
+  margin-top: 12px;
+  font-size: 16px;
+  font-weight: 600;
+  color: #333;
+}
+
+.total-amount {
+  color: #f5222d;
+  font-size: 18px;
+}
+
+.modal-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  padding: 16px 24px;
+  border-top: 1px solid #e5e5e5;
+  background: #fafafa;
+}
+
+.cancel-btn,
+.confirm-btn {
+  padding: 10px 24px;
+  border: none;
+  border-radius: 4px;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.2s;
+  min-width: 80px;
+}
+
+.cancel-btn {
+  background: #fff;
+  color: #666;
+  border: 1px solid #d9d9d9;
+}
+
+.cancel-btn:hover {
+  color: #1890ff;
+  border-color: #1890ff;
+}
+
+.confirm-btn {
+  background: #1890ff;
+  color: white;
+}
+
+.confirm-btn:hover {
+  background: #40a9ff;
+}
+
+.confirm-btn:active {
+  background: #096dd9;
+}
+
+/* 响应式设计 */
+@media (max-width: 768px) {
+  .order-confirm-modal {
+    width: 95%;
+    margin: 20px;
+  }
+  
+  .modal-content {
+    padding: 16px;
+  }
+  
+  .passenger-item {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+  
+  .passenger-details {
+    gap: 12px;
+  }
+  
+  .modal-footer {
+    flex-direction: column;
+  }
+  
+  .cancel-btn,
+  .confirm-btn {
+    width: 100%;
+  }
+}

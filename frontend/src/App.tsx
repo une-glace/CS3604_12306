@@ -1,5 +1,6 @@
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom'
 import { AuthProvider } from './contexts/AuthContext'
+import ViewportMeta from './components/ViewportMeta'
 import './App.css'
 import HomePage from './pages/HomePage'
 import TrainListPage from './pages/TrainListPage'
@@ -8,31 +9,10 @@ import ProfilePage from './pages/ProfilePage'
 import Login from './components/Login'
 import Register from './components/Register'
 
-interface LoginFormData {
-  username: string;
-  password: string;
-  captcha: string;
-  rememberUsername: boolean;
-  autoLogin: boolean;
-}
-
-interface RegisterFormData {
-  username: string;
-  password: string;
-  confirmPassword: string;
-  idType: string;
-  realName: string;
-  idNumber: string;
-  email: string;
-  phoneNumber: string;
-  passengerType: string;
-  phoneVerificationCode: string;
-  agreementAccepted: boolean;
-}
-
 function App() {
   return (
     <AuthProvider>
+      <ViewportMeta />
       <Router>
         <div className="app">
           <Routes>

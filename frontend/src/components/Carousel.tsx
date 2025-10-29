@@ -70,10 +70,18 @@ const Carousel: React.FC<CarouselProps> = ({
           >
             {item.link ? (
               <a href={item.link} target="_blank" rel="noopener noreferrer">
-                <img src={item.image} alt={item.title} />
+                {item.image ? (
+                  <img src={item.image} alt={item.title} />
+                ) : (
+                  <div className="carousel-placeholder">{item.title}</div>
+                )}
               </a>
             ) : (
-              <img src={item.image} alt={item.title} />
+              item.image ? (
+                <img src={item.image} alt={item.title} />
+              ) : (
+                <div className="carousel-placeholder">{item.title}</div>
+              )
             )}
           </div>
         ))}

@@ -123,6 +123,7 @@ body {
   margin: 0 auto;
   padding: 20px;
   width: 100%;
+  box-sizing: border-box;
 }
 
 /* 轮播图样式 */
@@ -269,6 +270,8 @@ body {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
   gap: 20px;
+  max-width: 100%;
+  overflow: hidden;
 }
 
 .service-item {
@@ -352,11 +355,22 @@ body {
 }
 
 /* 响应式设计 */
+@media (max-width: 1024px) {
+  .main-content {
+    padding: 15px;
+  }
+  
+  .logo-section {
+    padding: 0 15px;
+  }
+}
+
 @media (max-width: 768px) {
   .logo-section {
     flex-direction: column;
     gap: 10px;
     text-align: center;
+    padding: 0 10px;
   }
   
   .nav-list {
@@ -386,14 +400,22 @@ body {
     flex-direction: column;
     gap: 10px;
   }
+  
+  .main-content {
+    padding: 10px;
+  }
 }
 
 @media (max-width: 480px) {
   .main-content {
-    padding: 10px;
+    padding: 5px;
   }
   
   .service-grid {
     grid-template-columns: 1fr;
+  }
+  
+  .logo-section {
+    padding: 0 5px;
   }
 }

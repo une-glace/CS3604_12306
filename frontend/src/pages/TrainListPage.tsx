@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
+import { useAuth } from '../contexts/AuthContext';
 import SearchConditions from '../components/SearchConditions';
 import FilterConditions from '../components/FilterConditions';
 import TrainList from '../components/TrainList';
+import LoginModal from '../components/LoginModal';
 import './TrainListPage.css';
 
 interface TrainInfo {
@@ -40,6 +42,7 @@ interface TrainInfo {
 const TrainListPage: React.FC = () => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
+  const { isLoggedIn } = useAuth();
   
   // 从URL参数获取查询条件
   const fromStation = searchParams.get('from') || '上海';
@@ -49,6 +52,8 @@ const TrainListPage: React.FC = () => {
   const [trains, setTrains] = useState<TrainInfo[]>([]);
   const [filteredTrains, setFilteredTrains] = useState<TrainInfo[]>([]);
   const [loading, setLoading] = useState(true);
+  const [showLoginModal, setShowLoginModal] = useState(false);
+  const [selectedTrain, setSelectedTrain] = useState<TrainInfo | null>(null);
 
   // 模拟车次数据
   const mockTrains: TrainInfo[] = [
@@ -250,6 +255,19 @@ const TrainListPage: React.FC = () => {
   const handleTrainSelect = (train: TrainInfo) => {
     console.log('选择车次:', train);
     
+    // 检查登录状态
+    if (!isLoggedIn) {
+      setSelectedTrain(train);
+      setShowLoginModal(true);
+      return;
+    }
+    
+    // 已登录，直接跳转到订单页面
+    navigateToOrder(train);
+  };
+
+  // 跳转到订单页面的逻辑
+  const navigateToOrder = (train: TrainInfo) => {
     // 构建订单页面的查询参数
     const orderParams = new URLSearchParams({
       trainNumber: train.trainNo,
@@ -265,6 +283,15 @@ const TrainListPage: React.FC = () => {
     
     // 跳转到订单页面
     navigate(`/order?${orderParams.toString()}`);
+  };
+
+  // 登录成功后的处理
+  const handleLoginSuccess = () => {
+    setShowLoginModal(false);
+    if (selectedTrain) {
+      navigateToOrder(selectedTrain);
+      setSelectedTrain(null);
+    }
   };
 
   return (
@@ -332,6 +359,13 @@ const TrainListPage: React.FC = () => {
           )}
         </div>
       </div>
+
+      {/* 登录模态框 */}
+      <LoginModal
+        isOpen={showLoginModal}
+        onClose={() => setShowLoginModal(false)}
+        onLoginSuccess={handleLoginSuccess}
+      />
     </div>
   );
 };

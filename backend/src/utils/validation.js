@@ -151,6 +151,35 @@ const validateRegisterData = (data) => {
   };
 };
 
+// 验证乘车人数据
+const validatePassengerData = (data) => {
+  const errors = [];
+  
+  const nameValidation = validateRealName(data.name);
+  if (!nameValidation.isValid) {
+    errors.push(nameValidation.message);
+  }
+  
+  const idCardValidation = validateIdNumber(data.idCard);
+  if (!idCardValidation.isValid) {
+    errors.push(idCardValidation.message);
+  }
+  
+  const phoneValidation = validatePhoneNumber(data.phone);
+  if (!phoneValidation.isValid) {
+    errors.push(phoneValidation.message);
+  }
+  
+  if (!data.passengerType || !['成人', '儿童', '学生'].includes(data.passengerType)) {
+    errors.push('请选择正确的乘车人类型');
+  }
+  
+  return {
+    isValid: errors.length === 0,
+    errors
+  };
+};
+
 module.exports = {
   validateUsername,
   validatePassword,
@@ -158,5 +187,6 @@ module.exports = {
   validateIdNumber,
   validatePhoneNumber,
   validateEmail,
-  validateRegisterData
+  validateRegisterData,
+  validatePassengerData
 };

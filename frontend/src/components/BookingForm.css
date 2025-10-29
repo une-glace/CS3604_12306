@@ -227,9 +227,25 @@
 }
 
 /* 响应式设计 */
+@media (max-width: 1024px) {
+  .booking-form {
+    padding: 20px;
+  }
+  
+  .station-group {
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+  
+  .station-input-group {
+    min-width: 200px;
+  }
+}
+
 @media (max-width: 768px) {
   .booking-form {
     padding: 16px;
+    margin: 0 10px;
   }
   
   .station-group {
@@ -243,21 +259,33 @@
   }
   
   .train-type-options {
+    display: grid;
     grid-template-columns: repeat(2, 1fr);
+    gap: 8px;
   }
   
   .cities-grid {
     grid-template-columns: repeat(3, 1fr);
   }
+  
+  .date-group input {
+    max-width: 100%;
+  }
 }
 
 @media (max-width: 480px) {
+  .booking-form {
+    padding: 12px;
+    margin: 0 5px;
+  }
+  
   .train-type-options {
-    flex-direction: column;
+    grid-template-columns: 1fr;
   }
   
   .train-type-option {
     justify-content: center;
+    padding: 12px;
   }
   
   .cities-grid {
@@ -266,6 +294,10 @@
   
   .search-button {
     width: 100%;
-    justify-self: stretch;
+    align-self: stretch;
+  }
+  
+  .form-content {
+    gap: 16px;
   }
 }

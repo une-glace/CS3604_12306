@@ -4,13 +4,6 @@ import { useAuth } from '../contexts/AuthContext';
 import AddPassengerModal from '../components/AddPassengerModal';
 import './ProfilePage.css';
 
-interface User {
-  name: string;
-  idCard: string;
-  phone: string;
-  email: string;
-}
-
 interface Passenger {
   id: string;
   name: string;
@@ -48,84 +41,61 @@ const ProfilePage: React.FC = () => {
     if (!isLoading && !isLoggedIn) {
       navigate('/login');
     }
-  }, [isLoggedIn, isLoading, navigate]);
+  }, [isLoading, isLoggedIn, navigate]);
 
-  // 如果正在加载或未登录，显示加载状态
+  // 如果正在加载，显示加载状态
   if (isLoading) {
     return (
-      <div className="profile-container">
+      <div className="loading-container">
         <div className="loading">加载中...</div>
       </div>
     );
   }
 
+  // 如果未登录，不渲染内容（会被重定向）
   if (!isLoggedIn || !user) {
-    return null; // 会被重定向到登录页面
+    return null;
   }
 
   // 乘客数据
-  const [passengers, setPassengers] = useState<Passenger[]>([
-    {
-      id: '1',
-      name: user.realName,
-      idCard: user.idNumber,
-      phone: user.phoneNumber,
-      passengerType: '成人'
-    },
-    {
-      id: '2',
-      name: '李四',
-      idCard: '110101199501011234',
-      phone: '13900139000',
-      passengerType: '学生'
-    }
-  ]);
+  const [passengers, setPassengers] = useState<Passenger[]>([]);
 
-  // 订单数据
-  const [orders] = useState<Order[]>([
-    {
-      id: '1',
-      orderNumber: 'E123456789',
-      trainNumber: 'G123',
-      departure: '北京南',
-      arrival: '上海虹桥',
-      departureTime: '08:00',
-      arrivalTime: '12:30',
-      date: '2024-01-15',
-      passenger: '张三',
-      seat: '02车06A号',
-      price: 553.0,
-      status: 'paid'
-    },
-    {
-      id: '2',
-      orderNumber: 'E123456790',
-      trainNumber: 'D456',
-      departure: '上海虹桥',
-      arrival: '杭州东',
-      departureTime: '14:00',
-      arrivalTime: '15:30',
-      date: '2024-01-10',
-      passenger: '李四',
-      seat: '05车12B号',
-      price: 73.0,
-      status: 'cancelled'
-    },
-    {
-      id: '3',
-      orderNumber: 'E123456791',
-      trainNumber: 'G456',
-      departure: '广州南',
-      arrival: '深圳北',
-      departureTime: '16:30',
-      arrivalTime: '17:15',
-      date: '2024-01-20',
-      passenger: '张三',
-      seat: '03车08C号',
-      price: 74.5,
-      status: 'unpaid'
+  // 获取乘车人数据
+  useEffect(() => {
+    const fetchPassengers = async () => {
+      try {
+        const { getPassengers } = await import('../services/passengerService');
+        const passengerList = await getPassengers();
+        setPassengers(passengerList);
+      } catch (error) {
+        console.error('获取乘车人信息失败:', error);
+        // 如果获取失败，使用用户基本信息作为默认乘车人
+        setPassengers([
+          {
+            id: '1',
+            name: user.realName,
+            idCard: user.idNumber,
+            phone: user.phoneNumber,
+            passengerType: '成人'
+          }
+        ]);
+      }
+    };
+
+    if (user) {
+      fetchPassengers();
     }
-  ]);
+  }, [user]);
+
+  // 订单数据 - 改为从API获取
+  const [orders, setOrders] = useState<Order[]>([]);
+  const [isLoadingOrders, setIsLoadingOrders] = useState(false);
+  const [orderPagination, setOrderPagination] = useState({
+    page: 1,
+    limit: 10,
+    total: 0,
+    totalPages: 0
+  });
 
   const handleBackToHome = () => {
     navigate('/');
@@ -140,7 +110,116 @@ const ProfilePage: React.FC = () => {
 
   const handleSectionChange = (section: string) => {
     setActiveSection(section);
+    // 当切换到订单页面时，加载订单数据
+    if (section === 'orders') {
+      fetchOrders();
+    }
   };
+
+  // 获取订单列表
+  const fetchOrders = async (page = 1, status = orderFilter) => {
+    try {
+      setIsLoadingOrders(true);
+      
+      // 使用统一的订单服务
+      const { getUserOrders } = await import('../services/orderService');
+      const data = await getUserOrders(page, orderPagination.limit, status);
+      
+      if (data && data.orders) {
+        // 转换后端数据格式为前端格式
+         const formattedOrders = data.orders.map((order: any) => ({
+           id: order.id,
+           orderNumber: order.orderId || order.orderNumber,
+           trainNumber: order.trainNumber,
+           departure: order.fromStation || order.departure,
+           arrival: order.toStation || order.arrival,
+           departureTime: order.departureTime,
+           arrivalTime: order.arrivalTime,
+           date: order.departureDate || order.date,
+           passenger: order.passengers?.[0]?.passengerName || order.passenger || '未知',
+           seat: order.passengers?.[0]?.seatNumber || order.seat || '待分配',
+           price: order.totalPrice || order.price,
+           status: (order.status === 'pending' ? 'unpaid' : 
+                  order.status === 'paid' ? 'paid' :
+                  order.status === 'cancelled' ? 'cancelled' : 'refunded') as 'paid' | 'unpaid' | 'cancelled' | 'refunded'
+         }));
+        
+        setOrders(formattedOrders);
+        setOrderPagination({
+          page: data.pagination?.page || page,
+          limit: data.pagination?.limit || orderPagination.limit,
+          total: data.pagination?.total || formattedOrders.length,
+          totalPages: Math.ceil((data.pagination?.total || formattedOrders.length) / (data.pagination?.limit || orderPagination.limit))
+        });
+      }
+    } catch (error) {
+      console.error('获取订单错误:', error);
+      // 如果新的服务失败，回退到原来的方式
+      try {
+        const token = localStorage.getItem('token');
+        
+        const params = new URLSearchParams({
+          page: page.toString(),
+          limit: orderPagination.limit.toString()
+        });
+        
+        if (status && status !== 'all') {
+          params.append('status', status);
+        }
+
+        const response = await fetch(`http://localhost:3000/api/v1/orders?${params}`, {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          }
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          if (data.success) {
+            // 转换后端数据格式为前端格式
+            const formattedOrders = data.data.orders.map((order: any) => ({
+              id: order.id,
+              orderNumber: order.orderId,
+              trainNumber: order.trainNumber,
+              departure: order.fromStation,
+              arrival: order.toStation,
+              departureTime: order.departureTime,
+              arrivalTime: order.arrivalTime,
+              date: order.departureDate,
+              passenger: order.passengers?.[0]?.passengerName || '未知',
+              seat: order.passengers?.[0]?.seatNumber || '待分配',
+              price: order.totalPrice,
+              status: order.status === 'pending' ? 'unpaid' : 
+                     order.status === 'paid' ? 'paid' :
+                     order.status === 'cancelled' ? 'cancelled' : 'refunded'
+            }));
+            
+            setOrders(formattedOrders);
+            setOrderPagination({
+              page: data.data.pagination.page,
+              limit: data.data.pagination.limit,
+              total: data.data.pagination.total,
+              totalPages: data.data.pagination.totalPages
+            });
+          }
+        } else {
+          console.error('获取订单失败:', response.statusText);
+        }
+      } catch (fallbackError) {
+        console.error('获取订单失败（回退方式也失败）:', fallbackError);
+      }
+    } finally {
+      setIsLoadingOrders(false);
+    }
+  };
+
+  // 监听订单筛选变化
+  useEffect(() => {
+    if (activeSection === 'orders') {
+      fetchOrders(1, orderFilter);
+    }
+  }, [orderFilter]);
 
   const handleAddPassenger = () => {
     setEditingPassenger(null);
@@ -152,9 +231,16 @@ const ProfilePage: React.FC = () => {
     setIsModalOpen(true);
   };
 
-  const handleDeletePassenger = (id: string) => {
+  const handleDeletePassenger = async (id: string) => {
     if (window.confirm('确定要删除这个乘车人吗？')) {
-      setPassengers(prev => prev.filter(p => p.id !== id));
+      try {
+        const { deletePassenger } = await import('../services/passengerService');
+        await deletePassenger(id);
+        setPassengers(prev => prev.filter(p => p.id !== id));
+      } catch (error) {
+        console.error('删除乘车人失败:', error);
+        alert('删除乘车人失败，请稍后重试');
+      }
     }
   };
 
@@ -163,18 +249,28 @@ const ProfilePage: React.FC = () => {
     setEditingPassenger(null);
   };
 
-  const handlePassengerAdd = (passengerData: Omit<Passenger, 'id'>) => {
-    const newPassenger: Passenger = {
-      ...passengerData,
-      id: Date.now().toString()
-    };
-    setPassengers(prev => [...prev, newPassenger]);
+  const handlePassengerAdd = async (passengerData: Omit<Passenger, 'id'>) => {
+    try {
+      const { addPassenger } = await import('../services/passengerService');
+      const newPassenger = await addPassenger(passengerData);
+      setPassengers(prev => [...prev, newPassenger]);
+    } catch (error) {
+      console.error('添加乘车人失败:', error);
+      alert('添加乘车人失败，请稍后重试');
+    }
   };
 
-  const handlePassengerEdit = (id: string, passengerData: Omit<Passenger, 'id'>) => {
-    setPassengers(prev => prev.map(p => 
-      p.id === id ? { ...passengerData, id } : p
-    ));
+  const handlePassengerEdit = async (id: string, passengerData: Omit<Passenger, 'id'>) => {
+    try {
+      const { updatePassenger } = await import('../services/passengerService');
+      const updatedPassenger = await updatePassenger(id, passengerData);
+      setPassengers(prev => prev.map(p => 
+        p.id === id ? updatedPassenger : p
+      ));
+    } catch (error) {
+      console.error('更新乘车人失败:', error);
+      alert('更新乘车人失败，请稍后重试');
+    }
   };
 
   // 订单相关处理函数
@@ -193,14 +289,45 @@ const ProfilePage: React.FC = () => {
   };
 
   const handleOrderDetail = (orderId: string) => {
-    // 这里可以导航到订单详情页面或显示详情模态框
-    console.log('查看订单详情:', orderId);
+    // 导航到订单详情页面
+    navigate(`/order-detail/${orderId}`);
   };
 
-  const handleRefund = (orderId: string) => {
-    if (window.confirm('确定要申请退票吗？')) {
-      // 这里可以调用退票API
-      console.log('申请退票:', orderId);
+  const handleRefund = async (orderId: string) => {
+    if (window.confirm('确定要申请退票吗？退票可能产生手续费。')) {
+      try {
+        const token = localStorage.getItem('token');
+        const response = await fetch(`http://localhost:3000/api/v1/orders/${orderId}/cancel`, {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          }
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          if (data.success) {
+            alert('退票申请成功！');
+            // 重新加载订单列表
+            fetchOrders(orderPagination.page, orderFilter);
+          } else {
+            alert(data.message || '退票申请失败');
+          }
+        } else {
+          alert('退票申请失败，请稍后重试');
+        }
+      } catch (error) {
+        console.error('退票申请错误:', error);
+        alert('退票申请失败，请稍后重试');
+      }
+    }
+  };
+
+  // 处理分页
+  const handlePageChange = (newPage: number) => {
+    if (newPage >= 1 && newPage <= orderPagination.totalPages) {
+      fetchOrders(newPage, orderFilter);
     }
   };
 
@@ -443,50 +570,79 @@ const ProfilePage: React.FC = () => {
                 </div>
 
                 <div className="orders-list">
-                  {filteredOrders.map(order => (
-                    <div key={order.id} className="order-card">
-                      <div className="order-header">
-                        <span className="order-number">订单号：{order.orderNumber}</span>
-                        <span className={`order-status ${getStatusClass(order.status)}`}>
-                          {getStatusText(order.status)}
-                        </span>
-                      </div>
-                      <div className="order-content">
-                        <div className="train-info">
-                          <h4>{order.trainNumber}</h4>
-                          <p>{order.departure} → {order.arrival}</p>
-                          <p>{order.date} {order.departureTime} - {order.arrivalTime}</p>
-                        </div>
-                        <div className="passenger-info">
-                          <p>乘车人：{order.passenger}</p>
-                          <p>座位：{order.seat}</p>
-                        </div>
-                        <div className="price-info">
-                          <p className="price">¥{order.price}</p>
-                        </div>
-                      </div>
-                      <div className="order-actions">
-                        <button 
-                          className="detail-btn"
-                          onClick={() => handleOrderDetail(order.id)}
-                        >
-                          查看详情
-                        </button>
-                        {order.status === 'paid' && (
-                          <button 
-                            className="refund-btn"
-                            onClick={() => handleRefund(order.id)}
-                          >
-                            退票
-                          </button>
-                        )}
-                      </div>
+                  {isLoadingOrders ? (
+                    <div className="loading-state">
+                      <p>加载中...</p>
                     </div>
-                  ))}
-                  
-                  {filteredOrders.length === 0 && (
+                  ) : filteredOrders.length > 0 ? (
+                    <>
+                      {filteredOrders.map(order => (
+                        <div key={order.id} className="order-card">
+                          <div className="order-header">
+                            <span className="order-number">订单号：{order.orderNumber}</span>
+                            <span className={`order-status ${getStatusClass(order.status)}`}>
+                              {getStatusText(order.status)}
+                            </span>
+                          </div>
+                          <div className="order-content">
+                            <div className="train-info">
+                              <h4>{order.trainNumber}</h4>
+                              <p>{order.departure} → {order.arrival}</p>
+                              <p>{order.date} {order.departureTime} - {order.arrivalTime}</p>
+                            </div>
+                            <div className="passenger-info">
+                              <p>乘车人：{order.passenger}</p>
+                              <p>座位：{order.seat}</p>
+                            </div>
+                            <div className="price-info">
+                              <p className="price">¥{order.price}</p>
+                            </div>
+                          </div>
+                          <div className="order-actions">
+                            <button 
+                              className="detail-btn"
+                              onClick={() => handleOrderDetail(order.id)}
+                            >
+                              查看详情
+                            </button>
+                            {order.status === 'paid' && (
+                              <button 
+                                className="refund-btn"
+                                onClick={() => handleRefund(order.id)}
+                              >
+                                退票
+                              </button>
+                            )}
+                          </div>
+                        </div>
+                      ))}
+                      
+                      {/* 分页控件 */}
+                      {orderPagination.totalPages > 1 && (
+                        <div className="pagination">
+                          <button 
+                            className="page-btn"
+                            disabled={orderPagination.page === 1}
+                            onClick={() => handlePageChange(orderPagination.page - 1)}
+                          >
+                            上一页
+                          </button>
+                          <span className="page-info">
+                            第 {orderPagination.page} 页，共 {orderPagination.totalPages} 页
+                          </span>
+                          <button 
+                            className="page-btn"
+                            disabled={orderPagination.page === orderPagination.totalPages}
+                            onClick={() => handlePageChange(orderPagination.page + 1)}
+                          >
+                            下一页
+                          </button>
+                        </div>
+                      )}
+                    </>
+                  ) : (
                     <div className="empty-state">
-                      <p>暂无符合条件的订单</p>
+                      <p>暂无订单记录</p>
                     </div>
                   )}
                 </div>

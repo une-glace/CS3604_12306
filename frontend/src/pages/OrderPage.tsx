@@ -1,6 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import AddPassengerModal from '../components/AddPassengerModal';
+import OrderConfirmModal from '../components/OrderConfirmModal';
+import OrderProcessing from '../components/OrderProcessing';
+import PaymentModal from '../components/PaymentModal';
 import './OrderPage.css';
 
 interface TrainInfo {
@@ -31,6 +34,14 @@ interface TicketInfo {
   price: number;
 }
 
+interface OrderData {
+  orderId: string;
+  backendOrderId?: string; // 后端返回的订单ID
+  totalPrice: number;
+  passengers: Passenger[];
+  ticketInfos: TicketInfo[];
+}
+
 const OrderPage: React.FC = () => {
   const location = useLocation();
   const navigate = useNavigate();
@@ -40,6 +51,10 @@ const OrderPage: React.FC = () => {
   const [ticketInfos, setTicketInfos] = useState<TicketInfo[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false);
+  const [isProcessingOpen, setIsProcessingOpen] = useState(false);
+  const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
+  const [orderData, setOrderData] = useState<OrderData | null>(null);
 
   useEffect(() => {
     // 从路由参数获取列车信息
@@ -57,24 +72,20 @@ const OrderPage: React.FC = () => {
     };
     setTrainInfo(trainData);
 
-    // 模拟获取用户常用联系人
-    const mockPassengers: Passenger[] = [
-      {
-        id: '1',
-        name: '张三',
-        idCard: '110101199001011234',
-        phone: '13800138000',
-        passengerType: '成人'
-      },
-      {
-        id: '2',
-        name: '李四',
-        idCard: '110101199501011234',
-        phone: '13800138001',
-        passengerType: '成人'
+    // 从后端API获取用户的乘车人信息
+    const fetchPassengers = async () => {
+      try {
+        const { getPassengers } = await import('../services/passengerService');
+        const passengerList = await getPassengers();
+        setPassengers(passengerList);
+      } catch (error) {
+        console.error('获取乘车人信息失败:', error);
+        // 如果获取失败，使用空数组
+        setPassengers([]);
       }
-    ];
-    setPassengers(mockPassengers);
+    };
+
+    fetchPassengers();
   }, [location]);
 
   const handlePassengerSelect = (passengerId: string) => {
@@ -134,47 +145,142 @@ const OrderPage: React.FC = () => {
       return;
     }
 
-    setIsSubmitting(true);
-    try {
-      // 构建订单数据
-      const orderData = {
-        trainInfo,
-        passengers: selectedPassengers.map(id => passengers.find(p => p.id === id)),
-        ticketInfos,
-        totalPrice: getTotalPrice(),
-        orderTime: new Date().toISOString(),
-        orderId: `ORDER_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
-      };
+    // 显示确认模态框
+    setIsConfirmModalOpen(true);
+  };
 
-      // 模拟API调用
-      console.log('提交订单数据:', orderData);
-      await new Promise(resolve => setTimeout(resolve, 2000));
+  const handleConfirmOrder = async () => {
+    setIsConfirmModalOpen(false);
+    
+    if (!trainInfo) {
+      alert('列车信息不完整');
+      return;
+    }
+    
+    // 构建订单数据，过滤掉undefined的乘客
+    const validPassengers = selectedPassengers
+      .map(id => passengers.find(p => p.id === id))
+      .filter((p): p is Passenger => p !== undefined);
+    
+    if (validPassengers.length === 0) {
+      alert('未找到有效的乘车人信息');
+      return;
+    }
+    
+    const newOrderData: OrderData = {
+      orderId: `ORDER_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+      totalPrice: getTotalPrice(),
+      passengers: validPassengers,
+      ticketInfos: ticketInfos
+    };
+    
+    setOrderData(newOrderData);
+    setIsProcessingOpen(true);
+  };
+
+  const handleProcessingComplete = async () => {
+    setIsProcessingOpen(false);
+    
+    if (!trainInfo || !orderData) {
+      alert('订单信息不完整');
+      return;
+    }
+    
+    try {
+      setIsSubmitting(true);
       
-      // 模拟成功响应
-      const success = Math.random() > 0.1; // 90% 成功率
+      // 调用后端API创建订单
+      const { createOrder } = await import('../services/orderService');
       
-      if (success) {
-        alert(`订单提交成功！\n订单号：${orderData.orderId}\n总金额：¥${orderData.totalPrice}`);
-        // 这里可以导航到订单详情页面或订单列表页面
-        // navigate(`/order-detail/${orderData.orderId}`);
-        navigate('/');
+      const orderPayload = {
+        trainInfo: {
+          trainNumber: trainInfo.trainNumber,
+          from: trainInfo.from,
+          to: trainInfo.to,
+          departureTime: trainInfo.departureTime,
+          arrivalTime: trainInfo.arrivalTime,
+          date: trainInfo.date,
+          duration: trainInfo.duration
+        },
+        passengers: orderData.passengers,
+        ticketInfos: orderData.ticketInfos,
+        totalPrice: orderData.totalPrice
+      };
+      
+      console.log('提交订单数据:', orderPayload);
+      const response = await createOrder(orderPayload);
+      console.log('后端响应数据:', response); // 添加调试日志
+      
+      if (response && response.data && response.data.id) {
+        // 更新订单数据，保存后端返回的订单ID
+        setOrderData(prev => {
+          if (!prev) return null;
+          return {
+            ...prev,
+            orderId: response.data.orderId || prev.orderId,
+            backendOrderId: response.data.id // 保存后端订单ID用于后续支付状态更新
+          };
+        });
+        
+        // 订单创建成功，打开支付模态框
+        setIsPaymentModalOpen(true);
       } else {
+        console.log('响应数据格式不正确:', response); // 添加调试日志
         throw new Error('订单提交失败');
       }
     } catch (error) {
       console.error('订单提交错误:', error);
-      alert('订单提交失败，请重试');
+      alert(`订单提交失败：${error instanceof Error ? error.message : '请重试'}`);
     } finally {
       setIsSubmitting(false);
     }
   };
 
-  const handleAddPassenger = (passengerData: Omit<Passenger, 'id'>) => {
-    const newPassenger: Passenger = {
-      ...passengerData,
-      id: Date.now().toString()
-    };
-    setPassengers(prev => [...prev, newPassenger]);
+  const handlePaymentSuccess = async () => {
+    if (!orderData) {
+      alert('订单信息不完整');
+      return;
+    }
+    
+    try {
+      // 更新订单支付状态
+      const { updateOrderStatus } = await import('../services/orderService');
+      
+      if (orderData.backendOrderId) {
+        await updateOrderStatus(orderData.backendOrderId, 'paid', 'alipay');
+        console.log('订单支付状态已更新');
+      }
+      
+      setIsPaymentModalOpen(false);
+      alert(`支付成功！\n订单号：${orderData.orderId}\n总金额：¥${orderData.totalPrice}`);
+      // 导航到订单详情页面或首页
+      navigate('/');
+    } catch (error) {
+      console.error('更新支付状态失败:', error);
+      // 即使更新状态失败，也显示支付成功（因为支付本身是成功的）
+      setIsPaymentModalOpen(false);
+      alert(`支付成功！\n订单号：${orderData.orderId}\n总金额：¥${orderData.totalPrice}\n注意：订单状态可能需要稍后更新`);
+      navigate('/');
+    }
+  };
+
+  const handlePaymentClose = () => {
+    setIsPaymentModalOpen(false);
+    // 可以选择导航到订单列表页面，让用户稍后支付
+    alert('支付已取消，您可以在订单中心继续支付');
+    navigate('/');
+  };
+
+  const handleAddPassenger = async (passengerData: Omit<Passenger, 'id'>) => {
+    try {
+      // 调用后端API保存乘车人到数据库
+      const { addPassenger } = await import('../services/passengerService');
+      const newPassenger = await addPassenger(passengerData);
+      setPassengers(prev => [...prev, newPassenger]);
+    } catch (error) {
+      console.error('添加乘车人失败:', error);
+      alert('添加乘车人失败，请稍后重试');
+    }
   };
 
   if (!trainInfo) {
@@ -310,6 +416,58 @@ const OrderPage: React.FC = () => {
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
         onAdd={handleAddPassenger}
+      />
+      
+      {/* 订单确认模态框 */}
+      <OrderConfirmModal
+        isOpen={isConfirmModalOpen}
+        onClose={() => setIsConfirmModalOpen(false)}
+        onConfirm={handleConfirmOrder}
+        trainInfo={trainInfo}
+        passengers={passengers}
+        ticketInfos={ticketInfos}
+        totalPrice={getTotalPrice()}
+      />
+      
+      {/* 订单处理界面 */}
+      <OrderProcessing
+        isOpen={isProcessingOpen}
+        onComplete={handleProcessingComplete}
+        orderData={orderData ? {
+          orderId: orderData.orderId,
+          trainInfo: trainInfo,
+          passengers: orderData.passengers,
+          totalPrice: orderData.totalPrice
+        } : {
+          orderId: '',
+          trainInfo: null,
+          passengers: [],
+          totalPrice: 0
+        }}
+      />
+      
+      {/* 支付模态框 */}
+      <PaymentModal
+        isOpen={isPaymentModalOpen}
+        onClose={handlePaymentClose}
+        onPaymentSuccess={handlePaymentSuccess}
+        orderData={orderData && trainInfo ? {
+          orderId: orderData.orderId,
+          totalPrice: orderData.totalPrice,
+          trainNumber: trainInfo.trainNumber,
+          fromStation: trainInfo.from,
+          toStation: trainInfo.to,
+          departureDate: trainInfo.date,
+          passengerCount: orderData.passengers.length
+        } : {
+          orderId: '',
+          totalPrice: 0,
+          trainNumber: '',
+          fromStation: '',
+          toStation: '',
+          departureDate: '',
+          passengerCount: 0
+        }}
       />
     </div>
   );

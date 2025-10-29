@@ -202,12 +202,18 @@ const Login: React.FC<LoginProps> = ({ onNavigateToRegister }) => {
                   className={errors.captcha ? 'error' : ''}
                 />
                 <div className="captcha-image-container">
-                  <img 
-                    src={captchaImage} 
-                    alt="验证码" 
-                    onClick={refreshCaptcha}
-                    className="captcha-image"
-                  />
+                  {captchaImage ? (
+                    <img 
+                      src={captchaImage} 
+                      alt="验证码" 
+                      onClick={refreshCaptcha}
+                      className="captcha-image"
+                    />
+                  ) : (
+                    <div className="captcha-placeholder" onClick={refreshCaptcha}>
+                      点击获取验证码
+                    </div>
+                  )}
                   <button 
                     type="button" 
                     onClick={refreshCaptcha}
