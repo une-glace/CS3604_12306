@@ -67,8 +67,37 @@ npm run dev
 ```
 
 ### 访问地址
-- 前端应用: http://localhost:5173
+- 前端应用: http://localhost:5174
 - 后端API: http://localhost:3000
+
+## 测试用例运行
+
+### 前置准备
+- 确保已安装依赖并能启动前后端开发服务器
+- 建议先初始化测试数据：
+  - 后端执行 `cd backend && node src/scripts/seedData.js`
+  - 或在开发/测试环境启动时自动加载（已配置）
+
+### 启动服务
+- 启动后端：`cd backend && npm run dev`（默认端口 `3000`）
+- 启动前端：`cd frontend && npm run dev`（默认端口 `5174`）
+
+### 前端端到端测试（Playwright）
+- 安装浏览器驱动（首次需要）：`cd frontend && npx playwright install`
+- 运行全部 E2E：`cd frontend && npm run test:e2e`
+- 运行指定用例：
+  - 用户认证：`npm run test:e2e -- -g 用户认证`
+  - 常用乘车人管理：`npm run test:e2e -- -g 常用乘车人管理`
+  - 车票查询：`npm run test:e2e -- -g 车票查询与筛选`
+  - 车次筛选与条件修改：`npm run test:e2e -- -g 车次筛选与条件修改`
+  - 订票与订单支付：`npm run test:e2e -- -g 订票与订单支付`
+  - 订单中心列表：`npm run test:e2e -- -g 订单中心列表`
+  - 未完成订单去支付：`npm run test:e2e -- -g 订单中心未完成订单去支付`
+  - 从列表点击预订：`npm run test:e2e -- -g 从列表点击预订稳定用例`
+
+### 后端接口测试（Jest + Supertest）
+- 执行：`cd backend && npm test`
+- 覆盖范围：认证、订单创建与状态更新、车次查询等
 
 ## 核心功能模块
 

@@ -72,165 +72,63 @@ const TrainListPage: React.FC = () => {
     navigate('/');
   };
 
-  // 模拟车次数据
-  const mockTrains: TrainInfo[] = [
-    {
-      trainNo: 'G1407',
-      trainType: 'G',
-      fromStation: '上海',
-      toStation: '北京南',
-      fromTime: '12:36',
-      toTime: '02:36',
-      duration: '10:00',
-      fromStationCode: 'SHH',
-      toStationCode: 'VNP',
-      seats: {
-        business: 4,
-        firstClass: '有',
-        secondClass: '有'
-      },
-      canBook: true,
-      isHighSpeed: true
-    },
-    {
-      trainNo: 'G2788',
-      trainType: 'G',
-      fromStation: '上海',
-      toStation: '北京南',
-      fromTime: '12:50',
-      toTime: '04:23',
-      duration: '19:33',
-      fromStationCode: 'SHH',
-      toStationCode: 'VNP',
-      seats: {
-        firstClass: '有',
-        secondClass: '有'
-      },
-      canBook: true,
-      isHighSpeed: true
-    },
-    {
-      trainNo: 'G3087',
-      trainType: 'G',
-      fromStation: '上海虹桥',
-      toStation: '北京南',
-      fromTime: '12:57',
-      toTime: '02:35',
-      duration: '15:38',
-      fromStationCode: 'AOH',
-      toStationCode: 'VNP',
-      seats: {
-        business: 6,
-        firstClass: '有',
-        secondClass: '有'
-      },
-      canBook: true,
-      isHighSpeed: true
-    },
-    {
-      trainNo: 'G1629',
-      trainType: 'G',
-      fromStation: '上海虹桥',
-      toStation: '北京南',
-      fromTime: '13:07',
-      toTime: '09:09',
-      duration: '4:02',
-      fromStationCode: 'AOH',
-      toStationCode: 'VNP',
-      seats: {
-        business: 4,
-        firstClass: 6,
-        secondClass: '有'
-      },
-      canBook: true,
-      isHighSpeed: true
-    },
-    {
-      trainNo: 'G1620',
-      trainType: 'G',
-      fromStation: '上海虹桥',
-      toStation: '北京南',
-      fromTime: '13:30',
-      toTime: '02:46',
-      duration: '4:16',
-      fromStationCode: 'AOH',
-      toStationCode: 'VNP',
-      seats: {
-        business: 4,
-        firstClass: 6,
-        secondClass: '有'
-      },
-      canBook: true,
-      isHighSpeed: true
-    },
-    {
-      trainNo: 'G3789',
-      trainType: 'G',
-      fromStation: '上海',
-      toStation: '北京南',
-      fromTime: '13:15',
-      toTime: '01:17',
-      duration: '16:02',
-      fromStationCode: 'SHH',
-      toStationCode: 'VNP',
-      seats: {
-        firstClass: '有',
-        secondClass: '有'
-      },
-      canBook: true,
-      isHighSpeed: true
-    },
-    {
-      trainNo: 'G7772',
-      trainType: 'G',
-      fromStation: '上海',
-      toStation: '北京南',
-      fromTime: '13:39',
-      toTime: '04:06',
-      duration: '9:27',
-      fromStationCode: 'SHH',
-      toStationCode: 'VNP',
-      seats: {
-        secondClass: '有'
-      },
-      canBook: true,
-      isHighSpeed: true
-    },
-    {
-      trainNo: 'G7723',
-      trainType: 'G',
-      fromStation: '上海',
-      toStation: '北京南',
-      fromTime: '13:47',
-      toTime: '03:58',
-      duration: '9:11',
-      fromStationCode: 'SHH',
-      toStationCode: 'VNP',
-      seats: {
-        secondClass: '有'
-      },
-      canBook: true,
-      isHighSpeed: true
-    }
-  ];
+  // 后端查询映射函数
+  const mapToTrainInfo = (t: any): TrainInfo => {
+    const seats: TrainInfo['seats'] = {};
+    const si = t.seatInfo || {};
+    if (si['商务座']) seats.business = si['商务座'].availableSeats > 0 ? '有' : '无';
+    if (si['一等座']) seats.firstClass = si['一等座'].availableSeats > 0 ? '有' : '无';
+    if (si['二等座']) seats.secondClass = si['二等座'].availableSeats > 0 ? '有' : '无';
+    if (si['硬座']) seats.hardSeat = si['硬座'].availableSeats > 0 ? '有' : '无';
+    if (si['硬卧']) seats.hardSleeper = si['硬卧'].availableSeats > 0 ? '有' : '无';
+    if (si['软卧']) seats.softSleeper = si['软卧'].availableSeats > 0 ? '有' : '无';
+    const canBook = Object.values(si).some((x: any) => x && x.availableSeats > 0);
+    const isHighSpeed = t.trainType === 'G' || t.trainType === 'C';
+    return {
+      trainNo: t.trainNumber,
+      trainType: t.trainType,
+      fromStation: t.fromStation,
+      toStation: t.toStation,
+      fromTime: t.departureTime,
+      toTime: t.arrivalTime,
+      duration: t.duration,
+      fromStationCode: '',
+      toStationCode: '',
+      seats,
+      canBook,
+      isHighSpeed
+    };
+  };
 
   // 初始化数据
   useEffect(() => {
-    // 未选择出发地/目的地时，不展示任何车次
-    if (!fromStation || !toStation) {
-      setTrains([]);
-      setFilteredTrains([]);
-      setLoading(false);
-      return;
-    }
-
-    setLoading(true);
-    // 模拟API调用延迟
-    setTimeout(() => {
-      setTrains(mockTrains);
-      setFilteredTrains(mockTrains);
-      setLoading(false);
-    }, 1000);
+    const fetch = async () => {
+      if (!fromStation || !toStation) {
+        setTrains([]);
+        setFilteredTrains([]);
+        setLoading(false);
+        return;
+      }
+      setLoading(true);
+      try {
+        const { searchTrains } = await import('../services/trainService');
+        const list = await searchTrains({
+          fromStation,
+          toStation,
+          departureDate: departDate,
+        });
+        const mapped = list.map(mapToTrainInfo);
+        setTrains(mapped);
+        setFilteredTrains(mapped);
+      } catch (e) {
+        console.error('加载车次失败', e);
+        setTrains([]);
+        setFilteredTrains([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetch();
   }, [fromStation, toStation, departDate]);
 
   // 处理筛选条件变化（横向筛选栏）

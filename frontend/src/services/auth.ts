@@ -74,6 +74,16 @@ export const getCurrentUser = async (): Promise<ApiResponse<{ user: User }>> => 
   }
 };
 
+// 更新个人信息（目前仅支持邮箱）
+export const updateProfile = async (payload: { email: string }): Promise<ApiResponse<{ email: string }>> => {
+  try {
+    const response = await put('/auth/profile', payload);
+    return response;
+  } catch (error: any) {
+    throw new Error(error.message || '更新个人信息失败');
+  }
+};
+
 // 用户登出
 export const logoutUser = async (): Promise<void> => {
   try {

@@ -162,6 +162,118 @@ const initTrainData = async () => {
         distance: 1318,
         status: 'active'
       }
+      ,
+      // 测试文档指定车次（2025-12-15 / 2025-12-16）
+      {
+        trainNumber: 'G101',
+        trainType: 'G',
+        fromStation: '北京南',
+        toStation: '上海虹桥',
+        departureTime: '08:00',
+        arrivalTime: '13:28',
+        duration: '5小时28分',
+        distance: 1318,
+        status: 'active'
+      },
+      {
+        trainNumber: 'D313',
+        trainType: 'D',
+        fromStation: '北京南',
+        toStation: '上海虹桥',
+        departureTime: '14:20',
+        arrivalTime: '22:50',
+        duration: '8小时30分',
+        distance: 1318,
+        status: 'active'
+      },
+      {
+        trainNumber: 'K511',
+        trainType: 'K',
+        fromStation: '北京西',
+        toStation: '上海',
+        departureTime: '19:15',
+        arrivalTime: '14:45+1',
+        duration: '19小时30分',
+        distance: 1463,
+        status: 'active'
+      },
+      {
+        trainNumber: 'G7001',
+        trainType: 'G',
+        fromStation: '南京南',
+        toStation: '上海虹桥',
+        departureTime: '09:30',
+        arrivalTime: '11:00',
+        duration: '1小时30分',
+        distance: 301,
+        status: 'active'
+      },
+      {
+        trainNumber: 'D5401',
+        trainType: 'D',
+        fromStation: '南京南',
+        toStation: '上海虹桥',
+        departureTime: '15:45',
+        arrivalTime: '17:15',
+        duration: '1小时30分',
+        distance: 301,
+        status: 'active'
+      },
+      {
+        trainNumber: 'G7002',
+        trainType: 'G',
+        fromStation: '上海虹桥',
+        toStation: '南京南',
+        departureTime: '12:00',
+        arrivalTime: '13:30',
+        duration: '1小时30分',
+        distance: 301,
+        status: 'active'
+      },
+      {
+        trainNumber: 'G103',
+        trainType: 'G',
+        fromStation: '北京南',
+        toStation: '上海虹桥',
+        departureTime: '08:30',
+        arrivalTime: '13:58',
+        duration: '5小时28分',
+        distance: 1318,
+        status: 'active'
+      },
+      {
+        trainNumber: 'D315',
+        trainType: 'D',
+        fromStation: '北京南',
+        toStation: '上海虹桥',
+        departureTime: '14:50',
+        arrivalTime: '23:20',
+        duration: '8小时30分',
+        distance: 1318,
+        status: 'active'
+      },
+      {
+        trainNumber: 'G153',
+        trainType: 'G',
+        fromStation: '北京南',
+        toStation: '南京南',
+        departureTime: '10:45',
+        arrivalTime: '14:15',
+        duration: '3小时30分',
+        distance: 1018,
+        status: 'active'
+      },
+      {
+        trainNumber: 'G7003',
+        trainType: 'G',
+        fromStation: '南京南',
+        toStation: '上海虹桥',
+        departureTime: '10:00',
+        arrivalTime: '11:30',
+        duration: '1小时30分',
+        distance: 301,
+        status: 'active'
+      }
     ];
 
     // 创建车次数据
@@ -204,8 +316,14 @@ const initSeatData = async () => {
           ];
         } else if (train.trainType === 'D') {
           seatConfig = [
-            { seatType: '一等座', totalSeats: 48, price: 144 },
-            { seatType: '二等座', totalSeats: 152, price: 89 }
+            { seatType: '一等座', totalSeats: 48, price: 428 },
+            { seatType: '二等座', totalSeats: 152, price: 428 }
+          ];
+        } else if (train.trainType === 'K') {
+          seatConfig = [
+            { seatType: '硬座', totalSeats: 240, price: 156 },
+            { seatType: '硬卧', totalSeats: 120, price: 320 },
+            { seatType: '软卧', totalSeats: 64, price: 520 }
           ];
         }
 
@@ -221,6 +339,27 @@ const initSeatData = async () => {
               ...seat,
               availableSeats: seat.totalSeats
             }
+          });
+        }
+      }
+    }
+
+    // 添加测试文档指定日期的座位数据（2025-12-15 / 2025-12-16）
+    const specificDates = ['2025-12-15', '2025-12-16'];
+    const specificSeatPrice = {
+      G: { '商务座': 1748, '一等座': 933, '二等座': 553 },
+      D: { '一等座': 428, '二等座': 428 },
+      K: { '硬座': 156, '硬卧': 320, '软卧': 520 }
+    };
+    const specificTrains = ['G101','D313','K511','G7001','D5401','G7002','G103','D315','G153','G7003'];
+    for (const dateString of specificDates) {
+      for (const train of trains) {
+        if (!specificTrains.includes(train.trainNumber)) continue;
+        const cfg = specificSeatPrice[train.trainType] || {};
+        for (const [seatType, price] of Object.entries(cfg)) {
+          await TrainSeat.findOrCreate({
+            where: { trainNumber: train.trainNumber, date: dateString, seatType },
+            defaults: { totalSeats: 200, availableSeats: 200, price }
           });
         }
       }

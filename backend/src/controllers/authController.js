@@ -2,6 +2,7 @@ const User = require('../models/User');
 const { validateRegisterData, validateUsername, validatePassword } = require('../utils/validation');
 const { hashPassword, comparePassword, generateToken } = require('../utils/auth');
 const { createDefaultPassenger } = require('./passengerController');
+const { validateEmail } = require('../utils/validation');
 
 // 用户注册
 const register = async (req, res) => {
@@ -269,5 +270,27 @@ const getCurrentUser = async (req, res) => {
 module.exports = {
   register,
   login,
-  getCurrentUser
+  getCurrentUser,
+  // 更新个人信息（目前仅支持邮箱）
+  updateProfile: async (req, res) => {
+    try {
+      const { email } = req.body;
+      const emailValidation = validateEmail(email);
+      if (!emailValidation.isValid) {
+        return res.status(400).json({ success: false, message: emailValidation.message });
+      }
+
+      const user = await User.findByPk(req.user.id);
+      if (!user) {
+        return res.status(404).json({ success: false, message: '用户不存在' });
+      }
+
+      await user.update({ email });
+
+      res.json({ success: true, message: '更新成功', data: { email } });
+    } catch (error) {
+      console.error('更新个人信息错误:', error);
+      res.status(500).json({ success: false, message: '服务器内部错误' });
+    }
+  }
 };

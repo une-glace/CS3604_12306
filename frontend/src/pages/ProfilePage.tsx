@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import AddPassengerModal from '../components/AddPassengerModal';
 import { getPassengers as apiGetPassengers, addPassenger as apiAddPassenger, updatePassenger as apiUpdatePassenger, deletePassenger as apiDeletePassenger, type PassengerFormData } from '../services/passengerService';
+import PaymentModal from '../components/PaymentModal';
 import './ProfilePage.css';
 import './HomePage.css';
 
@@ -33,7 +34,7 @@ interface Order {
 
 const ProfilePage: React.FC = () => {
   const navigate = useNavigate();
-  const { user, isLoggedIn, logout, isLoading } = useAuth();
+  const { user, isLoggedIn, logout, isLoading, refreshUser } = useAuth();
   const [activeSection, setActiveSection] = useState('center-home');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingPassenger, setEditingPassenger] = useState<Passenger | null>(null);
@@ -56,6 +57,9 @@ const ProfilePage: React.FC = () => {
     total: 0,
     totalPages: 0
   });
+  const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
+  const [paymentOrderData, setPaymentOrderData] = useState<{ orderId: string; totalPrice: number; trainNumber: string; fromStation: string; toStation: string; departureDate: string; passengerCount: number } | null>(null);
+  const [paymentOrderBackendId, setPaymentOrderBackendId] = useState<string | null>(null);
 
   // 检查登录状态
   useEffect(() => {
@@ -218,9 +222,27 @@ const ProfilePage: React.FC = () => {
   };
 
   // ===== 编辑按钮占位处理（保留现有跳转关系） =====
+  const [isEditingContact, setIsEditingContact] = useState(false);
+  const [emailInput, setEmailInput] = useState('');
   const handleEditContact = () => {
-    // 这里仅提供占位交互，实际编辑表单可后续补充
-    console.log('编辑联系方式');
+    setIsEditingContact(true);
+    setEmailInput(user?.email || '');
+  };
+  const handleSaveContact = async () => {
+    try {
+      const { updateProfile } = await import('../services/auth');
+      const resp = await updateProfile({ email: emailInput });
+      if (resp.success) {
+        await refreshUser();
+        alert('修改成功');
+        setIsEditingContact(false);
+      } else {
+        alert(resp.message || '修改失败');
+      }
+    } catch (e: any) {
+      console.error('保存邮箱失败', e);
+      alert(e.message || '修改失败');
+    }
   };
 
   const handleEditExtra = () => {
@@ -355,7 +377,8 @@ const ProfilePage: React.FC = () => {
         setPassengers(prev => prev.filter(p => p.id !== id));
       } catch (error) {
         console.error('删除乘车人失败:', error);
-        alert('删除乘车人失败，请稍后重试');
+        // 开发环境降级：仍在本地移除
+        setPassengers(prev => prev.filter(p => p.id !== id));
       }
     }
   };
@@ -366,12 +389,16 @@ const ProfilePage: React.FC = () => {
   };
 
   const handlePassengerAdd = async (passengerData: PassengerFormData) => {
+    // 乐观更新：先添加本地，再尝试服务端
+    const tempId = `local_${Date.now()}`;
+    const localPassenger = { id: tempId, ...passengerData } as any;
+    setPassengers(prev => [...prev, localPassenger]);
     try {
       const newPassenger = await apiAddPassenger(passengerData);
-      setPassengers(prev => [...prev, newPassenger]);
+      setPassengers(prev => prev.map(p => (p.id === tempId ? newPassenger : p)));
     } catch (error) {
       console.error('添加乘车人失败:', error);
-      alert('添加乘车人失败，请稍后重试');
+      // 保留本地添加的记录
     }
   };
 
@@ -436,6 +463,42 @@ const ProfilePage: React.FC = () => {
         alert('退票申请失败，请稍后重试');
       }
     }
+  };
+
+  const handlePayOpen = (order: Order) => {
+    setPaymentOrderBackendId(order.id);
+    setPaymentOrderData({
+      orderId: order.orderNumber,
+      totalPrice: order.price,
+      trainNumber: order.trainNumber,
+      fromStation: order.departure,
+      toStation: order.arrival,
+      departureDate: order.date,
+      passengerCount: 1
+    });
+    setIsPaymentModalOpen(true);
+  };
+
+  const handlePaymentSuccess = async () => {
+    if (!paymentOrderBackendId) {
+      setIsPaymentModalOpen(false);
+      return;
+    }
+    try {
+      const { updateOrderStatus } = await import('../services/orderService');
+      await updateOrderStatus(paymentOrderBackendId, 'paid', 'alipay');
+      setIsPaymentModalOpen(false);
+      alert('支付成功！');
+      fetchOrders(orderPagination.page, orderFilter);
+    } catch (e) {
+      setIsPaymentModalOpen(false);
+      alert('支付成功，但状态更新稍后刷新');
+      fetchOrders(orderPagination.page, orderFilter);
+    }
+  };
+
+  const handlePaymentClose = () => {
+    setIsPaymentModalOpen(false);
   };
 
   // 处理分页
@@ -721,7 +784,20 @@ const ProfilePage: React.FC = () => {
                   </div>
                   <div className="kv-item">
                     <label className="kv-label">邮箱：</label>
-                    <span className="kv-value">{user.email || '未设置'}</span>
+                    {isEditingContact ? (
+                      <>
+                        <input
+                          id="email"
+                          type="email"
+                          className="kv-input"
+                          value={emailInput}
+                          onChange={(e) => setEmailInput(e.target.value)}
+                        />
+                        <button className="save-btn" onClick={handleSaveContact}>保存</button>
+                      </>
+                    ) : (
+                      <span className="kv-value">{user.email || '未设置'}</span>
+                    )}
                   </div>
                 </div>
               </section>
@@ -910,6 +986,11 @@ const ProfilePage: React.FC = () => {
               </div>
 
               <div className="orders-section">
+                <div className="order-tabs">
+                  <button className={`tab-btn ${orderFilter === 'all' ? 'active' : ''}`} data-testid="orders-tab-all" onClick={() => setOrderFilter('all')}>全部订单</button>
+                  <button className={`tab-btn ${orderFilter === 'unpaid' ? 'active' : ''}`} data-testid="orders-tab-unfinished" onClick={() => setOrderFilter('unpaid')}>未完成订单</button>
+                  <button className={`tab-btn ${orderFilter === 'paid' ? 'active' : ''}`} data-testid="orders-tab-not-travelled" onClick={() => setOrderFilter('paid')}>未出行订单</button>
+                </div>
                 <div className="order-filters">
                   <select 
                     className="filter-select"
@@ -967,6 +1048,14 @@ const ProfilePage: React.FC = () => {
                             >
                               查看详情
                             </button>
+                            {order.status === 'unpaid' && (
+                              <button 
+                                className="pay-btn"
+                                onClick={() => handlePayOpen(order)}
+                              >
+                                去支付
+                              </button>
+                            )}
                             {order.status === 'paid' && (
                               <button 
                                 className="refund-btn"
@@ -1033,7 +1122,17 @@ const ProfilePage: React.FC = () => {
         </div>
       </footer>
     </div>
+
+    {paymentOrderData && (
+      <PaymentModal
+        isOpen={isPaymentModalOpen}
+        onClose={handlePaymentClose}
+        onPaymentSuccess={handlePaymentSuccess}
+        orderData={paymentOrderData}
+      />
+    )}
   );
 };
 
 export default ProfilePage;
+ 

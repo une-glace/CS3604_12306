@@ -3,6 +3,7 @@ const cors = require('cors');
 const helmet = require('helmet');
 const morgan = require('morgan');
 require('dotenv').config();
+const { seedData } = require('./scripts/seedData');
 
 // 导入数据库和路由
 const { testConnection, syncDatabase } = require('./models');
@@ -17,7 +18,7 @@ const PORT = process.env.PORT || 3000;
 // 中间件配置
 app.use(helmet());
 app.use(cors({
-  origin: process.env.CORS_ORIGIN || 'http://localhost:5173',
+  origin: process.env.CORS_ORIGIN || 'http://localhost:5174',
   credentials: true
 }));
 app.use(morgan('combined'));
@@ -75,9 +76,14 @@ app.listen(PORT, async () => {
   // 测试数据库连接
   await testConnection();
   
-  // 同步数据库表结构（开发环境）
-  if (process.env.NODE_ENV === 'development') {
-    await syncDatabase(false); // false表示不强制重建表
+  // 同步数据库表结构（开发/测试环境）
+  if (process.env.NODE_ENV === 'development' || process.env.NODE_ENV === 'test') {
+    await syncDatabase(false);
+    try {
+      await seedData();
+    } catch (e) {
+      console.error('种子数据初始化失败:', e.message);
+    }
   }
 });
 
