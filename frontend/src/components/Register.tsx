@@ -25,9 +25,9 @@ interface RegisterProps {
   onNavigateToLogin: () => void;
 }
 
-const Register: React.FC<RegisterProps> = ({ onNavigateToLogin }) => {
+const Register: React.FC<RegisterProps> = () => {
   const navigate = useNavigate();
-  const { user, isLoggedIn, login, logout } = useAuth();
+  const { isLoggedIn, login, logout } = useAuth();
   const [currentStep, setCurrentStep] = useState(1);
   const [formData, setFormData] = useState<RegisterFormData>({
     username: '',
@@ -62,44 +62,10 @@ const Register: React.FC<RegisterProps> = ({ onNavigateToLogin }) => {
   ];
 
   // 验证规则
-  const validateUsername = (username: string): boolean => {
-    const regex = /^[A-Za-z]{1}([A-Za-z0-9]|[_]){0,29}$/;
-    return regex.test(username);
-  };
-
-  const validatePassword = (password: string): boolean => {
-    return password.length >= 6;
-  };
-
-  const validateEmail = (email: string): boolean => {
-    const regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    return regex.test(email);
-  };
 
   const validatePhoneNumber = (phone: string): boolean => {
     const regex = /^1[3-9]\d{9}$/;
     return regex.test(phone);
-  };
-
-  const validateIdNumber = (idNumber: string, idType: string): boolean => {
-    if (idType === '1') {
-      // 中国居民身份证验证
-      const regex = /^[1-9]\d{5}(18|19|20)\d{2}((0[1-9])|(1[0-2]))(([0-2][1-9])|10|20|30|31)\d{3}[0-9Xx]$/;
-      if (!regex.test(idNumber)) return false;
-      
-      // 校验码验证
-      const weights = [7, 9, 10, 5, 8, 4, 2, 1, 6, 3, 7, 9, 10, 5, 8, 4, 2];
-      const checkCodes = ['1', '0', 'X', '9', '8', '7', '6', '5', '4', '3', '2'];
-      
-      let sum = 0;
-      for (let i = 0; i < 17; i++) {
-        sum += parseInt(idNumber[i]) * weights[i];
-      }
-      
-      const checkCode = checkCodes[sum % 11];
-      return idNumber[17].toUpperCase() === checkCode;
-    }
-    return idNumber.length >= 8; // 其他证件类型简单长度验证
   };
 
   // 处理输入变化
@@ -304,7 +270,7 @@ const Register: React.FC<RegisterProps> = ({ onNavigateToLogin }) => {
                         name="username"
                         value={formData.username}
                         onChange={handleInputChange}
-                        placeholder="6-30位字母、数字或'_'，字母开头"
+                        placeholder="6-30位字母、数字、空格或'_'，字母开头"
                         className={errors.username ? 'error' : ''}
                       />
                       {errors.username && <span className="error-message">{errors.username}</span>}

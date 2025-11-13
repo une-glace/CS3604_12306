@@ -7,6 +7,8 @@ const searchTrains = async (req, res) => {
     const { 
       fromStation, 
       toStation, 
+      fromStations, // 支持多出发站
+      toStations,   // 支持多到达站
       departureDate,
       trainType,
       page = 1,
@@ -14,17 +16,37 @@ const searchTrains = async (req, res) => {
     } = req.query;
 
     // 验证必要参数
-    if (!fromStation || !toStation || !departureDate) {
+    if (!departureDate) {
       return res.status(400).json({
         success: false,
-        message: '出发站、到达站和出发日期不能为空'
+        message: '出发日期不能为空'
+      });
+    }
+
+    // 处理多车站查询
+    const fromStationList = fromStations ? 
+      (Array.isArray(fromStations) ? fromStations : [fromStations]) : 
+      (fromStation ? [fromStation] : []);
+      
+    const toStationList = toStations ? 
+      (Array.isArray(toStations) ? toStations : [toStations]) : 
+      (toStation ? [toStation] : []);
+
+    if (fromStationList.length === 0 || toStationList.length === 0) {
+      return res.status(400).json({
+        success: false,
+        message: '出发站和到达站不能为空'
       });
     }
 
     const offset = (page - 1) * limit;
     const whereClause = {
-      fromStation,
-      toStation,
+      fromStation: {
+        [Op.in]: fromStationList
+      },
+      toStation: {
+        [Op.in]: toStationList
+      },
       status: 'active'
     };
 

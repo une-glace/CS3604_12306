@@ -56,6 +56,8 @@ const TrainListPage: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [showLoginModal, setShowLoginModal] = useState(false);
   const [selectedTrain, setSelectedTrain] = useState<TrainInfo | null>(null);
+  const [fromStations, setFromStations] = useState<string[]>([]);
+  const [toStations, setToStations] = useState<string[]>([]);
 
   // 头部操作：与首页保持一致
   const handleProfileClick = () => {
@@ -112,11 +114,23 @@ const TrainListPage: React.FC = () => {
       setLoading(true);
       try {
         const { searchTrains } = await import('../services/trainService');
-        const list = await searchTrains({
+        
+        // 如果有城市级别的车站筛选，使用多车站查询
+        const searchParams: any = {
           fromStation,
           toStation,
           departureDate: departDate,
-        });
+        };
+        
+        // 如果有多车站筛选，添加到查询参数
+        if (fromStations.length > 0) {
+          searchParams.fromStations = fromStations;
+        }
+        if (toStations.length > 0) {
+          searchParams.toStations = toStations;
+        }
+        
+        const list = await searchTrains(searchParams);
         const mapped = list.map(mapToTrainInfo);
         setTrains(mapped);
         setFilteredTrains(mapped);
@@ -129,7 +143,7 @@ const TrainListPage: React.FC = () => {
       }
     };
     fetch();
-  }, [fromStation, toStation, departDate]);
+  }, [fromStation, toStation, departDate, fromStations, toStations]);
 
   // 处理筛选条件变化（横向筛选栏）
   const handleFiltersChange = (filters: any) => {
@@ -333,6 +347,10 @@ const TrainListPage: React.FC = () => {
         passengerType="adult"
         trainType="all"
         onConditionsChange={handleConditionsChange}
+        onStationFilterChange={(filters) => {
+          setFromStations(filters.fromStations || []);
+          setToStations(filters.toStations || []);
+        }}
       />
 
       {/* 横向筛选栏：置于查询栏下方 */}

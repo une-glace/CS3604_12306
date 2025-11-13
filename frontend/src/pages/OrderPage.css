@@ -735,6 +735,24 @@
 }
 .chooser-label {
   color: #666;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.refresh-passengers-btn {
+  background: none;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  padding: 4px 8px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: all 0.3s ease;
+}
+
+.refresh-passengers-btn:hover {
+  background-color: #f0f0f0;
+  border-color: #999;
 }
 .chooser-list {
   display: flex;

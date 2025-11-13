@@ -33,7 +33,7 @@ const Login: React.FC<LoginProps> = ({ onNavigateToRegister }) => {
 
   // 验证用户名格式
   const validateUsername = (username: string): boolean => {
-    const usernameRegex = /^[A-Za-z]{1}([A-Za-z0-9]|[_]){0,29}$/;
+    const usernameRegex = /^[A-Za-z]{1}([A-Za-z0-9]|[_ ]|[A-Za-z0-9_ ]){0,29}$/;
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     return usernameRegex.test(username) || emailRegex.test(username);
   };
@@ -68,7 +68,7 @@ const Login: React.FC<LoginProps> = ({ onNavigateToRegister }) => {
     if (!formData.username.trim()) {
       newErrors.username = '请输入用户名或邮箱';
     } else if (!validateUsername(formData.username)) {
-      newErrors.username = '用户名格式不正确（6-30位字母、数字或"_"，字母开头）或邮箱格式不正确';
+      newErrors.username = '用户名格式不正确（6-30位字母、数字、空格或"_"，字母开头）或邮箱格式不正确';
     }
 
     if (!formData.password) {

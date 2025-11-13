@@ -1,4 +1,4 @@
-import { post, get, setAuthToken, clearAuthToken } from './api';
+import { post, get, put, setAuthToken, clearAuthToken } from './api';
 import { type User } from '../types/user';
 
 // 登录数据接口

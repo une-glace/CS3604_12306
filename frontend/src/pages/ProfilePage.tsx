@@ -60,6 +60,10 @@ const ProfilePage: React.FC = () => {
   const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
   const [paymentOrderData, setPaymentOrderData] = useState<{ orderId: string; totalPrice: number; trainNumber: string; fromStation: string; toStation: string; departureDate: string; passengerCount: number } | null>(null);
   const [paymentOrderBackendId, setPaymentOrderBackendId] = useState<string | null>(null);
+  
+  // ===== 编辑按钮占位处理（保留现有跳转关系） =====
+  const [isEditingContact, setIsEditingContact] = useState(false);
+  const [emailInput, setEmailInput] = useState('');
 
   // 检查登录状态
   useEffect(() => {
@@ -139,10 +143,6 @@ const ProfilePage: React.FC = () => {
     return null;
   }
 
-  const handleBackToHome = () => {
-    navigate('/');
-  };
-
   const handleLogout = async () => {
     if (window.confirm('确定要退出登录吗？')) {
       await logout();
@@ -221,9 +221,6 @@ const ProfilePage: React.FC = () => {
     return type;
   };
 
-  // ===== 编辑按钮占位处理（保留现有跳转关系） =====
-  const [isEditingContact, setIsEditingContact] = useState(false);
-  const [emailInput, setEmailInput] = useState('');
   const handleEditContact = () => {
     setIsEditingContact(true);
     setEmailInput(user?.email || '');
@@ -280,9 +277,12 @@ const ProfilePage: React.FC = () => {
            passenger: order.passengers?.[0]?.passengerName || order.passenger || '未知',
            seat: order.passengers?.[0]?.seatNumber || order.seat || '待分配',
            price: order.totalPrice || order.price,
-           status: (order.status === 'pending' ? 'unpaid' : 
-                  order.status === 'paid' ? 'paid' :
-                  order.status === 'cancelled' ? 'cancelled' : 'refunded') as 'paid' | 'unpaid' | 'cancelled' | 'refunded'
+          status: (
+            order.status === 'unpaid' ? 'unpaid' :
+            order.status === 'paid' ? 'paid' :
+            order.status === 'cancelled' ? 'cancelled' :
+            order.status === 'refunded' ? 'refunded' : 'unpaid'
+          ) as 'paid' | 'unpaid' | 'cancelled' | 'refunded'
          }));
         
         setOrders(formattedOrders);
@@ -331,9 +331,12 @@ const ProfilePage: React.FC = () => {
               passenger: order.passengers?.[0]?.passengerName || '未知',
               seat: order.passengers?.[0]?.seatNumber || '待分配',
               price: order.totalPrice,
-              status: order.status === 'pending' ? 'unpaid' : 
-                     order.status === 'paid' ? 'paid' :
-                     order.status === 'cancelled' ? 'cancelled' : 'refunded'
+              status: (
+                order.status === 'unpaid' ? 'unpaid' :
+                order.status === 'paid' ? 'paid' :
+                order.status === 'cancelled' ? 'cancelled' :
+                order.status === 'refunded' ? 'refunded' : 'unpaid'
+              )
             }));
             
             setOrders(formattedOrders);
@@ -389,16 +392,13 @@ const ProfilePage: React.FC = () => {
   };
 
   const handlePassengerAdd = async (passengerData: PassengerFormData) => {
-    // 乐观更新：先添加本地，再尝试服务端
-    const tempId = `local_${Date.now()}`;
-    const localPassenger = { id: tempId, ...passengerData } as any;
-    setPassengers(prev => [...prev, localPassenger]);
     try {
       const newPassenger = await apiAddPassenger(passengerData);
-      setPassengers(prev => prev.map(p => (p.id === tempId ? newPassenger : p)));
-    } catch (error) {
+      setPassengers(prev => [...prev, newPassenger]);
+      alert('乘车人添加成功');
+    } catch (error: any) {
       console.error('添加乘车人失败:', error);
-      // 保留本地添加的记录
+      alert(error?.message || '添加乘车人失败，请检查姓名（需中文）、证件号码与手机号格式');
     }
   };
 

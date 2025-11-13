@@ -20,7 +20,7 @@ interface BookingData {
 
 const HomePage: React.FC = () => {
   const navigate = useNavigate();
-  const { user, isLoggedIn, logout } = useAuth();
+  const { isLoggedIn, logout } = useAuth();
 
   const carouselItems: CarouselItem[] = [
     { id: 1, image: '/homepage/Carousel/Carousel_1.jpg', title: '轮播一' },

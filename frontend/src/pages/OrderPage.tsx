@@ -117,7 +117,7 @@ const OrderPage: React.FC = () => {
               name: user.realName,
               idCard: user.idNumber,
               phone: user.phoneNumber,
-              passengerType: '成人',
+              passengerType: '成人' as const,
               idType: user.idType,
               isDefault: true
             });
@@ -148,7 +148,7 @@ const OrderPage: React.FC = () => {
               name: user.realName,
               idCard: user.idNumber,
               phone: user.phoneNumber,
-              passengerType: '成人',
+              passengerType: '成人' as const,
               idType: user.idType,
               isDefault: true
             }
@@ -186,6 +186,47 @@ const OrderPage: React.FC = () => {
     fetchSeatInfo();
   }, [location, user]);
 
+  // 刷新乘车人列表
+  const refreshPassengers = async () => {
+    try {
+      const { getPassengers } = await import('../services/passengerService');
+      const passengerList = await getPassengers();
+
+      // 若后端乘车人列表未包含"本人"，则前端注入，保持与个人中心一致
+      let normalized = passengerList.slice();
+      if (user) {
+        const hasSelf = normalized.some(p => p.isDefault || (p.name === user.realName && p.idCard === user.idNumber));
+        if (!hasSelf) {
+          normalized.unshift({
+            id: 'self',
+            name: user.realName,
+            idCard: user.idNumber,
+            phone: user.phoneNumber,
+            passengerType: '成人' as const,
+            idType: user.idType,
+            isDefault: true
+          });
+        }
+      }
+
+      setPassengers(normalized);
+      
+      // 如果当前选中的乘客不在新列表中，清空选择
+      const validSelectedPassengers = selectedPassengers.filter(id => 
+        normalized.some(p => p.id === id)
+      );
+      
+      if (validSelectedPassengers.length !== selectedPassengers.length) {
+        setSelectedPassengers(validSelectedPassengers);
+        setTicketInfos(prev => prev.filter(info => 
+          validSelectedPassengers.includes(info.passengerId)
+        ));
+      }
+    } catch (error) {
+      console.error('刷新乘车人信息失败:', error);
+    }
+  };
+
   const handlePassengerSelect = (passengerId: string) => {
     const isSelected = selectedPassengers.includes(passengerId);
     if (isSelected) {
@@ -207,6 +248,30 @@ const OrderPage: React.FC = () => {
       }
     }
   };
+
+  // 监听页面可见性变化，自动刷新乘车人列表
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (!document.hidden) {
+        // 页面变为可见时刷新乘车人列表
+        refreshPassengers();
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    
+    // 同时监听窗口焦点事件，确保从其他标签页返回时刷新
+    const handleFocus = () => {
+      refreshPassengers();
+    };
+    
+    window.addEventListener('focus', handleFocus);
+
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+      window.removeEventListener('focus', handleFocus);
+    };
+  }, []);
   
   // 更新票种（成人/儿童/学生）
   const handleTicketTypeChange = (passengerId: string, ticketType: TicketInfo['ticketType']) => {
@@ -480,8 +545,10 @@ const OrderPage: React.FC = () => {
     try {
       // 调用后端API保存乘车人到数据库
       const { addPassenger } = await import('../services/passengerService');
-      const newPassenger = await addPassenger(passengerData);
-      setPassengers(prev => [...prev, newPassenger]);
+      await addPassenger(passengerData);
+      // 使用刷新函数重新获取完整列表，确保与个人中心同步
+      await refreshPassengers();
+      alert('乘车人添加成功！');
     } catch (error) {
       console.error('添加乘车人失败:', error);
       alert('添加乘车人失败，请稍后重试');
@@ -631,7 +698,12 @@ const OrderPage: React.FC = () => {
           </div>
 
           <div className="passenger-chooser">
-            <div className="chooser-label">乘车人</div>
+            <div className="chooser-label">
+              乘车人
+              <button className="refresh-passengers-btn" onClick={refreshPassengers} title="刷新乘车人列表">
+                🔄
+              </button>
+            </div>
             <div className="chooser-list">
               {passengers.map(p => (
                 <label key={p.id} className="chooser-item">

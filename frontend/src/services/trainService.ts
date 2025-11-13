@@ -51,11 +51,30 @@ export const searchTrains = async (
     trainType?: string;
     page?: number;
     limit?: number;
+    fromStations?: string[]; // 支持多车站查询
+    toStations?: string[];   // 支持多车站查询
   }
 ): Promise<SearchTrainItem[]> => {
   const qs = new URLSearchParams();
-  qs.set('fromStation', params.fromStation);
-  qs.set('toStation', params.toStation);
+  
+  // 如果有多个出发车站，使用数组格式
+  if (params.fromStations && params.fromStations.length > 0) {
+    params.fromStations.forEach(station => {
+      qs.append('fromStations', station);
+    });
+  } else {
+    qs.set('fromStation', params.fromStation);
+  }
+  
+  // 如果有多个到达车站，使用数组格式
+  if (params.toStations && params.toStations.length > 0) {
+    params.toStations.forEach(station => {
+      qs.append('toStations', station);
+    });
+  } else {
+    qs.set('toStation', params.toStation);
+  }
+  
   qs.set('departureDate', params.departureDate);
   if (params.trainType) qs.set('trainType', params.trainType);
   if (params.page) qs.set('page', String(params.page));

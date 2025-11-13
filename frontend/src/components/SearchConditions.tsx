@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
+import { parseCityStationInput } from '../utils/cityStationMap';
 import './SearchConditions.css';
 
 interface SearchConditionsProps {
@@ -10,6 +11,7 @@ interface SearchConditionsProps {
   returnDate?: string;
   tripType?: 'single' | 'round';
   onConditionsChange?: (conditions: SearchConditions) => void;
+  onStationFilterChange?: (filters: { fromStations?: string[]; toStations?: string[] }) => void;
 }
 
 interface SearchConditions {
@@ -29,6 +31,7 @@ const SearchConditions: React.FC<SearchConditionsProps> = ({
   passengerType,
   trainType,
   onConditionsChange,
+  onStationFilterChange,
   returnDate = '',
   tripType = 'single'
 }) => {
@@ -42,6 +45,23 @@ const SearchConditions: React.FC<SearchConditionsProps> = ({
     tripType
   });
   const [errorMessage, setErrorMessage] = useState<string>('');
+  // 智能解析输入并自动设置车站筛选
+  const getAutoStationFilters = useCallback(() => {
+    const fromResult = parseCityStationInput(conditions.fromStation);
+    const toResult = parseCityStationInput(conditions.toStation);
+    
+    const filters: { fromStations?: string[]; toStations?: string[] } = {};
+    
+    if (fromResult.isCity) {
+      filters.fromStations = fromResult.stations;
+    }
+    
+    if (toResult.isCity) {
+      filters.toStations = toResult.stations;
+    }
+    
+    return filters;
+  }, [conditions.fromStation, conditions.toStation]);
 
   // 日期范围：今天至30天后
   const getTodayString = () => {
@@ -70,11 +90,6 @@ const SearchConditions: React.FC<SearchConditionsProps> = ({
 
   const handlePassengerTypeChange = (type: 'adult' | 'student') => {
     const newConditions = { ...conditions, passengerType: type };
-    setConditions(newConditions);
-  };
-
-  const handleTrainTypeChange = (type: 'all' | 'high_speed') => {
-    const newConditions = { ...conditions, trainType: type };
     setConditions(newConditions);
   };
 
@@ -116,6 +131,13 @@ const SearchConditions: React.FC<SearchConditionsProps> = ({
       return;
     }
     setErrorMessage('');
+    
+    // 自动获取车站筛选信息并传递
+    const autoFilters = getAutoStationFilters();
+    if (autoFilters.fromStations || autoFilters.toStations) {
+      onStationFilterChange?.(autoFilters);
+    }
+    
     onConditionsChange?.(conditions);
   };
 
@@ -243,8 +265,6 @@ const SearchConditions: React.FC<SearchConditionsProps> = ({
           </div>
         )}
       </div>
-
-      {/* 已移除：查询栏下方的日期导航行 */}
     </div>
   );
 };
