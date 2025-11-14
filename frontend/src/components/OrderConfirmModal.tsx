@@ -70,10 +70,31 @@ const OrderConfirmModal: React.FC<OrderConfirmModalProps> = ({
     return `${id.slice(0,4)}${'*'.repeat(len - 7)}${id.slice(len-3)}`;
   };
 
+  const formatIdType = (idType?: string) => {
+    if (!idType) return '中国居民身份证';
+    const t = idType.toLowerCase();
+    if (t === '1' || t === 'id_card') return '中国居民身份证';
+    if (t === '2') return '外国人永久身份证';
+    if (t === '3') return '港澳台居民身份证';
+    return idType;
+  };
+
   const getPassengerById = (pid: string) => passengers.find(p => p.id === pid);
 
-  const secondClassLeft = seatInfo?.['二等座']?.availableSeats;
-  const noSeatLeft = seatInfo?.['无座']?.availableSeats;
+  const buildStockText = () => {
+    if (!seatInfo || Object.keys(seatInfo).length === 0) return '';
+    const parts: string[] = [];
+    Object.entries(seatInfo).forEach(([type, info]) => {
+      if (typeof info.availableSeats === 'number') {
+        parts.push(`${type}余票${info.availableSeats}张`);
+      } else if (info.isAvailable) {
+        parts.push(`${type}有票`);
+      } else {
+        parts.push(`${type}无票`);
+      }
+    });
+    return parts.join('，') + '。';
+  };
 
   const [selectedCodes, setSelectedCodes] = useState<string[]>([]);
   const toggleSeat = (code: string) => {
@@ -120,7 +141,7 @@ const OrderConfirmModal: React.FC<OrderConfirmModalProps> = ({
                   <div>{ticket.seatType}</div>
                   <div>{ticket.ticketType}</div>
                   <div>{ticket.passengerName}</div>
-                  <div>{p?.idType || '居民身份证'}</div>
+                  <div>{formatIdType(p?.idType)}</div>
                   <div>{maskId(p?.idCard || '')}</div>
                 </div>
               );
@@ -169,9 +190,7 @@ const OrderConfirmModal: React.FC<OrderConfirmModalProps> = ({
           </div>
 
           <div className="tip-red">*按现行规定，学生票购票区间必须与学生证上的乘车区间一致，否则车站将不予换票。</div>
-          <div className="stock-info">
-            本次列车，二等座余票{typeof secondClassLeft === 'number' ? secondClassLeft : '充足'}张，无座余票{typeof noSeatLeft === 'number' ? noSeatLeft : '充足'}张。
-          </div>
+          <div className="stock-info">{`本次列车，${buildStockText()}`}</div>
 
           {/* 金额展示 */}
           <div className="price-inline">

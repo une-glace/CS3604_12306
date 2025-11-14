@@ -15,7 +15,7 @@
 .order-confirm-modal {
   background: white;
   border-radius: 8px;
-  width: 90%;
+  width: 60%;
   max-width: 820px;
   max-height: none;
   overflow: visible;
@@ -327,7 +327,7 @@
 .check-table-header,
 .check-table-row {
   display: grid;
-  grid-template-columns: repeat(6, minmax(0, 1fr));
+  grid-template-columns: 30px 60px 60px 1fr 160px 1fr;
   align-items: center;
 }
 .check-table-header {
@@ -343,6 +343,8 @@
   border-top: 1px solid #f0f0f0;
   font-size: 14px;
 }
+.check-table-header > div,
+.check-table-row > div { text-align: left; }
 
 /* —— 说明与选座 —— */
 .note-line {
