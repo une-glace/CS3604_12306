@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import AddPassengerModal from '../components/AddPassengerModal';
 import { getPassengers as apiGetPassengers, addPassenger as apiAddPassenger, updatePassenger as apiUpdatePassenger, deletePassenger as apiDeletePassenger, type PassengerFormData } from '../services/passengerService';
@@ -35,6 +35,7 @@ interface Order {
 const ProfilePage: React.FC = () => {
   const navigate = useNavigate();
   const { user, isLoggedIn, logout, isLoading, refreshUser } = useAuth();
+  const [urlSearchParams] = useSearchParams();
   const [activeSection, setActiveSection] = useState('center-home');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingPassenger, setEditingPassenger] = useState<Passenger | null>(null);
@@ -71,6 +72,18 @@ const ProfilePage: React.FC = () => {
       navigate('/login');
     }
   }, [isLoading, isLoggedIn, navigate]);
+
+  // 根据URL参数预设当前分区（如 ?section=orders）
+  useEffect(() => {
+    const section = urlSearchParams.get('section');
+    if (section === 'orders') {
+      setActiveSection('orders');
+    } else if (section === 'passengers') {
+      setActiveSection('passengers');
+    } else if (section === 'personal-info') {
+      setActiveSection('personal-info');
+    }
+  }, [urlSearchParams]);
 
   // 获取乘车人数据 - 必须在条件渲染之前声明
   useEffect(() => {

@@ -306,7 +306,11 @@ const OrderPage: React.FC = () => {
       '商务座': 1748,
       '一等座': 933,
       '二等座': 553,
-      '无座': 553
+      '无座': 553,
+      '软卧': 800,
+      '硬卧': 600,
+      '软座': 300,
+      '硬座': 200
     };
     return basePrices[seatType] || 553;
   };
@@ -340,6 +344,15 @@ const OrderPage: React.FC = () => {
   const isSeatAvailable = (seatType: string): boolean => {
     const available = seatInfo?.[seatType]?.availableSeats;
     return typeof available === 'number' && available > 0;
+  };
+
+  const getAvailableSeatTypes = (): string[] => {
+    const order = ['商务座','一等座','二等座','软卧','硬卧','一等卧','二等卧','软座','硬座','无座'];
+    const types = seatInfo ? Object.keys(seatInfo) : ['商务座','一等座','二等座','无座'];
+    return [
+      ...order.filter(t => types.includes(t)),
+      ...types.filter(t => !order.includes(t))
+    ];
   };
 
   const formatDateWithWeek = (dateStr: string): string => {
@@ -423,11 +436,22 @@ const OrderPage: React.FC = () => {
       return;
     }
     
+    // 对每位乘客的席别进行校正：如果所选席别不在当前列车的席别列表中，则回退到第一个可选席别
+    const availableTypes = getAvailableSeatTypes();
+    const normalizedTicketInfos = ticketInfos.map(info => {
+      const chosen = info.seatType;
+      const validSeatType = availableTypes.includes(chosen) ? chosen : (availableTypes[0] || chosen);
+      const resolvedPrice = typeof seatInfo?.[validSeatType]?.price === 'number'
+        ? seatInfo![validSeatType]!.price
+        : getSeatPrice(validSeatType);
+      return { ...info, seatType: validSeatType, price: resolvedPrice };
+    });
+
     const newOrderData: OrderData = {
       orderId: `ORDER_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
       totalPrice: getTotalPrice(),
       passengers: validPassengers,
-      ticketInfos: ticketInfos,
+      ticketInfos: normalizedTicketInfos,
       selectedSeatCodes
     };
     
@@ -484,23 +508,13 @@ const OrderPage: React.FC = () => {
         setIsPaymentModalOpen(true);
       } else {
         console.log('响应数据格式不正确:', response); // 添加调试日志
-        throw new Error('订单提交失败');
+        alert('订单提交失败，请稍后重试');
+        return;
       }
     } catch (error) {
       console.error('订单提交错误:', error);
-      // 开发环境降级：直接打开支付模态框继续流程
-      setIsPaymentModalOpen(true);
-      if (!orderData) {
-        setOrderData({
-          orderId: `ORDER_${Date.now()}`,
-          totalPrice: getTotalPrice(),
-          passengers: selectedPassengers
-            .map(id => passengers.find(p => p.id === id))
-            .filter((p): p is Passenger => !!p) ,
-          ticketInfos,
-          selectedSeatCodes: []
-        });
-      }
+      alert('订单提交失败，请稍后重试');
+      return;
     } finally {
       setIsSubmitting(false);
     }
@@ -523,8 +537,8 @@ const OrderPage: React.FC = () => {
       
       setIsPaymentModalOpen(false);
       alert(`支付成功！\n订单号：${orderData.orderId}\n总金额：¥${orderData.totalPrice}`);
-      // 导航到订单详情页面或首页
-      navigate('/');
+      // 跳转到个人中心订单页
+      navigate('/profile?section=orders');
     } catch (error) {
       console.error('更新支付状态失败:', error);
       // 即使更新状态失败，也显示支付成功（因为支付本身是成功的）
@@ -536,9 +550,9 @@ const OrderPage: React.FC = () => {
 
   const handlePaymentClose = () => {
     setIsPaymentModalOpen(false);
-    // 可以选择导航到订单列表页面，让用户稍后支付
     alert('支付已取消，您可以在订单中心继续支付');
-    navigate('/');
+    // 跳转到个人中心订单页，显示未支付订单
+    navigate('/profile?section=orders');
   };
 
   const handleAddPassenger = async (passengerData: Omit<Passenger, 'id'>) => {
@@ -643,42 +657,25 @@ const OrderPage: React.FC = () => {
                 {trainInfo.to}站（{trainInfo.arrivalTime}到）
               </div>
               <div className="train-summary-seats">
-                <div className="seat-item">
-                  <span className="seat-name">二等座</span>
-                  {getSeatDiscountText('二等座') && (
-                    <span className="seat-discount">{getSeatDiscountText('二等座')}</span>
-                  )}
-                  <span className={isSeatAvailable('二等座') ? 'seat-availability' : 'seat-unavailable'}>
-                    {getSeatAvailabilityText('二等座')}
-                  </span>
-                </div>
-                <div className="seat-item">
-                  <span className="seat-name">商务座</span>
-                  {getSeatDiscountText('商务座') && (
-                    <span className="seat-discount">{getSeatDiscountText('商务座')}</span>
-                  )}
-                  <span className={isSeatAvailable('商务座') ? 'seat-availability' : 'seat-unavailable'}>
-                    {getSeatAvailabilityText('商务座')}
-                  </span>
-                </div>
-                <div className="seat-item">
-                  <span className="seat-name">一等座</span>
-                  {getSeatDiscountText('一等座') && (
-                    <span className="seat-discount">{getSeatDiscountText('一等座')}</span>
-                  )}
-                  <span className={isSeatAvailable('一等座') ? 'seat-availability' : 'seat-unavailable'}>
-                    {getSeatAvailabilityText('一等座')}
-                  </span>
-                </div>
-                <div className="seat-item">
-                  <span className="seat-name">无座</span>
-                  {getSeatDiscountText('无座') && (
-                    <span className="seat-discount">{getSeatDiscountText('无座')}</span>
-                  )}
-                  <span className={isSeatAvailable('无座') ? 'seat-availability' : 'seat-unavailable'}>
-                    {getSeatAvailabilityText('无座')}
-                  </span>
-                </div>
+                {(() => {
+                  const order = ['商务座','一等座','二等座','软卧','硬卧','一等卧','二等卧','软座','硬座','无座'];
+                  const types = seatInfo ? Object.keys(seatInfo) : [];
+                  const orderedTypes = [
+                    ...order.filter(t => types.includes(t)),
+                    ...types.filter(t => !order.includes(t))
+                  ];
+                  return orderedTypes.map((t) => (
+                    <div key={t} className="seat-item">
+                      <span className="seat-name">{t}</span>
+                      {getSeatDiscountText(t) && (
+                        <span className="seat-discount">{getSeatDiscountText(t)}</span>
+                      )}
+                      <span className={isSeatAvailable(t) ? 'seat-availability' : 'seat-unavailable'}>
+                        {getSeatAvailabilityText(t)}
+                      </span>
+                    </div>
+                  ));
+                })()}
               </div>
               <div className="train-summary-note">
                 *显示的价格均为实际活动折扣后票价，供您参考，查看公布票价 。具体票价以您确认支付时实际购买的铺别票价为准。
@@ -756,10 +753,12 @@ const OrderPage: React.FC = () => {
                       value={info.seatType}
                       onChange={(e) => handleSeatTypeChange(info.passengerId, e.target.value)}
                     >
-                      <option value="商务座">商务座（¥{getSeatPrice('商务座')}）</option>
-                      <option value="一等座">一等座（¥{getSeatPrice('一等座')}）</option>
-                      <option value="二等座">二等座（¥{getSeatPrice('二等座')}）</option>
-                      <option value="无座">无座（¥{getSeatPrice('无座')}）</option>
+                      {getAvailableSeatTypes().map((t) => {
+                        const price = typeof seatInfo?.[t]?.price === 'number' ? seatInfo![t]!.price : getSeatPrice(t);
+                        return (
+                          <option key={t} value={t}>{t}（¥{price}）</option>
+                        );
+                      })}
                     </select>
                   </div>
                   <div className="col-name">{info.passengerName}</div>
