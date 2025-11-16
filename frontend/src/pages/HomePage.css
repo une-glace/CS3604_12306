@@ -1,0 +1,694 @@
+/* 首页样式 */
+.homepage {
+  min-height: 100vh;
+  background-color: #f5f5f5;
+}
+
+/* 头部样式 */
+.header {
+  background-color: #fff;
+  border-bottom: 1px solid #e0e0e0;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.header-container {
+  width: 100%;
+  margin: 0;
+  padding: 0 24px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  height: 80px;
+}
+
+.header-top {
+  display: grid;
+  grid-template-columns: 320px 1fr auto;
+  gap: 16px;
+}
+.brand { display: flex; align-items: center; gap: 12px; }
+.brand-logo { width: 40px; height: 40px; }
+.brand-text { display: flex; flex-direction: column; line-height: 1; }
+.brand-title { font-size: 22px; font-weight: 700; color: #333; }
+.brand-subtitle { font-size: 12px; color: #999; margin-top: 4px; letter-spacing: .5px; }
+
+.header-search { display: flex; align-items: center; max-width: 600px; width: 100%; }
+.search-input {
+  flex: 1;
+  padding: 10px 14px;
+  border: 1px solid #e6e6e6;
+  border-right: none;
+  border-radius: 20px 0 0 20px;
+  background: #fafafa;
+  font-size: 14px;
+}
+.search-input::placeholder { color: #999; }
+.search-button {
+  padding: 10px 16px;
+  background: #2a76ff;
+  color: #fff;
+  border: 1px solid #2a76ff;
+  border-radius: 0 20px 20px 0;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.header-links { display: flex; align-items: center; gap: 8px; color: #666; }
+.header-links .link { color: #666; text-decoration: none; }
+.header-links .link:hover { color: #333; }
+.header-links .sep { color: #ccc; }
+.header-links .link-btn { background: none; border: none; color: #0066cc; cursor: pointer; font-size: 12px; }
+.header-links .link-btn:hover { text-decoration: underline; }
+
+.profile-btn, .login-btn, .register-btn, .logout-btn {
+  padding: 8px 16px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  background: #fff;
+  color: #333;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-decoration: none;
+  display: inline-block;
+}
+
+.welcome-text {
+  color: #333;
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.username-btn {
+  background: none;
+  border: none;
+  color: #E2422B;
+  font-size: 14px;
+  cursor: pointer;
+  text-decoration: underline;
+  padding: 0;
+  font-weight: 500;
+}
+
+.username-btn:hover {
+  color: #d63918;
+}
+
+.logout-btn {
+  color: #666;
+  border-color: #ddd;
+}
+
+.logout-btn:hover {
+  background: #f5f5f5;
+  border-color: #999;
+}
+
+.profile-btn {
+  background: linear-gradient(135deg, #E2422B 0%, #d63918 100%);
+  color: #fff;
+  border-color: #E2422B;
+  font-weight: 500;
+}
+
+.profile-btn:hover {
+  background: linear-gradient(135deg, #d63918 0%, #c2310f 100%);
+  box-shadow: 0 2px 8px rgba(226, 66, 43, 0.3);
+  transform: translateY(-1px);
+}
+
+.login-btn {
+  color: #0066cc;
+  border-color: #0066cc;
+}
+
+.login-btn:hover {
+  background: #0066cc;
+  color: #fff;
+}
+
+.register-btn {
+  color: #666;
+  border-color: #ddd;
+}
+
+.register-btn:hover {
+  background: #f5f5f5;
+  border-color: #999;
+}
+
+/* 导航栏样式 */
+.navbar {
+  background-color: #E2422B;
+  height: 50px;
+}
+
+.nav-container {
+  width: 100%;
+  margin: 0;
+  padding: 0 24px;
+}
+
+.nav-links {
+  display: flex;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  height: 50px;
+}
+
+.nav-links li {
+  margin-right: 2px;
+  flex: 1;
+}
+
+.nav-links a {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  height: 50px;
+  line-height: 50px;
+  color: #fff;
+  text-decoration: none;
+  font-size: 14px;
+  transition: background-color 0.3s;
+}
+
+.nav-links a:hover,
+.nav-links a.active {
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+/* 主要内容区域 */
+.main-content {
+  width: 100%;
+  margin: 0;
+  padding: 0; /* 去除左右内边距，让轮播与页面齐边 */
+}
+
+/* 轮播图区域 */
+.carousel-section {
+  margin-bottom: 30px;
+  position: relative;
+  /* 保持常规布局宽度，避免计算异常导致宽度为0 */
+  margin-left: 0;
+  margin-right: 0;
+}
+
+/* 轮播下方：全宽服务按钮行 */
+.hero-service-row {
+  margin-top: 8px;
+  background: #fff;
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  align-items: center;
+  border-top: 1px solid #eaeaea;
+  border-bottom: 1px solid #eaeaea;
+  width: 100%; /* 容器等于视口宽度时即全屏 */
+}
+
+/* 轮播区与下方按钮行的明确分隔（统一为常规间距）*/
+section.carousel-section {
+  margin-bottom: 16px;
+}
+
+.hero-service-btn {
+  width: 100%;
+  background: transparent;
+  border: none;
+  padding: 16px 0;
+  font-size: 14px;
+  color: #4a4a4a;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.hero-service-row .hero-service-btn:not(:last-child) {
+  border-right: 1px solid #eef2f5;
+}
+
+@media (max-width: 900px) {
+  .hero-service-row {
+    grid-template-columns: repeat(3, 1fr);
+    row-gap: 0;
+  }
+  .hero-service-row .hero-service-btn {
+    padding: 14px 0;
+    border-right: none;
+    border-bottom: 1px solid #eef2f5;
+  }
+}
+
+/* 快速购票区域 */
+.booking-section {
+  margin-bottom: 40px;
+}
+
+/* 服务导航区域 */
+.services-section {
+  margin-bottom: 40px;
+}
+
+.services-container h2 {
+  text-align: center;
+  font-size: 24px;
+  color: #333;
+  margin-bottom: 30px;
+}
+
+.services-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 20px;
+}
+
+.service-item {
+  background: #fff;
+  border-radius: 8px;
+  padding: 30px 20px;
+  text-align: center;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.service-item:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+}
+
+.service-icon {
+  font-size: 48px;
+  margin-bottom: 15px;
+}
+
+.service-item h3 {
+  font-size: 18px;
+  color: #333;
+  margin-bottom: 10px;
+}
+
+.service-item p {
+  color: #666;
+  font-size: 14px;
+}
+
+/* 底部样式 */
+.footer {
+  background-color: #333;
+  color: #fff;
+  padding: 40px 0 20px;
+  margin-top: 60px;
+}
+
+.footer-container {
+  width: 100%;
+  margin: 0;
+  padding: 0 24px;
+}
+
+.footer-links {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 30px;
+  margin-bottom: 30px;
+}
+
+.link-group h4 {
+  color: #fff;
+  font-size: 16px;
+  margin-bottom: 15px;
+}
+
+.link-group ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.link-group li {
+  margin-bottom: 8px;
+}
+
+.link-group a {
+  color: #ccc;
+  text-decoration: none;
+  font-size: 14px;
+  transition: color 0.3s;
+}
+
+.link-group a:hover {
+  color: #fff;
+}
+
+.footer-bottom {
+  border-top: 1px solid #555;
+  padding-top: 20px;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.footer-bottom p {
+  margin: 5px 0;
+  color: #ccc;
+  font-size: 14px;
+}
+
+/* 响应式设计 */
+@media (max-width: 768px) {
+  .header-container {
+    padding: 0 15px;
+    height: 60px;
+  }
+  
+  .logo span {
+    font-size: 18px;
+  }
+  
+  .user-actions {
+    gap: 8px;
+  }
+  
+  .profile-btn, .login-btn, .register-btn {
+    padding: 6px 12px;
+    font-size: 12px;
+  }
+  
+  .nav-container {
+    padding: 0 15px;
+  }
+  
+  .nav-links a {
+    padding: 0 12px;
+    font-size: 12px;
+  }
+  
+  .main-content {
+    padding: 15px;
+  }
+  
+  .services-grid {
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 15px;
+  }
+  
+  .service-item {
+    padding: 20px 15px;
+  }
+  
+  .service-icon {
+    font-size: 36px;
+  }
+  
+  .footer-links {
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 20px;
+  }
+}
+.hero-booking {
+  position: absolute; /* 恢复叠加到轮播之上 */
+  top: 16px;
+  left: 24px;
+  display: grid; /* 使用网格确保两列严格等高对齐 */
+  grid-template-columns: 72px 460px;
+  align-items: stretch;
+  z-index: 3; /* 高于轮播图片与箭头 */
+}
+
+.side-tabs {
+  width: 72px;
+  background: #2a76ff;
+  border-radius: 8px 0 0 8px; /* 与右侧面板圆角一致 */
+  display: flex;
+  flex-direction: column;
+  padding: 0; /* 去除上下内边距以充满高度 */
+  color: #fff;
+  /* 充满右侧购票面板的高度 */
+  align-self: stretch;
+  height: 100%;
+  min-height: 100%;
+  box-sizing: border-box;
+}
+
+.side-tab {
+  background: transparent;
+  border: none;
+  color: #fff;
+  padding: 0;
+  font-size: 16px;
+  cursor: pointer;
+  /* 让每个标签均分整列高度 */
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  text-align: center;
+  font-weight: 600;
+}
+
+.side-tab.active {
+  background: rgba(255,255,255,0.15);
+}
+
+.ticket-panel {
+  width: 460px;
+  background: #fff;
+  border-radius: 0 8px 8px 0;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+  overflow: hidden;
+}
+
+.ticket-tabs {
+  display: flex;
+  gap: 24px;
+  padding: 16px 20px 0 20px;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.ticket-tab {
+  background: none;
+  border: none;
+  font-size: 16px;
+  color: #666;
+  padding: 8px 0;
+  cursor: default;
+}
+
+.ticket-tab.active {
+  color: #2a76ff;
+  font-weight: 600;
+  border-bottom: 2px solid #2a76ff;
+}
+
+.hero-booking .booking-form {
+  box-shadow: none;
+  border-radius: 0;
+  padding: 16px 20px 20px 20px;
+  margin-bottom: 0;
+}
+
+.hero-booking .booking-form .form-header {
+  display: none;
+}
+/* 轮播下方一行服务入口 */
+/* hero-services-section 已从页面移除 */
+
+.hero-services {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+}
+
+.hero-service-item {
+  background: #fff;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px 20px;
+}
+
+.hero-service-icon {
+  font-size: 28px;
+}
+
+.hero-service-content h3 {
+  margin: 0;
+  font-size: 16px;
+  color: #333;
+}
+
+.hero-service-content p {
+  margin: 4px 0 0 0;
+  font-size: 13px;
+  color: #666;
+}
+
+/* ===== 2×2 图文按钮区域 ===== */
+.promo-section {
+  width: 100%;
+  margin: 16px 0 24px;
+}
+
+.promo-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+}
+
+.promo-card {
+  position: relative;
+  display: block;
+  height: 180px;
+  border-radius: 8px;
+  overflow: hidden;
+  background-size: cover;
+  background-position: center;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  text-decoration: none;
+}
+
+.promo-card::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, rgba(255,255,255,0.85) 0%, rgba(255,255,255,0.35) 45%, rgba(255,255,255,0.1) 70%, rgba(255,255,255,0) 100%);
+}
+
+/* 纯图片卡片：禁用叠加层，图片满铺裁剪 */
+.promo-image-card {
+  background: transparent;
+}
+.promo-image-card::after {
+  content: none;
+}
+.promo-image-card img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.promo-content {
+  position: absolute;
+  z-index: 1;
+  left: 24px;
+  top: 20px;
+  max-width: 60%;
+}
+
+.promo-content h3 {
+  margin: 0;
+  font-size: 22px;
+  color: #2a76ff;
+}
+
+.promo-content p {
+  margin: 10px 0 0 0;
+  font-size: 14px;
+  color: #333;
+}
+
+.promo-bg-1 { background-image: url('/slide-1.svg'); }
+.promo-bg-2 { background-image: url('/slide-2.svg'); }
+.promo-bg-3 { background-image: url('/slide-3.svg'); }
+.promo-bg-4 { background-image: url('/slide-4.svg'); }
+
+@media (max-width: 900px) {
+  .promo-grid {
+    grid-template-columns: 1fr;
+  }
+  .promo-card {
+    height: 140px;
+  }
+}
+.notice-section {
+  width: 100%;
+  margin: 20px 0 24px;
+}
+
+.notice-header {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  background: #f2f4f7;
+  border-radius: 4px 4px 0 0;
+  overflow: hidden;
+}
+
+.notice-tab {
+  height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #666;
+  font-size: 16px;
+  border-right: 1px solid #e9edf2;
+  cursor: pointer;
+  user-select: none;
+}
+.notice-tab:last-child { border-right: none; }
+.notice-tab.active { background: #2a76ff; color: #fff; }
+
+/* 选项卡内容容器，仅显示当前选中的块 */
+.notice-content {
+  margin-top: 8px;
+}
+
+.notice-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+  margin-top: 8px;
+}
+
+.notice-column {
+  background: #fff;
+  border: 1px solid #e9edf2;
+  border-radius: 0 0 4px 4px;
+  padding: 16px 18px 12px 18px;
+}
+
+.news-list { list-style: none; padding: 0; margin: 0; }
+.news-list li {
+  display: grid;
+  grid-template-columns: 12px 1fr auto;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 0;
+  border-bottom: 1px dashed #eef2f5;
+}
+.news-list li:last-child { border-bottom: none; }
+.news-list a { color: #333; text-decoration: none; }
+.news-list a:hover { color: #2a76ff; }
+.news-list .date { color: #999; font-size: 12px; }
+.bullet { width: 6px; height: 6px; background: #2a76ff; display: inline-block; border-radius: 1px; }
+.more-link { float: right; color: #999; text-decoration: none; margin-top: 8px; }
+.more-link:hover { color: #2a76ff; }
+
+.faq-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 8px 24px;
+}
+.faq-list { list-style: none; padding: 0; margin: 0; }
+.faq-list li { display: flex; align-items: center; gap: 8px; padding: 6px 0; color: #333; }
+
+.credit-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
+.credit-card { background: #fafbfc; border: 1px solid #eef2f5; border-radius: 4px; padding: 12px; }
+.credit-title { color: #4a4a4a; font-size: 14px; margin-bottom: 8px; display: flex; align-items: center; gap: 6px; }
+.credit-empty { display: grid; place-items: center; padding: 22px 0; color: #999; }
+.empty-icon { width: 56px; height: 56px; background: #eef2f5; border-radius: 8px; }
+.empty-text { margin-top: 8px; }
+
+@media (max-width: 900px) {
+  .notice-grid { grid-template-columns: 1fr; }
+  .credit-grid { grid-template-columns: 1fr; }
+}

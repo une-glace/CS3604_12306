@@ -1,0 +1,344 @@
+/* 横向筛选栏样式 */
+.filter-conditions.horizontal {
+  background: #fff;
+  border: 1px solid #e5e5e5;
+  border-radius: 4px;
+  margin: 16px 0 20px;
+}
+
+.filter-conditions.horizontal .date-strip {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 16px;
+  border-bottom: 1px solid #e5e5e5;
+  overflow-x: auto;
+}
+
+.filter-conditions.horizontal .date-item {
+  border: 1px solid #dcdcdc;
+  background: #fafafa;
+  color: #333;
+  border-radius: 3px;
+  padding: 6px 10px;
+  cursor: pointer;
+  min-width: 64px;
+}
+
+.filter-conditions.horizontal .date-item .date-label {
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.filter-conditions.horizontal .date-item .date-weekday {
+  font-size: 12px;
+  color: #666;
+}
+
+.filter-conditions.horizontal .date-item.active {
+  border-color: #0066cc;
+  background: #eef6ff;
+}
+
+.filter-conditions.horizontal .time-range {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.filter-conditions.horizontal .time-label {
+  font-size: 13px;
+  color: #333;
+}
+
+.filter-conditions.horizontal .time-select {
+  height: 30px;
+  padding: 4px 8px;
+  border: 1px solid #dcdcdc;
+  border-radius: 4px;
+  background: #fff;
+  color: #333;
+}
+
+.filter-conditions.horizontal .filter-line {
+  display: flex;
+  align-items: center;
+  padding: 10px 16px;
+  gap: 12px;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.filter-conditions.horizontal .filter-line:last-child {
+  border-bottom: none;
+}
+
+.filter-conditions.horizontal .line-label {
+  color: #333;
+  font-size: 13px;
+  min-width: 88px;
+}
+
+.filter-conditions.horizontal .line-options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px 14px;
+}
+
+.filter-conditions.horizontal .line-option {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  color: #333;
+}
+
+.filter-conditions.horizontal .line-option input[type="checkbox"] {
+  accent-color: #0066cc;
+  cursor: pointer;
+}
+
+/* 保留原有纵向样式以兼容其他页面（不再用于车票页） */
+.filter-conditions {
+  background: #fff;
+  border: 1px solid #e5e5e5;
+  border-radius: 4px;
+  margin-bottom: 20px;
+}
+
+.filter-header-main {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 15px 20px;
+  border-bottom: 1px solid #e5e5e5;
+  background: #f8f9fa;
+}
+
+.filter-header-main h2 {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 500;
+  color: #333;
+}
+
+.clear-filters {
+  background: transparent;
+  border: 1px solid #0066cc;
+  color: #0066cc;
+  padding: 6px 12px;
+  border-radius: 4px;
+  font-size: 12px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.clear-filters:hover {
+  background: #0066cc;
+  color: white;
+}
+
+.filter-content {
+  padding: 0;
+}
+
+.filter-section {
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.filter-section:last-child {
+  border-bottom: none;
+}
+
+.filter-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 20px;
+  cursor: pointer;
+  background: #fafafa;
+  transition: background-color 0.2s;
+}
+
+.filter-header:hover {
+  background: #f0f0f0;
+}
+
+.filter-header h3 {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 500;
+  color: #333;
+}
+
+.expand-icon {
+  font-size: 12px;
+  color: #666;
+  transition: transform 0.2s;
+}
+
+.expand-icon.expanded {
+  transform: rotate(180deg);
+}
+
+.filter-options {
+  padding: 10px 20px 15px;
+  background: #fff;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 8px;
+}
+
+.filter-option {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: #333;
+  cursor: pointer;
+  padding: 4px 0;
+  transition: color 0.2s;
+}
+
+.filter-option:hover {
+  color: #0066cc;
+}
+
+.filter-option input[type="checkbox"] {
+  margin: 0;
+  cursor: pointer;
+  accent-color: #0066cc;
+}
+
+.option-label {
+  flex: 1;
+}
+
+.option-count {
+  color: #999;
+  font-size: 12px;
+}
+
+/* 特殊样式调整 */
+.filter-section:first-of-type .filter-options {
+  grid-template-columns: repeat(2, 1fr);
+}
+
+.filter-section:nth-of-type(2) .filter-options {
+  grid-template-columns: repeat(2, 1fr);
+}
+
+/* 席别筛选特殊布局 */
+.filter-section:nth-of-type(5) .filter-options {
+  grid-template-columns: repeat(3, 1fr);
+}
+
+/* 显示选项特殊样式 */
+.filter-section:last-child .filter-options {
+  grid-template-columns: 1fr;
+}
+
+.filter-section:last-child .filter-option {
+  font-weight: 500;
+}
+
+/* 响应式设计 */
+@media (max-width: 768px) {
+  .filter-header-main {
+    padding: 12px 15px;
+  }
+  
+  .filter-header-main h2 {
+    font-size: 14px;
+  }
+  
+  .clear-filters {
+    font-size: 11px;
+    padding: 4px 8px;
+  }
+  
+  .filter-header {
+    padding: 10px 15px;
+  }
+  
+  .filter-header h3 {
+    font-size: 13px;
+  }
+  
+  .filter-options {
+    padding: 8px 15px 12px;
+    grid-template-columns: 1fr;
+    gap: 6px;
+  }
+  
+  .filter-option {
+    font-size: 12px;
+    padding: 3px 0;
+  }
+  
+  .option-count {
+    font-size: 11px;
+  }
+}
+
+@media (max-width: 480px) {
+  .filter-header-main {
+    flex-direction: column;
+    gap: 8px;
+    align-items: stretch;
+  }
+  
+  .clear-filters {
+    align-self: flex-end;
+  }
+  
+  .filter-options {
+    padding: 6px 15px 10px;
+  }
+}
+
+/* 动画效果 */
+.filter-options {
+  animation: slideDown 0.2s ease-out;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    max-height: 0;
+  }
+  to {
+    opacity: 1;
+    max-height: 500px;
+  }
+}
+
+/* 选中状态样式 */
+.filter-option input[type="checkbox"]:checked + .option-label {
+  color: #0066cc;
+  font-weight: 500;
+}
+
+/* 滚动条样式 */
+.filter-conditions {
+  max-height: 600px;
+  overflow-y: auto;
+}
+
+.filter-conditions::-webkit-scrollbar {
+  width: 6px;
+}
+
+.filter-conditions::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 3px;
+}
+
+.filter-conditions::-webkit-scrollbar-thumb {
+  background: #c1c1c1;
+  border-radius: 3px;
+}
+
+.filter-conditions::-webkit-scrollbar-thumb:hover {
+  background: #a8a8a8;
+}

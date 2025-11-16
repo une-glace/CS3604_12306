@@ -1,0 +1,743 @@
+/* 注册页面样式 */
+.register-container {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+  font-family: 'Microsoft YaHei', Arial, sans-serif;
+}
+
+/* 头部样式 */
+.register-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 40px;
+  height: 80px;
+  background: #fff;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.register-logo {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.register-logo img {
+  width: 40px;
+  height: 40px;
+}
+
+.register-logo span {
+  font-size: 20px;
+  font-weight: bold;
+  color: #1890ff;
+}
+
+.register-nav {
+  display: flex;
+  gap: 30px;
+  align-items: center;
+}
+
+.register-nav a {
+  color: #666;
+  text-decoration: none;
+  font-size: 14px;
+  transition: color 0.3s;
+}
+
+.register-nav a:hover {
+  color: #1890ff;
+}
+
+.login-link {
+  background: none;
+  border: 1px solid #1890ff;
+  color: #1890ff;
+  padding: 8px 16px;
+  border-radius: 6px;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.login-link:hover {
+  background: #1890ff;
+  color: white;
+}
+
+/* 主体内容 */
+.register-main {
+  display: flex;
+  max-width: 1200px;
+  margin: 40px auto;
+  gap: 60px;
+  padding: 0 20px;
+}
+
+.register-form-container {
+  flex: 2;
+  background: #fff;
+  border-radius: 12px;
+  padding: 40px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+}
+
+.register-form-header {
+  text-align: center;
+  margin-bottom: 40px;
+}
+
+.register-form-header h2 {
+  font-size: 28px;
+  color: #333;
+  margin-bottom: 24px;
+  font-weight: 600;
+}
+
+/* 步骤指示器 */
+.step-indicator {
+  display: flex;
+  justify-content: center;
+  gap: 60px;
+  margin-bottom: 20px;
+}
+
+.step {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  position: relative;
+}
+
+.step:not(:last-child)::after {
+  content: '';
+  position: absolute;
+  top: 20px;
+  left: 100%;
+  width: 60px;
+  height: 2px;
+  background: #e8e8e8;
+  z-index: 1;
+}
+
+.step.completed:not(:last-child)::after {
+  background: #1890ff;
+}
+
+.step-number {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: #e8e8e8;
+  color: #999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  margin-bottom: 8px;
+  position: relative;
+  z-index: 2;
+  transition: all 0.3s;
+}
+
+.step.active .step-number {
+  background: #1890ff;
+  color: white;
+}
+
+.step.completed .step-number {
+  background: #52c41a;
+  color: white;
+}
+
+.step.completed .step-number::after {
+  content: '✓';
+  position: absolute;
+  font-size: 16px;
+}
+
+.step-label {
+  font-size: 14px;
+  color: #666;
+  font-weight: 500;
+}
+
+.step.active .step-label {
+  color: #1890ff;
+}
+
+.step.completed .step-label {
+  color: #52c41a;
+}
+
+/* 表单内容 */
+.register-form {
+  width: 100%;
+}
+
+.step-content {
+  min-height: 400px;
+}
+
+.step-content h3 {
+  font-size: 20px;
+  color: #333;
+  margin-bottom: 24px;
+  font-weight: 600;
+}
+
+.form-group {
+  margin-bottom: 24px;
+}
+
+.form-row {
+  display: flex;
+  gap: 20px;
+}
+
+.form-row .form-group {
+  flex: 1;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 8px;
+  color: #333;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.form-group input[type="text"],
+.form-group input[type="password"],
+.form-group input[type="email"],
+.form-group input[type="tel"],
+.form-group select {
+  width: 100%;
+  height: 48px;
+  padding: 0 16px;
+  border: 2px solid #e8e8e8;
+  border-radius: 8px;
+  font-size: 14px;
+  transition: all 0.3s;
+  box-sizing: border-box;
+}
+
+.form-group input:focus,
+.form-group select:focus {
+  outline: none;
+  border-color: #1890ff;
+  box-shadow: 0 0 0 3px rgba(24, 144, 255, 0.1);
+}
+
+.form-group input.error,
+.form-group select.error {
+  border-color: #f5222d;
+}
+
+.error-message {
+  display: block;
+  color: #f5222d;
+  font-size: 12px;
+  margin-top: 4px;
+}
+
+/* 验证码输入 */
+.verification-info {
+  background: #f0f9ff;
+  border: 1px solid #bae7ff;
+  border-radius: 8px;
+  padding: 16px;
+  margin-bottom: 24px;
+}
+
+.verification-info p {
+  margin: 0;
+  color: #1890ff;
+  font-size: 14px;
+}
+
+.verification-group .verification-input {
+  display: flex;
+  gap: 12px;
+}
+
+.verification-group input {
+  flex: 1;
+}
+
+.send-code-btn {
+  padding: 0 20px;
+  background: #1890ff;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.3s;
+  white-space: nowrap;
+}
+
+.send-code-btn:hover:not(:disabled) {
+  background: #096dd9;
+}
+
+.send-code-btn:disabled {
+  background: #f5f5f5;
+  color: #bfbfbf;
+  cursor: not-allowed;
+}
+
+/* 协议部分 */
+.agreement-section {
+  margin-top: 32px;
+  padding: 20px;
+  background: #fafafa;
+  border-radius: 8px;
+}
+
+.agreement-label {
+  display: flex;
+  align-items: flex-start;
+  cursor: pointer;
+  font-size: 14px;
+  color: #666;
+  line-height: 1.6;
+}
+
+.agreement-label input[type="checkbox"] {
+  display: none;
+}
+
+.checkmark {
+  width: 16px;
+  height: 16px;
+  border: 2px solid #d9d9d9;
+  border-radius: 3px;
+  margin-right: 8px;
+  margin-top: 2px;
+  flex-shrink: 0;
+  position: relative;
+  transition: all 0.3s;
+}
+
+.agreement-label input[type="checkbox"]:checked + .checkmark {
+  background: #1890ff;
+  border-color: #1890ff;
+}
+
+.agreement-label input[type="checkbox"]:checked + .checkmark::after {
+  content: '✓';
+  position: absolute;
+  top: -2px;
+  left: 2px;
+  color: white;
+  font-size: 12px;
+  font-weight: bold;
+}
+
+.agreement-label a {
+  color: #1890ff;
+  text-decoration: none;
+  margin: 0 4px;
+}
+
+.agreement-label a:hover {
+  text-decoration: underline;
+}
+
+/* 表单操作按钮 */
+.form-actions {
+  display: flex;
+  justify-content: center;
+  margin-top: 40px;
+  gap: 16px;
+}
+
+/* ===== 网格布局（账户信息） ===== */
+.register-form-grid {
+  display: grid;
+  grid-template-columns: 150px 420px 1fr;
+  column-gap: 16px;
+  row-gap: 16px;
+}
+
+.grid-row {
+  display: contents; /* 每行三列：标签、输入、提示 */
+}
+
+.grid-label {
+  align-self: center;
+  font-size: 14px;
+  color: #333;
+  text-align: right;
+}
+
+.required-star {
+  color: #f5222d;
+  margin-right: 4px;
+}
+
+.grid-input {
+  align-self: center;
+}
+
+.grid-input input[type="text"],
+.grid-input input[type="password"],
+.grid-input input[type="email"],
+.grid-input input[type="tel"],
+.grid-input select {
+  width: 100%;
+  height: 40px;
+  padding: 0 12px;
+  border: 2px solid #e8e8e8;
+  border-radius: 6px;
+  font-size: 14px;
+  transition: all 0.3s;
+  box-sizing: border-box;
+}
+
+.grid-input input:focus,
+.grid-input select:focus {
+  outline: none;
+  border-color: #1890ff;
+  box-shadow: 0 0 0 3px rgba(24, 144, 255, 0.1);
+}
+
+.grid-input input.error,
+.grid-input select.error {
+  border-color: #f5222d;
+}
+
+.grid-hint {
+  align-self: center;
+  font-size: 12px;
+  color: #999;
+}
+
+/* 手机号行 */
+.phone-row {
+  display: flex;
+  gap: 12px;
+}
+
+.country-select {
+  width: 140px;
+  height: 40px;
+  padding: 0 12px;
+  border: 2px solid #e8e8e8;
+  border-radius: 6px;
+  font-size: 14px;
+  background: #fff;
+}
+
+.agreement-row .agreement-label {
+  align-items: center;
+}
+
+/* 右侧提示链接样式 */
+.rule-link {
+  color: #1890ff;
+  text-decoration: none;
+  margin-right: 6px;
+}
+.rule-link:hover {
+  text-decoration: underline;
+}
+
+.prev-btn,
+.next-btn,
+.submit-btn {
+  height: 48px;
+  padding: 0 32px;
+  border: none;
+  border-radius: 8px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s;
+  min-width: 120px;
+}
+
+.prev-btn {
+  background: #f5f5f5;
+  color: #666;
+}
+
+.prev-btn:hover {
+  background: #e8e8e8;
+}
+
+.next-btn,
+.submit-btn {
+  background: linear-gradient(135deg, #1890ff 0%, #096dd9 100%);
+  color: white;
+  margin-left: auto;
+}
+
+.next-btn:hover,
+.submit-btn:hover:not(:disabled) {
+  background: linear-gradient(135deg, #096dd9 0%, #0050b3 100%);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(24, 144, 255, 0.3);
+}
+
+.submit-btn:disabled {
+  background: #f5f5f5;
+  color: #bfbfbf;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+/* 信息区域 */
+.register-info {
+  flex: 1;
+  max-width: 300px;
+}
+
+.info-section {
+  background: #fff;
+  border-radius: 12px;
+  padding: 24px;
+  margin-bottom: 24px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+}
+
+.info-section h3 {
+  color: #333;
+  font-size: 16px;
+  margin-bottom: 16px;
+  font-weight: 600;
+}
+
+.info-section ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.info-section li {
+  color: #666;
+  font-size: 13px;
+  line-height: 1.6;
+  margin-bottom: 8px;
+  padding-left: 16px;
+  position: relative;
+}
+
+.info-section li::before {
+  content: '•';
+  color: #1890ff;
+  position: absolute;
+  left: 0;
+}
+
+.security-features {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.security-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #666;
+  font-size: 13px;
+}
+
+.security-icon {
+  font-size: 16px;
+}
+
+/* 底部样式 */
+.register-footer {
+  background: #fff;
+  padding: 24px 40px;
+  text-align: center;
+  border-top: 1px solid #f0f0f0;
+}
+
+.footer-links {
+  display: flex;
+  justify-content: center;
+  gap: 24px;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+}
+
+.footer-links a {
+  color: #666;
+  text-decoration: none;
+  font-size: 13px;
+  transition: color 0.3s;
+}
+
+.footer-links a:hover {
+  color: #1890ff;
+}
+
+.copyright {
+  color: #999;
+  font-size: 12px;
+  margin: 0;
+}
+
+/* 响应式设计 */
+@media (max-width: 1024px) {
+  .register-main {
+    flex-direction: column;
+    gap: 30px;
+  }
+
+  .register-info {
+    max-width: none;
+  }
+
+  .step-indicator {
+    gap: 40px;
+  }
+
+  .step:not(:last-child)::after {
+    width: 40px;
+  }
+}
+
+@media (max-width: 768px) {
+  .register-header {
+    padding: 0 20px;
+    height: 60px;
+  }
+
+  .register-logo span {
+    font-size: 16px;
+  }
+
+  .register-nav {
+    gap: 20px;
+  }
+
+  .register-main {
+    margin: 20px auto;
+    gap: 20px;
+  }
+
+  .register-form-container {
+    padding: 24px;
+  }
+
+  .register-form-header h2 {
+    font-size: 24px;
+  }
+
+  .step-indicator {
+    gap: 20px;
+  }
+
+  .step:not(:last-child)::after {
+    width: 20px;
+  }
+
+  .step-number {
+    width: 32px;
+    height: 32px;
+    font-size: 14px;
+  }
+
+  .step-label {
+    font-size: 12px;
+  }
+
+  .form-row {
+    flex-direction: column;
+    gap: 0;
+  }
+
+  .verification-group .verification-input {
+    flex-direction: column;
+  }
+
+  .send-code-btn {
+    width: 100%;
+  }
+
+  .form-actions {
+    flex-direction: column;
+  }
+
+  .prev-btn {
+    order: 2;
+  }
+
+  .next-btn,
+  .submit-btn {
+    order: 1;
+    margin-left: 0;
+  }
+
+  .footer-links {
+    gap: 16px;
+  }
+}
+
+@media (max-width: 480px) {
+  .register-header {
+    padding: 0 16px;
+  }
+
+  .register-nav {
+    gap: 16px;
+  }
+
+  .register-nav a {
+    font-size: 13px;
+  }
+
+  .login-link {
+    padding: 6px 12px;
+    font-size: 13px;
+  }
+
+  .register-form-container {
+    padding: 20px;
+  }
+
+  .step-content {
+    min-height: 300px;
+  }
+
+  .form-group input[type="text"],
+  .form-group input[type="password"],
+  .form-group input[type="email"],
+  .form-group input[type="tel"],
+  .form-group select {
+    height: 44px;
+  }
+
+  .prev-btn,
+  .next-btn,
+  .submit-btn {
+    height: 44px;
+    font-size: 14px;
+  }
+
+  .step-indicator {
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .step:not(:last-child)::after {
+    display: none;
+  }
+
+  .step {
+    flex-direction: row;
+    justify-content: center;
+    gap: 12px;
+  }
+
+  .step-number {
+    margin-bottom: 0;
+  }
+}

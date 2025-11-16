@@ -1,0 +1,425 @@
+.order-confirm-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+  overflow-y: auto;
+}
+
+.order-confirm-modal {
+  background: white;
+  border-radius: 8px;
+  width: 60%;
+  max-width: 820px;
+  max-height: none;
+  overflow: visible;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+  box-sizing: border-box;
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px 24px;
+  border-bottom: 1px solid #e5e5e5;
+}
+
+.modal-header h3 {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 600;
+  color: #333;
+}
+
+.close-btn {
+  background: none;
+  border: none;
+  font-size: 24px;
+  color: #999;
+  cursor: pointer;
+  padding: 0;
+  width: 30px;
+  height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  transition: all 0.2s;
+}
+
+.close-btn:hover {
+  background-color: #f5f5f5;
+  color: #666;
+}
+
+.modal-content {
+  padding: 16px;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.modal-content > * {
+  width: 100%;
+}
+
+.train-info-section,
+.passengers-section,
+.price-section {
+  margin-bottom: 24px;
+}
+
+.train-info-section h4,
+.passengers-section h4 {
+  margin: 0 0 16px 0;
+  font-size: 16px;
+  font-weight: 600;
+  color: #333;
+  border-bottom: 2px solid #1890ff;
+  padding-bottom: 8px;
+}
+
+.train-details {
+  background: #f8f9fa;
+  padding: 16px;
+  border-radius: 6px;
+  border-left: 4px solid #1890ff;
+}
+
+.train-number {
+  font-size: 18px;
+  font-weight: 600;
+  color: #1890ff;
+  margin-bottom: 8px;
+}
+
+.route-info {
+  display: flex;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.station {
+  font-size: 16px;
+  font-weight: 500;
+  color: #333;
+}
+
+.arrow {
+  margin: 0 12px;
+  color: #666;
+  font-size: 14px;
+}
+
+.time-info {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  font-size: 14px;
+  color: #666;
+}
+
+.duration {
+  color: #999;
+}
+
+.passengers-list {
+  background: #f8f9fa;
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.passenger-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px;
+  border-bottom: 1px solid #e5e5e5;
+}
+
+.passenger-item:last-child {
+  border-bottom: none;
+}
+
+.passenger-name {
+  font-size: 16px;
+  font-weight: 500;
+  color: #333;
+}
+
+.passenger-details {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  font-size: 14px;
+}
+
+.seat-type {
+  color: #1890ff;
+  font-weight: 500;
+}
+
+.ticket-type {
+  color: #666;
+}
+
+.price {
+  color: #f5222d;
+  font-weight: 600;
+}
+
+.price-section {
+  border-top: 1px solid #e5e5e5;
+  padding-top: 16px;
+}
+
+.price-breakdown {
+  background: #f8f9fa;
+  padding: 16px;
+  border-radius: 6px;
+}
+
+.price-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+  font-size: 14px;
+  color: #666;
+}
+
+.price-item:last-child {
+  margin-bottom: 0;
+}
+
+.price-item.total {
+  border-top: 1px solid #e5e5e5;
+  padding-top: 12px;
+  margin-top: 12px;
+  font-size: 16px;
+  font-weight: 600;
+  color: #333;
+}
+
+.total-amount {
+  color: #f5222d;
+  font-size: 18px;
+}
+
+.modal-footer {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  padding: 16px 24px;
+  border-top: 1px solid #e5e5e5;
+  background: #fafafa;
+}
+
+.cancel-btn,
+.confirm-btn {
+  padding: 10px 24px;
+  border: none;
+  border-radius: 4px;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.2s;
+  min-width: 0; /* 允许按钮自适应为等宽 */
+  width: 100%; /* 在grid列内占满，以保证等宽 */
+}
+
+.cancel-btn {
+  background: #fff;
+  color: #666;
+  border: 1px solid #d9d9d9;
+}
+
+.cancel-btn:hover {
+  color: #1890ff;
+  border-color: #1890ff;
+}
+
+.confirm-btn {
+  background: #1890ff;
+  color: white;
+}
+
+.confirm-btn:hover {
+  background: #40a9ff;
+}
+
+.confirm-btn:active {
+  background: #096dd9;
+}
+
+/* 响应式设计 */
+@media (max-width: 768px) {
+  .order-confirm-modal {
+    width: 95%;
+    margin: 20px;
+  }
+  
+  .modal-content {
+    padding: 0px;
+  }
+  
+  .passenger-item {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+  
+  .passenger-details {
+    gap: 12px;
+  }
+  
+  .modal-footer {
+    flex-direction: column;
+  }
+  
+  .cancel-btn,
+  .confirm-btn {
+    width: 100%;
+  }
+}
+
+/* —— 新布局：头部横幅 —— */
+.confirm-header {
+  background: linear-gradient(135deg, #3aa0ff 0%, #1677ff 100%);
+  color: #fff;
+  border-bottom: none;
+}
+.confirm-header h3 {
+  color: #fff;
+  font-size: 20px;
+}
+.confirm-header .close-btn {
+  color: #fff;
+}
+.confirm-header .close-btn:hover {
+  background-color: rgba(255, 255, 255, 0.15);
+}
+
+/* —— 信息总览行 —— */
+.info-summary {
+  background: #f0f8ff;
+  border: 1px solid #cde3ff;
+  color: #0b5aa5;
+  padding: 12px 16px;
+  border-radius: 6px;
+  margin-bottom: 16px;
+  font-weight: 600;
+  text-align: center;
+}
+
+/* —— 核对表格 —— */
+.check-table {
+  border: 1px solid #e5e5e5;
+  border-radius: 6px;
+  overflow: hidden;
+  width: 100%;
+}
+.check-table-header,
+.check-table-row {
+  display: grid;
+  grid-template-columns: 30px 60px 60px 1fr 160px 1fr;
+  align-items: center;
+}
+.check-table-header {
+  background: #f8f8f8;
+  color: #555;
+  height: 44px;
+  padding: 0 12px;
+  font-size: 13px;
+}
+.check-table-row {
+  height: 48px;
+  padding: 0 12px;
+  border-top: 1px solid #f0f0f0;
+  font-size: 14px;
+}
+.check-table-header > div,
+.check-table-row > div { text-align: left; }
+
+/* —— 说明与选座 —— */
+.note-line {
+  margin: 12px 0;
+  color: #666;
+}
+.seat-preference {
+  background: #f7fbff;
+  border: 1px dashed #cde3ff;
+  border-radius: 6px;
+  padding: 12px 16px;
+  margin-bottom: 12px;
+  width: 100%;
+}
+.seat-pref-title {
+  font-weight: 600;
+  color: #1677ff;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+.seat-pref-grid {
+  display: grid;
+  grid-template-columns: 1fr repeat(3, 56px) 1fr repeat(2, 56px) 1fr;
+  gap: 8px;
+  align-items: center;
+  justify-items: center;
+}
+.seat-opt {
+  height: 36px;
+  border: 1px solid #d9e7ff;
+  border-radius: 4px;
+  background: #eef6ff;
+  color: #4994ff;
+  cursor: pointer;
+  user-select: none;
+}
+.seat-opt.selected {
+  background: #1677ff;
+  border-color: #1677ff;
+  color: #fff;
+}
+.seat-opt:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+.muted {
+  color: #999;
+}
+.seat-selected {
+  margin-top: 8px;
+  color: #666;
+}
+
+.tip-red {
+  color: #e64a19;
+  font-weight: 600;
+  margin-bottom: 8px;
+}
+.stock-info {
+  color: #333;
+  margin-bottom: 12px;
+}
+
+.price-inline {
+  display: flex;
+  justify-content: flex-end;
+  align-items: baseline;
+  gap: 8px;
+  font-size: 16px;
+  width: 100%;
+}
+.price-inline .total-amount {
+  color: #f5222d;
+  font-size: 20px;
+  font-weight: 700;
+}

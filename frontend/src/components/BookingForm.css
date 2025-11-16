@@ -1,0 +1,307 @@
+.booking-form {
+  background: #fff;
+  border-radius: 8px;
+  padding: 24px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  margin-bottom: 20px;
+}
+
+.form-header {
+  margin-bottom: 20px;
+  border-bottom: 1px solid #e8e8e8;
+  padding-bottom: 12px;
+}
+
+.form-header h3 {
+  margin: 0;
+  color: #333;
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.form-content {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+/* 车站选择组 */
+.station-group {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 8px; /* 缩小行间距 */
+  position: relative; /* 为交换按钮绝对定位提供参照 */
+  padding-right: 48px; /* 右侧为交换按钮留出空间 */
+}
+
+.station-input-group {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.station-input-group label {
+  font-size: 14px;
+  color: #666;
+  font-weight: 500;
+}
+
+.station-input-group input {
+  padding: 12px 16px;
+  border: 1px solid #d9d9d9;
+  border-radius: 6px;
+  font-size: 16px;
+  transition: all 0.3s ease;
+}
+
+.station-input-group input:focus {
+  outline: none;
+  border-color: #1890ff;
+  box-shadow: 0 0 0 2px rgba(24, 144, 255, 0.2);
+}
+
+.station-input-group input::placeholder {
+  color: #bfbfbf;
+}
+
+/* 交换按钮 */
+.swap-button {
+  position: absolute;
+  top: 50%;
+  right: 8px;
+  transform: translateY(-50%);
+  background: #ff7a45; /* 橙色圆形按钮 */
+  border: none;
+  border-radius: 50%;
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 18px;
+  color: #fff;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+  transition: all 0.3s ease;
+}
+
+.swap-button:hover {
+  background: #ff8f6b;
+}
+
+/* 日期选择组 */
+.date-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.date-group label {
+  font-size: 14px;
+  color: #666;
+  font-weight: 500;
+}
+
+.date-group input {
+  padding: 12px 16px;
+  border: 1px solid #d9d9d9;
+  border-radius: 6px;
+  font-size: 16px;
+  max-width: 200px;
+  transition: all 0.3s ease;
+}
+
+.date-group input:focus {
+  outline: none;
+  border-color: #1890ff;
+  box-shadow: 0 0 0 2px rgba(24, 144, 255, 0.2);
+}
+
+/* 车次类型组 */
+.train-type-group {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.train-type-group > label {
+  font-size: 14px;
+  color: #666;
+  font-weight: 500;
+}
+
+.train-type-options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.train-type-option {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+  padding: 8px 12px;
+  border: 1px solid #d9d9d9;
+  border-radius: 6px;
+  transition: all 0.3s ease;
+  background: #fff;
+}
+
+.train-type-option:hover {
+  border-color: #1890ff;
+  background: #f6ffed;
+}
+
+.train-type-option input[type="radio"] {
+  margin: 0;
+}
+
+.train-type-option input[type="radio"]:checked + span {
+  color: #1890ff;
+  font-weight: 500;
+}
+
+.train-type-option:has(input[type="radio"]:checked) {
+  border-color: #1890ff;
+  background: #e6f7ff;
+}
+
+/* 搜索按钮 */
+.search-button {
+  background: linear-gradient(135deg, #1890ff, #096dd9);
+  color: white;
+  border: none;
+  padding: 14px 32px;
+  border-radius: 6px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  align-self: flex-start;
+}
+
+.search-button:hover {
+  background: linear-gradient(135deg, #096dd9, #0050b3);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(24, 144, 255, 0.3);
+}
+
+.search-button:active {
+  transform: translateY(0);
+}
+
+/* 热门城市 */
+.popular-cities {
+  margin-top: 24px;
+  padding-top: 20px;
+  border-top: 1px solid #f0f0f0;
+}
+
+.popular-cities h4 {
+  margin: 0 0 12px 0;
+  font-size: 14px;
+  color: #666;
+  font-weight: 500;
+}
+
+.cities-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(80px, 1fr));
+  gap: 8px;
+}
+
+.city-button {
+  background: #f5f5f5;
+  border: 1px solid #e8e8e8;
+  border-radius: 4px;
+  padding: 8px 12px;
+  font-size: 14px;
+  color: #666;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-align: center;
+}
+
+.city-button:hover {
+  background: #e6f7ff;
+  border-color: #1890ff;
+  color: #1890ff;
+}
+
+/* 响应式设计 */
+@media (max-width: 1024px) {
+  .booking-form {
+    padding: 20px;
+  }
+  
+  .station-group {
+    flex-direction: column;
+    gap: 12px;
+  }
+  
+  .station-input-group {
+    min-width: 200px;
+  }
+}
+
+@media (max-width: 768px) {
+  .booking-form {
+    padding: 16px;
+    margin: 0 10px;
+  }
+  
+  .station-group {
+    flex-direction: column;
+    gap: 16px;
+  }
+  
+  .swap-button {
+    align-self: flex-end;
+  }
+  
+  .train-type-options {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 8px;
+  }
+  
+  .cities-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+  
+  .date-group input {
+    max-width: 100%;
+  }
+}
+
+@media (max-width: 480px) {
+  .booking-form {
+    padding: 12px;
+    margin: 0 5px;
+  }
+  
+  .train-type-options {
+    grid-template-columns: 1fr;
+  }
+  
+  .train-type-option {
+    justify-content: center;
+    padding: 12px;
+  }
+  
+  .cities-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  
+  .search-button {
+    width: 100%;
+    align-self: stretch;
+  }
+  
+  .form-content {
+    gap: 16px;
+  }
+}

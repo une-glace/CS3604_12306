@@ -1,0 +1,409 @@
+.train-list {
+  background: #fff;
+  border: 1px solid #e5e5e5;
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.train-list-header {
+  background: linear-gradient(0deg, #2f7fd6, #2f7fd6);
+  border-bottom: 2px solid #2a6fc0;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.header-row {
+  display: flex;
+  align-items: center;
+  padding: 12px 0;
+  font-weight: 500;
+  font-size: 13px;
+  color: #fff;
+}
+
+.train-info-header {
+  display: flex;
+  align-items: center;
+  min-width: 250px; /* 原为 600px，缩小以减少“历时”与席别间距 */
+  padding: 0 15px;
+}
+
+.train-no-header,
+.stations-header,
+.times-header,
+.duration-header {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  cursor: pointer;
+  padding: 8px 12px;
+  border-radius: 4px;
+  transition: background-color 0.2s;
+}
+
+.train-no-header:hover,
+.times-header:hover,
+.duration-header:hover,
+.stations-header:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.train-no-header { width: 80px; }
+.stations-header { width: 120px; cursor: default; flex-direction: column; align-items: center; line-height: 1.2; }
+.times-header { width: 140px; flex-direction: column; align-items: center; line-height: 1.2; }
+.duration-header { width: 60px; }
+
+.sort-icon { font-size: 12px; color: #e6f0ff; transition: color 0.2s; }
+.sort-icon.active { color: #fff; }
+.times-sort { display: inline-flex; align-items: center; gap: 4px; }
+.times-sep { opacity: 0.7; margin: 0 6px; }
+
+.seat-headers {
+  display: flex;
+  flex: 1;
+  min-width: 0;
+}
+
+.seat-header {
+  flex: 1;
+  text-align: center;
+  padding: 8px 4px;
+  font-size: 12px;
+  border-left: 1px solid #2a6fc0;
+  color: #fff;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.action-header {
+  width: 120px;
+  text-align: center;
+  padding: 8px 15px;
+  border-left: 1px solid #e5e5e5;
+}
+
+.train-list-body {
+  /* 移除内置滚动，改为页面整体滚动 */
+  max-height: none;
+  overflow-y: visible;
+}
+
+.train-row {
+  display: flex;
+  align-items: center;
+  border-bottom: 1px solid #f0f0f0;
+  transition: background-color 0.2s;
+}
+
+.train-row:hover {
+  background: #f8f9fa;
+}
+
+.train-row:last-child {
+  border-bottom: none;
+}
+
+.train-info {
+  display: flex;
+  align-items: center;
+  min-width: 250px; /* 原为 700px，缩小以减少主体列与席别间距 */
+  padding: 15px;
+}
+
+.train-no {
+  width: 80px;
+  display: flex;
+  align-items: center;
+}
+
+.train-type {
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 14px;
+  font-weight: 500;
+  color: white;
+  text-align: center;
+  min-width: 60px;
+}
+
+.train-type-g {
+  background: #0066cc;
+}
+
+.train-type-d {
+  background: #00aa44;
+}
+
+.train-type-z {
+  background: #ff6600;
+}
+
+.train-type-t {
+  background: #cc0066;
+}
+
+.train-type-k {
+  background: #666666;
+}
+
+.train-type-other {
+  background: #999999;
+}
+
+.stations-info { width: 120px; padding: 0 12px; }
+.station-line { display: flex; align-items: center; justify-content: center; margin: 2px 0; }
+.station-name { font-size: 14px; font-weight: 500; color: #333; }
+
+.times-info { width: 140px; text-align: center; padding: 0 12px; }
+.time-line { display: flex; justify-content: center; align-items: baseline; gap: 6px; }
+.time { font-size: 16px; font-weight: 500; color: #333; }
+.arrival-note { font-size: 12px; color: #999; }
+
+.duration-info {
+  width: 60px;
+  text-align: center;
+  padding: 0 12px;
+}
+
+.duration {
+  font-size: 14px;
+  color: #666;
+}
+
+.seat-info {
+  display: flex;
+  flex: 1;
+  min-width: 0;
+}
+
+.seat-cell {
+  flex: 1;
+  text-align: center;
+  padding: 15px 4px;
+  border-left: 1px solid #f0f0f0;
+  font-size: 13px;
+}
+
+.seat-available {
+  color: #00aa44;
+  font-weight: 500;
+}
+
+.seat-unavailable {
+  color: #ccc;
+}
+
+.seat-waitlist {
+  color: #ff6600;
+  font-weight: 500;
+}
+
+.action-info {
+  width: 120px;
+  text-align: center;
+  padding: 15px;
+  border-left: 1px solid #f0f0f0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.remarks {
+  font-size: 12px;
+  color: #666;
+  min-height: 16px;
+}
+
+.book-button {
+  background: #0066cc;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  padding: 6px 12px;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.book-button:hover:not(:disabled) {
+  background: #0052a3;
+}
+
+.book-button.disabled {
+  background: #ccc;
+  cursor: not-allowed;
+}
+
+/* 空状态样式 */
+.empty-state {
+  text-align: center;
+  padding: 60px 20px;
+  color: #666;
+}
+
+.empty-icon {
+  font-size: 48px;
+  margin-bottom: 16px;
+}
+
+.empty-text {
+  font-size: 16px;
+  font-weight: 500;
+  margin-bottom: 8px;
+}
+
+.empty-hint {
+  font-size: 14px;
+  color: #999;
+}
+
+/* 滚动条样式 */
+/* 已移除内置滚动条样式，使内容直接全部显示 */
+
+/* 响应式设计 */
+@media (max-width: 1200px) {
+  .seat-headers {
+    overflow-x: auto;
+  }
+  
+  .seat-info {
+    overflow-x: auto;
+  }
+  
+  .seat-header,
+  .seat-cell {
+    min-width: 60px;
+  }
+}
+
+@media (max-width: 768px) {
+  .train-list-header {
+    display: none;
+  }
+  
+  .train-row {
+    flex-direction: column;
+    align-items: stretch;
+    padding: 15px;
+    border-radius: 8px;
+    margin-bottom: 10px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  }
+  
+  .train-info {
+    min-width: auto;
+    padding: 0;
+    flex-direction: column;
+    gap: 12px;
+  }
+  
+  .train-no {
+    width: auto;
+    justify-content: center;
+  }
+  
+  .stations-info,
+  .times-info,
+  .duration-info {
+    width: auto;
+    padding: 0;
+  }
+  
+  .seat-info {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(80px, 1fr));
+    gap: 8px;
+    margin: 12px 0;
+  }
+  
+  .seat-cell {
+    border: 1px solid #e5e5e5;
+    border-radius: 4px;
+    padding: 8px 4px;
+    border-left: 1px solid #e5e5e5;
+  }
+  
+  .action-info {
+    width: auto;
+    padding: 0;
+    border-left: none;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+  }
+  
+  .book-button {
+    padding: 8px 16px;
+    font-size: 14px;
+  }
+}
+
+@media (max-width: 480px) {
+  .train-row {
+    padding: 12px;
+  }
+  
+  .train-type {
+    font-size: 12px;
+    padding: 3px 6px;
+    min-width: 50px;
+  }
+  
+  .station-name {
+    font-size: 13px;
+  }
+  
+  .time {
+    font-size: 14px;
+  }
+  
+  .seat-info {
+    grid-template-columns: repeat(3, 1fr);
+  }
+  
+  .seat-cell {
+    padding: 6px 2px;
+    font-size: 12px;
+  }
+}
+
+/* 加载动画 */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.train-row {
+  animation: fadeIn 0.3s ease-out;
+}
+
+/* 高亮效果 */
+.train-row.highlighted {
+  background: #e6f3ff;
+  border-color: #0066cc;
+}
+
+/* 打印样式 */
+@media print {
+  .train-list {
+    border: none;
+    box-shadow: none;
+  }
+  
+  .book-button {
+    display: none;
+  }
+  
+  .train-row:hover {
+    background: transparent;
+  }
+}
