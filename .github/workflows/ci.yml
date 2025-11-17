@@ -1,0 +1,85 @@
+name: CI test1
+
+on:
+  push:
+    branches:
+      - '**'
+
+jobs:
+  backend-tests:
+    name: Backend Integration Tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    defaults:
+      run:
+        working-directory: backend
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: backend/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run backend tests (Jest)
+        env:
+          NODE_ENV: test
+        run: npm test
+
+  e2e-tests:
+    name: Frontend E2E Tests (Playwright)
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    needs: backend-tests
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          # Cache both frontend and backend node_modules via lockfiles
+          cache-dependency-path: |
+            backend/package-lock.json
+            frontend/package-lock.json
+
+      - name: Install dependencies (backend and frontend)
+        run: |
+          npm ci --prefix backend
+          npm ci --prefix frontend
+
+      - name: Install Playwright browsers
+        working-directory: frontend
+        run: npx playwright install --with-deps
+
+      - name: Start backend server
+        run: |
+          NODE_ENV=test npm start --prefix backend &
+
+      - name: Start frontend dev server (vite)
+        run: |
+          npm run dev --prefix frontend -- --open false &
+
+      - name: Wait for servers to be ready
+        run: |
+          npx -y wait-on http://localhost:3000/health http://localhost:5174
+
+      - name: Run Playwright E2E tests
+        run: npm run test:e2e --prefix frontend
+
+      - name: Upload Playwright report (always)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: frontend/playwright-report
+          if-no-files-found: ignore
+          retention-days: 7
