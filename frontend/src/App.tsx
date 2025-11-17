@@ -6,6 +6,7 @@ import HomePage from './pages/HomePage'
 import TrainListPage from './pages/TrainListPage'
 import OrderPage from './pages/OrderPage'
 import ProfilePage from './pages/ProfilePage'
+import OrderDetailPage from './pages/OrderDetailPage'
 import Login from './components/Login'
 import Register from './components/Register'
 
@@ -19,6 +20,7 @@ function App() {
             <Route path="/" element={<HomePage />} />
             <Route path="/train-list" element={<TrainListPage />} />
             <Route path="/order" element={<OrderPage />} />
+            <Route path="/order-detail/:orderId" element={<OrderDetailPage />} />
             <Route path="/profile" element={<ProfilePage />} />
             <Route 
               path="/login" 

@@ -28,8 +28,9 @@ interface Order {
   date: string;
   passenger: string;
   seat: string;
+  passengers?: Array<{ name: string; seatNumber?: string; seatType?: string }>;
   price: number;
-  status: 'paid' | 'unpaid' | 'cancelled' | 'refunded';
+  status: 'paid' | 'unpaid' | 'cancelled' | 'refunded' | 'completed';
 }
 
 const ProfilePage: React.FC = () => {
@@ -289,13 +290,21 @@ const ProfilePage: React.FC = () => {
            date: order.departureDate || order.date,
            passenger: order.passengers?.[0]?.passengerName || order.passenger || '未知',
            seat: order.passengers?.[0]?.seatNumber || order.seat || '待分配',
+           passengers: Array.isArray(order.passengers)
+             ? order.passengers.map((p: any) => ({
+                 name: p.passengerName || p.name || '未知',
+                 seatNumber: p.seatNumber,
+                 seatType: p.seatType,
+               }))
+             : undefined,
            price: order.totalPrice || order.price,
           status: (
             order.status === 'unpaid' ? 'unpaid' :
             order.status === 'paid' ? 'paid' :
             order.status === 'cancelled' ? 'cancelled' :
-            order.status === 'refunded' ? 'refunded' : 'unpaid'
-          ) as 'paid' | 'unpaid' | 'cancelled' | 'refunded'
+            order.status === 'refunded' ? 'refunded' :
+            order.status === 'completed' ? 'completed' : 'unpaid'
+          ) as 'paid' | 'unpaid' | 'cancelled' | 'refunded' | 'completed'
          }));
         
         setOrders(formattedOrders);
@@ -343,12 +352,20 @@ const ProfilePage: React.FC = () => {
               date: order.departureDate,
               passenger: order.passengers?.[0]?.passengerName || '未知',
               seat: order.passengers?.[0]?.seatNumber || '待分配',
+              passengers: Array.isArray(order.passengers)
+                ? order.passengers.map((p: any) => ({
+                    name: p.passengerName || p.name || '未知',
+                    seatNumber: p.seatNumber,
+                    seatType: p.seatType,
+                  }))
+                : undefined,
               price: order.totalPrice,
               status: (
                 order.status === 'unpaid' ? 'unpaid' :
                 order.status === 'paid' ? 'paid' :
                 order.status === 'cancelled' ? 'cancelled' :
-                order.status === 'refunded' ? 'refunded' : 'unpaid'
+                order.status === 'refunded' ? 'refunded' :
+                order.status === 'completed' ? 'completed' : 'unpaid'
               )
             }));
             
@@ -432,7 +449,8 @@ const ProfilePage: React.FC = () => {
       paid: '已支付',
       unpaid: '未支付',
       cancelled: '已取消',
-      refunded: '已退票'
+      refunded: '已退票',
+      completed: '已出行'
     };
     return statusMap[status];
   };
@@ -486,7 +504,7 @@ const ProfilePage: React.FC = () => {
       fromStation: order.departure,
       toStation: order.arrival,
       departureDate: order.date,
-      passengerCount: 1
+      passengerCount: (order.passengers && order.passengers.length) ? order.passengers.length : 1
     });
     setIsPaymentModalOpen(true);
   };
@@ -998,11 +1016,12 @@ const ProfilePage: React.FC = () => {
               </div>
 
               <div className="orders-section">
-                <div className="order-tabs">
-                  <button className={`tab-btn ${orderFilter === 'all' ? 'active' : ''}`} data-testid="orders-tab-all" onClick={() => setOrderFilter('all')}>全部订单</button>
-                  <button className={`tab-btn ${orderFilter === 'unpaid' ? 'active' : ''}`} data-testid="orders-tab-unfinished" onClick={() => setOrderFilter('unpaid')}>未完成订单</button>
-                  <button className={`tab-btn ${orderFilter === 'paid' ? 'active' : ''}`} data-testid="orders-tab-not-travelled" onClick={() => setOrderFilter('paid')}>未出行订单</button>
-                </div>
+              <div className="order-tabs">
+                <button className={`tab-btn ${orderFilter === 'all' ? 'active' : ''}`} data-testid="orders-tab-all" onClick={() => setOrderFilter('all')}>全部订单</button>
+                <button className={`tab-btn ${orderFilter === 'unpaid' ? 'active' : ''}`} data-testid="orders-tab-unfinished" onClick={() => setOrderFilter('unpaid')}>未完成订单</button>
+                <button className={`tab-btn ${orderFilter === 'paid' ? 'active' : ''}`} data-testid="orders-tab-not-travelled" onClick={() => setOrderFilter('paid')}>未出行订单</button>
+                <button className={`tab-btn ${orderFilter === 'completed' ? 'active' : ''}`} data-testid="orders-tab-travelled" onClick={() => setOrderFilter('completed')}>已出行订单</button>
+              </div>
                 <div className="order-filters">
                   <select 
                     className="filter-select"
@@ -1014,6 +1033,7 @@ const ProfilePage: React.FC = () => {
                     <option value="unpaid">未支付</option>
                     <option value="cancelled">已取消</option>
                     <option value="refunded">已退票</option>
+                    <option value="completed">已出行</option>
                   </select>
                   <input 
                     type="date" 
@@ -1046,8 +1066,16 @@ const ProfilePage: React.FC = () => {
                               <p>{order.date} {order.departureTime} - {order.arrivalTime}</p>
                             </div>
                             <div className="passenger-info">
-                              <p>乘车人：{order.passenger}</p>
-                              <p>座位：{order.seat}</p>
+                              <p>
+                                乘车人：{(order.passengers && order.passengers.length > 0)
+                                  ? order.passengers.map(p => p.name).join('、')
+                                  : order.passenger}
+                              </p>
+                              <p>
+                                座位：{(order.passengers && order.passengers.length > 0)
+                                  ? order.passengers.map(p => p.seatNumber || '待分配').join('，')
+                                  : order.seat}
+                              </p>
                             </div>
                             <div className="price-info">
                               <p className="price">¥{order.price}</p>
@@ -1056,7 +1084,7 @@ const ProfilePage: React.FC = () => {
                           <div className="order-actions">
                             <button 
                               className="detail-btn"
-                              onClick={() => handleOrderDetail(order.id)}
+                              onClick={() => handleOrderDetail(order.orderNumber)}
                             >
                               查看详情
                             </button>

@@ -1,9 +1,8 @@
 .hero-carousel {
   position: relative;
-  /* 依赖容器宽度，容器无内边距时等于视口宽度 */
-  width: 350%;
-  min-width: 320px;
-  height: 450px; /* 高度减少三分之一 */
+  width: 100vw;
+  min-width: 0;
+  height: 450px;
   background-color: transparent;
   border-radius: 0;
   overflow: hidden;
@@ -11,8 +10,8 @@
 
 .hero-carousel-wrapper {
   position: relative;
-  width: 100%;
-  min-width: 320px;
+  width: 60%;
+  min-width: 0;
   height: 100%;
 }
 
