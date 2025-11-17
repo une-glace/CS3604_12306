@@ -128,24 +128,47 @@ const createOrder = async (req, res) => {
     const orderPassengers = [];
     let passengerIndex = 0;
 
-    for (const ticketInfo of ticketInfos) {
-      const passenger = passengers[passengerIndex];
-      if (!passenger) {
-        await transaction.rollback();
-        return res.status(400).json({
-          success: false,
-          message: '乘客信息不完整'
-        });
-      }
+    // 组团分配：按席别聚类，一次性为同席别乘客分配相邻座位
+    const bySeatType = new Map(); // seatType -> indices[]
+    ticketInfos.forEach((t, idx) => {
+      const arr = bySeatType.get(t.seatType) || [];
+      arr.push(idx);
+      bySeatType.set(t.seatType, arr);
+    });
 
-      const preferredCode = selectedSeats[passengerIndex];
-      const seatNumber = await allocateSeat(
+    const assignedSeats = new Array(ticketInfos.length).fill(null);
+
+    for (const [seatType, indices] of bySeatType.entries()) {
+      const prefs = indices.map(i => {
+        const raw = selectedSeats?.[i];
+        // 将可能的 'F' 映射为题设中的 'E'
+        return raw === 'F' ? 'E' : raw;
+      });
+
+      const seatsForGroup = await allocateSeatsForGroup(
         trainInfo.trainNumber,
         trainInfo.date,
-        ticketInfo.seatType,
-        transaction,
-        preferredCode
+        seatType,
+        indices.length,
+        prefs,
+        transaction
       );
+
+      indices.forEach((idx, k) => {
+        assignedSeats[idx] = seatsForGroup[k];
+      });
+    }
+
+    // 按原顺序写入乘客记录
+    for (let i = 0; i < ticketInfos.length; i++) {
+      const ticketInfo = ticketInfos[i];
+      const passenger = passengers[i];
+      if (!passenger) {
+        await transaction.rollback();
+        return res.status(400).json({ success: false, message: '乘客信息不完整' });
+      }
+
+      const seatNumber = assignedSeats[i];
 
       const orderPassenger = await OrderPassenger.create({
         orderId: order.id,
@@ -160,7 +183,6 @@ const createOrder = async (req, res) => {
       }, { transaction });
 
       orderPassengers.push(orderPassenger);
-      passengerIndex++;
     }
 
     await transaction.commit();
@@ -216,86 +238,117 @@ const createOrder = async (req, res) => {
   }
 };
 
-// 简化的座位分配算法
-const allocateSeat = async (trainNumber, date, seatType, transaction, preferredCode) => {
-  // 这里是一个简化的座位分配算法
-  // 实际应该根据车厢布局、已占用座位等进行复杂计算
-  
-  // 查找已分配的座位
+// 组团座位分配算法（8车×16排×ABCDE，C/D 过道）
+const allocateSeatsForGroup = async (trainNumber, date, seatType, count, preferences = [], transaction) => {
+  // 查询已占用
   const existingSeats = await OrderPassenger.findAll({
     include: [{
       model: Order,
       as: 'order',
-      where: {
-        trainNumber,
-        departureDate: date,
-        status: ['unpaid', 'paid', 'completed']
-      }
+      where: { trainNumber, departureDate: date, status: ['unpaid','paid','completed'] }
     }],
-    where: {
-      seatType
-    },
+    where: { seatType },
     transaction
   });
+  const occupied = new Set(existingSeats.map(s => s.seatNumber));
 
-  const occupiedSeats = existingSeats.map(seat => seat.seatNumber);
-  
-  // 根据座位类型生成座位号
-  let seatPrefix = '';
-  let maxSeats = 0;
-  
-  switch (seatType) {
-    case '商务座':
-      seatPrefix = '1';
-      maxSeats = 24; // 假设商务座有24个座位
-      break;
-    case '一等座':
-      seatPrefix = '2';
-      maxSeats = 64; // 假设一等座有64个座位
-      break;
-    case '二等座':
-      seatPrefix = '3';
-      maxSeats = 200; // 假设二等座有200个座位
-      break;
-    default:
-      seatPrefix = '3';
-      maxSeats = 200;
-  }
-
-  // 辅助：根据索引推断座位字母（简化近似）
-  const letterForIndex = (idx) => {
-    if (seatType === '二等座') {
-      const letters = ['A', 'B', 'C', 'D', 'F'];
-      return letters[(idx - 1) % letters.length];
-    }
-    if (seatType === '一等座' || seatType === '商务座') {
-      const letters = ['A', 'C', 'D', 'F'];
-      return letters[(idx - 1) % letters.length];
-    }
-    // 其他类型简化为A
-    return 'A';
-  };
-
-  // 优先尝试分配符合偏好的座位
-  if (preferredCode) {
-    for (let i = 1; i <= maxSeats; i++) {
-      const seatNumber = `${seatPrefix}车${String(i).padStart(3, '0')}号`;
-      if (!occupiedSeats.includes(seatNumber) && letterForIndex(i) === preferredCode) {
-        return seatNumber;
+  // 生成全量座位（排序：car->row->letter）
+  const letters = ['A','B','C','D','E'];
+  const cars = Array.from({length:8}, (_,i)=>i+1);
+  const rows = Array.from({length:16}, (_,i)=>i+1);
+  const universe = [];
+  for (const car of cars) {
+    for (const row of rows) {
+      for (const letter of letters) {
+        universe.push({ car, row, letter, code: `${car}车${row}${letter}` });
       }
     }
   }
 
-  // 若没有匹配的偏好或偏好座位已满，分配任意可用座位
-  for (let i = 1; i <= maxSeats; i++) {
-    const seatNumber = `${seatPrefix}车${String(i).padStart(3, '0')}号`;
-    if (!occupiedSeats.includes(seatNumber)) {
-      return seatNumber;
+  const groupByCarRow = (list) => {
+    const map = new Map();
+    list.forEach(s => {
+      const key = `${s.car}-${s.row}`;
+      const arr = map.get(key) || [];
+      arr.push(s);
+      map.set(key, arr);
+    });
+    return Array.from(map.entries()).map(([key, seats]) => {
+      const [car,row] = key.split('-').map(n=>parseInt(n,10));
+      // 保持 ABCDE 顺序
+      seats.sort((a,b)=>letters.indexOf(a.letter)-letters.indexOf(b.letter));
+      return { car, row, seats };
+    });
+  };
+
+  const leftBlock = new Set(['A','B','C']);
+  const rightBlock = new Set(['D','E']);
+
+  const pickWithPreferences = (availCodes, prefs, need) => {
+    const chosen = [];
+    const used = new Set();
+    // 先满足偏好
+    prefs.forEach(pref => {
+      if (!pref) return;
+      const match = availCodes.find(c => c.endsWith(pref) && !used.has(c));
+      if (match) { chosen.push(match); used.add(match); }
+    });
+    // 再补相邻（优先左块，再右块）
+    const pushFromBlock = (blockSet) => {
+      for (const code of availCodes) {
+        const letter = code.slice(-1);
+        if (blockSet.has(letter) && !used.has(code) && chosen.length < need) {
+          chosen.push(code); used.add(code);
+        }
+      }
+    };
+    if (chosen.length < need) pushFromBlock(leftBlock);
+    if (chosen.length < need) pushFromBlock(rightBlock);
+    // 若仍不足，任意补全
+    for (const code of availCodes) {
+      if (!used.has(code) && chosen.length < need) { chosen.push(code); used.add(code); }
+    }
+    return chosen.length >= need ? chosen : null;
+  };
+
+  const grouped = groupByCarRow(universe);
+  const result = new Array(count).fill(null);
+  let remaining = count;
+  let prefQueue = preferences.slice();
+
+  // 1) 同排相邻
+  for (const {car,row,seats} of grouped) {
+    const avail = seats.filter(s => !occupied.has(s.code)).map(s=>s.code);
+    if (avail.length >= remaining) {
+      const picked = pickWithPreferences(avail, prefQueue, remaining);
+      if (picked) {
+        // 写入 result 按顺序分配
+        for (let i=0;i<remaining;i++) { result[i] = picked[i]; occupied.add(picked[i]); }
+        return result; // 全组已分配
+      }
     }
   }
 
-  // 如果没有可用座位，返回一个默认座位号（实际应该抛出错误）
-  return `${seatPrefix}车001号`;
+  // 2) 同车厢相邻排（逐行填充）
+  for (const car of cars) {
+    const carRows = grouped.filter(g=>g.car===car);
+    const bucket = [];
+    for (const g of carRows) {
+      const avail = g.seats.filter(s=>!occupied.has(s.code)).map(s=>s.code);
+      bucket.push(...avail);
+      if (bucket.length >= remaining) break;
+    }
+    if (bucket.length >= remaining) {
+      const picked = pickWithPreferences(bucket, prefQueue, remaining);
+      if (picked) { for (let i=0;i<remaining;i++){ result[i]=picked[i]; occupied.add(picked[i]); } return result; }
+    }
+  }
+
+  // 3) 跨车厢任意分配
+  const anyAvail = universe.filter(s=>!occupied.has(s.code)).map(s=>s.code);
+  const picked = pickWithPreferences(anyAvail, prefQueue, remaining) || anyAvail.slice(0, remaining);
+  for (let i=0;i<remaining;i++){ result[i]=picked[i]; occupied.add(picked[i]); }
+  return result;
 };
 
 // 获取用户订单列表

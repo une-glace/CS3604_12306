@@ -180,10 +180,10 @@ const OrderConfirmModal: React.FC<OrderConfirmModalProps> = ({
                 disabled={selectedCodes.length >= ticketInfos.length && !selectedCodes.includes('D')}
               >D</button>
               <button
-                className={`seat-opt${selectedCodes.includes('F') ? ' selected' : ''}`}
-                onClick={() => toggleSeat('F')}
-                disabled={selectedCodes.length >= ticketInfos.length && !selectedCodes.includes('F')}
-              >F</button>
+                className={`seat-opt${selectedCodes.includes('E') ? ' selected' : ''}`}
+                onClick={() => toggleSeat('E')}
+                disabled={selectedCodes.length >= ticketInfos.length && !selectedCodes.includes('E')}
+              >E</button>
               <span className="muted">窗</span>
             </div>
             <div className="seat-selected">已选座 {selectedCodes.length}/{ticketInfos.length}</div>

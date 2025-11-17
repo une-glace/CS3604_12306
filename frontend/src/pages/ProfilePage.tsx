@@ -28,6 +28,7 @@ interface Order {
   date: string;
   passenger: string;
   seat: string;
+  passengers?: Array<{ name: string; seatNumber?: string; seatType?: string }>;
   price: number;
   status: 'paid' | 'unpaid' | 'cancelled' | 'refunded' | 'completed';
 }
@@ -289,6 +290,13 @@ const ProfilePage: React.FC = () => {
            date: order.departureDate || order.date,
            passenger: order.passengers?.[0]?.passengerName || order.passenger || '未知',
            seat: order.passengers?.[0]?.seatNumber || order.seat || '待分配',
+           passengers: Array.isArray(order.passengers)
+             ? order.passengers.map((p: any) => ({
+                 name: p.passengerName || p.name || '未知',
+                 seatNumber: p.seatNumber,
+                 seatType: p.seatType,
+               }))
+             : undefined,
            price: order.totalPrice || order.price,
           status: (
             order.status === 'unpaid' ? 'unpaid' :
@@ -344,6 +352,13 @@ const ProfilePage: React.FC = () => {
               date: order.departureDate,
               passenger: order.passengers?.[0]?.passengerName || '未知',
               seat: order.passengers?.[0]?.seatNumber || '待分配',
+              passengers: Array.isArray(order.passengers)
+                ? order.passengers.map((p: any) => ({
+                    name: p.passengerName || p.name || '未知',
+                    seatNumber: p.seatNumber,
+                    seatType: p.seatType,
+                  }))
+                : undefined,
               price: order.totalPrice,
               status: (
                 order.status === 'unpaid' ? 'unpaid' :
@@ -490,7 +505,7 @@ const ProfilePage: React.FC = () => {
       fromStation: order.departure,
       toStation: order.arrival,
       departureDate: order.date,
-      passengerCount: 1
+      passengerCount: (order.passengers && order.passengers.length) ? order.passengers.length : 1
     });
     setIsPaymentModalOpen(true);
   };
@@ -1052,8 +1067,16 @@ const ProfilePage: React.FC = () => {
                               <p>{order.date} {order.departureTime} - {order.arrivalTime}</p>
                             </div>
                             <div className="passenger-info">
-                              <p>乘车人：{order.passenger}</p>
-                              <p>座位：{order.seat}</p>
+                              <p>
+                                乘车人：{(order.passengers && order.passengers.length > 0)
+                                  ? order.passengers.map(p => p.name).join('、')
+                                  : order.passenger}
+                              </p>
+                              <p>
+                                座位：{(order.passengers && order.passengers.length > 0)
+                                  ? order.passengers.map(p => p.seatNumber || '待分配').join('，')
+                                  : order.seat}
+                              </p>
                             </div>
                             <div className="price-info">
                               <p className="price">¥{order.price}</p>
@@ -1062,7 +1085,7 @@ const ProfilePage: React.FC = () => {
                           <div className="order-actions">
                             <button 
                               className="detail-btn"
-                              onClick={() => handleOrderDetail(order.id)}
+                              onClick={() => handleOrderDetail(order.orderNumber)}
                             >
                               查看详情
                             </button>
