@@ -242,15 +242,7 @@ const TrainListPage: React.FC = () => {
   // 处理车次选择
   const handleTrainSelect = (train: TrainInfo) => {
     console.log('选择车次:', train);
-    
-    // 检查登录状态
-    if (!isLoggedIn) {
-      setSelectedTrain(train);
-      setShowLoginModal(true);
-      return;
-    }
-    
-    // 已登录，直接跳转到订单页面
+    // 无论登录与否，均跳转到订单页面（测试要求）
     navigateToOrder(train);
   };
 

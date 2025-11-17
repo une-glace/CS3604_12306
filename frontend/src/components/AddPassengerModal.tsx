@@ -212,7 +212,7 @@ const AddPassengerModal: React.FC<AddPassengerModalProps> = ({
             <button type="button" className="cancel-btn" onClick={onClose}>
               取消
             </button>
-            <button type="submit" className="save-btn">
+            <button type="submit" className="save-btn submit-btn">
               {editingPassenger ? '保存' : '保存'}
             </button>
           </div>
