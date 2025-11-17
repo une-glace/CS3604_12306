@@ -408,7 +408,6 @@ const ProfilePage: React.FC = () => {
     try {
       const newPassenger = await apiAddPassenger(passengerData);
       setPassengers(prev => [...prev, newPassenger]);
-      alert('乘车人添加成功');
     } catch (error: any) {
       console.error('添加乘车人失败:', error);
       alert(error?.message || '添加乘车人失败，请检查姓名（需中文）、证件号码与手机号格式');
