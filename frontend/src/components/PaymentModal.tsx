@@ -45,16 +45,11 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
 
       // 模拟支付状态检查
       const paymentTimer = setTimeout(() => {
-        // 90%概率支付成功
-        if (Math.random() > 0.1) {
-          setPaymentStatus('success');
-          setTimeout(() => {
-            onPaymentSuccess();
-          }, 2000);
-        } else {
-          setPaymentStatus('failed');
-        }
-      }, 8000 + Math.random() * 10000); // 8-18秒随机时间
+        setPaymentStatus('success');
+        setTimeout(() => {
+          onPaymentSuccess();
+        }, 500);
+      }, 3000);
 
       return () => {
         clearInterval(timer);

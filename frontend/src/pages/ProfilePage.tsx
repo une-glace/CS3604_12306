@@ -66,6 +66,8 @@ const ProfilePage: React.FC = () => {
   // ===== 编辑按钮占位处理（保留现有跳转关系） =====
   const [isEditingContact, setIsEditingContact] = useState(false);
   const [emailInput, setEmailInput] = useState('');
+  const [phoneInput, setPhoneInput] = useState('');
+  const [countryCodeInput, setCountryCodeInput] = useState('+86');
 
   // 检查登录状态
   useEffect(() => {
@@ -208,13 +210,14 @@ const ProfilePage: React.FC = () => {
 
   const maskPhoneNumber = (phone: string | undefined) => {
     if (!phone) return '未设置';
+    const country = user?.countryCode || (phone.startsWith('+') ? `+${phone.replace(/\D/g, '').slice(0, 2)}` : '+86');
     const digits = phone.replace(/\D/g, '');
     const len = digits.length;
-    if (len < 7) return `(+86) ${digits}`;
+    if (len < 7) return `(${country}) ${digits}`;
     const first3 = digits.slice(0, 3);
     const last4 = digits.slice(-4);
     const stars = '*'.repeat(Math.max(0, len - 7));
-    return `(+86) ${first3}${stars}${last4}`;
+    return `(${country}) ${first3}${stars}${last4}`;
   };
 
   const formatIdType = (idType: string | undefined) => {
@@ -235,14 +238,35 @@ const ProfilePage: React.FC = () => {
     return type;
   };
 
+  const countryLabel = (code?: string) => {
+    const map: Record<string, string> = {
+      '+86': '中国 China (+86)',
+      '+852': '中国香港 Hong Kong (+852)',
+      '+853': '中国澳门 Macao (+853)',
+      '+886': '中国台湾 Taiwan (+886)',
+      '+1': '美国/加拿大 (+1)',
+      '+44': '英国 (+44)',
+      '+81': '日本 (+81)',
+      '+82': '韩国 (+82)',
+      '+49': '德国 (+49)',
+      '+33': '法国 (+33)',
+      '+65': '新加坡 (+65)',
+      '+91': '印度 (+91)',
+      '+61': '澳大利亚 (+61)'
+    };
+    return map[code || '+86'] || `${code} (未识别)`;
+  };
+
   const handleEditContact = () => {
     setIsEditingContact(true);
     setEmailInput(user?.email || '');
+    setPhoneInput(user?.phoneNumber || '');
+    setCountryCodeInput(user?.countryCode || '+86');
   };
   const handleSaveContact = async () => {
     try {
       const { updateProfile } = await import('../services/auth');
-      const resp = await updateProfile({ email: emailInput });
+      const resp = await updateProfile({ email: emailInput, phoneNumber: phoneInput, countryCode: countryCodeInput });
       if (resp.success) {
         await refreshUser();
         alert('修改成功');
@@ -781,7 +805,7 @@ const ProfilePage: React.FC = () => {
                   </div>
                   <div className="kv-item">
                     <label className="kv-label">国家/地区：</label>
-                    <span className="kv-value">中国China</span>
+                    <span className="kv-value">{countryLabel(user.countryCode)}</span>
                   </div>
                   <div className="kv-item">
                     <label className="kv-label">* 证件类型：</label>
@@ -809,8 +833,41 @@ const ProfilePage: React.FC = () => {
                 <div className="kv-list">
                   <div className="kv-item">
                     <label className="kv-label">* 手机号：</label>
-                    <span className="kv-value">{maskPhoneNumber(user.phoneNumber)}</span>
-                    <span className="verified-inline">已通过核验</span>
+                    {isEditingContact ? (
+                      <div className="phone-row">
+                        <select
+                          className="country-select"
+                          value={countryCodeInput}
+                          onChange={(e) => setCountryCodeInput(e.target.value)}
+                        >
+                          <option value="+86">+86 中国</option>
+                          <option value="+852">+852 中国香港</option>
+                          <option value="+853">+853 中国澳门</option>
+                          <option value="+886">+886 中国台湾</option>
+                          <option value="+1">+1 美国/加拿大</option>
+                          <option value="+44">+44 英国</option>
+                          <option value="+81">+81 日本</option>
+                          <option value="+82">+82 韩国</option>
+                          <option value="+49">+49 德国</option>
+                          <option value="+33">+33 法国</option>
+                          <option value="+65">+65 新加坡</option>
+                          <option value="+91">+91 印度</option>
+                          <option value="+61">+61 澳大利亚</option>
+                        </select>
+                        <input
+                          id="phoneNumber"
+                          type="tel"
+                          className="kv-input"
+                          value={phoneInput}
+                          onChange={(e) => setPhoneInput(e.target.value)}
+                        />
+                      </div>
+                    ) : (
+                      <>
+                        <span className="kv-value">{maskPhoneNumber(user.phoneNumber)}</span>
+                        <span className="verified-inline">已通过核验</span>
+                      </>
+                    )}
                   </div>
                   <div className="kv-item">
                     <label className="kv-label">邮箱：</label>

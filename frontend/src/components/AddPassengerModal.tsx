@@ -28,12 +28,14 @@ const AddPassengerModal: React.FC<AddPassengerModalProps> = ({
     name: string;
     idCard: string;
     phone: string;
+    countryCode?: string;
     passengerType: '成人' | '儿童' | '学生';
     idType?: string;
   }>({
     name: editingPassenger?.name || '',
     idCard: editingPassenger?.idCard || '',
     phone: editingPassenger?.phone || '',
+    countryCode: '+86',
     passengerType: editingPassenger?.passengerType || '成人',
     idType: '1'
   });
@@ -56,8 +58,12 @@ const AddPassengerModal: React.FC<AddPassengerModalProps> = ({
     
     if (!formData.phone.trim()) {
       newErrors.phone = '请输入手机号';
-    } else if (!/^1[3-9]\d{9}$/.test(formData.phone)) {
-      newErrors.phone = '手机号格式不正确';
+    } else {
+      const digitsOnly = /^\d{4,15}$/;
+      const cnLocal = /^1[3-9]\d{9}$/;
+      if (!digitsOnly.test(formData.phone) && !cnLocal.test(formData.phone)) {
+        newErrors.phone = '手机号格式不正确';
+      }
     }
     
     setErrors(newErrors);
@@ -80,7 +86,7 @@ const AddPassengerModal: React.FC<AddPassengerModalProps> = ({
       } else {
         onAdd(submitData);
       }
-      setFormData({ name: '', idCard: '', phone: '', passengerType: '成人', idType: '1' });
+      setFormData({ name: '', idCard: '', phone: '', countryCode: '+86', passengerType: '成人', idType: '1' });
       setErrors({});
       onClose();
     }
@@ -170,8 +176,24 @@ const AddPassengerModal: React.FC<AddPassengerModalProps> = ({
             <div className="form-group">
               <label htmlFor="phone">手机号码：</label>
               <div className="phone-input-group">
-                <select className="country-code">
-                  <option value="+86">+86</option>
+                <select
+                  className="country-code"
+                  value={formData.countryCode}
+                  onChange={(e) => handleInputChange('countryCode', e.target.value)}
+                >
+                  <option value="+86">+86 中国</option>
+                  <option value="+852">+852 中国香港</option>
+                  <option value="+853">+853 中国澳门</option>
+                  <option value="+886">+886 中国台湾</option>
+                  <option value="+1">+1 美国/加拿大</option>
+                  <option value="+44">+44 英国</option>
+                  <option value="+81">+81 日本</option>
+                  <option value="+82">+82 韩国</option>
+                  <option value="+49">+49 德国</option>
+                  <option value="+33">+33 法国</option>
+                  <option value="+65">+65 新加坡</option>
+                  <option value="+91">+91 印度</option>
+                  <option value="+61">+61 澳大利亚</option>
                 </select>
                 <input
                   type="tel"
@@ -179,7 +201,7 @@ const AddPassengerModal: React.FC<AddPassengerModalProps> = ({
                   value={formData.phone}
                   onChange={(e) => handleInputChange('phone', e.target.value)}
                   placeholder="请输入手机号码"
-                  maxLength={11}
+                  maxLength={15}
                   className={errors.phone ? 'error' : ''}
                 />
               </div>

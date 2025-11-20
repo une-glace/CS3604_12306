@@ -7,6 +7,7 @@ export interface User {
   idNumber: string;
   email?: string;
   phoneNumber: string;
+  countryCode?: string;
   passengerType: string;
   status: string;
   lastLoginAt?: string;
@@ -23,6 +24,7 @@ export interface RegisterData {
   idNumber: string;
   email?: string;
   phoneNumber: string;
+  countryCode?: string;
   passengerType: string;
 }
 

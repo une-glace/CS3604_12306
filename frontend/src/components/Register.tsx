@@ -15,6 +15,7 @@ interface RegisterFormData {
   idNumber: string;
   email: string;
   phoneNumber: string;
+  countryCode: string;
   passengerType: string;
   phoneVerificationCode: string;
   agreementAccepted: boolean;
@@ -38,6 +39,7 @@ const Register: React.FC<RegisterProps> = () => {
     idNumber: '',
     email: '',
     phoneNumber: '',
+    countryCode: '+86',
     passengerType: '1', // 1: 成人
     phoneVerificationCode: '',
     agreementAccepted: false
@@ -64,8 +66,9 @@ const Register: React.FC<RegisterProps> = () => {
   // 验证规则
 
   const validatePhoneNumber = (phone: string): boolean => {
-    const regex = /^1[3-9]\d{9}$/;
-    return regex.test(phone);
+    const digitsOnly = /^\d{4,15}$/;
+    const cnLocal = /^1[3-9]\d{9}$/;
+    return digitsOnly.test(phone) || cnLocal.test(phone);
   };
 
   // 处理输入变化
@@ -153,6 +156,7 @@ const Register: React.FC<RegisterProps> = () => {
         idNumber: formData.idNumber,
         email: formData.email,
         phoneNumber: formData.phoneNumber,
+        countryCode: formData.countryCode,
         passengerType: formData.passengerType
       };
 
@@ -186,6 +190,7 @@ const Register: React.FC<RegisterProps> = () => {
         idNumber: formData.idNumber,
         email: formData.email,
         phoneNumber: formData.phoneNumber,
+        countryCode: formData.countryCode,
         passengerType: formData.passengerType,
         status: 'active'
       } as any, 'dev-mock-token');
@@ -416,8 +421,25 @@ const Register: React.FC<RegisterProps> = () => {
                     <label className="grid-label"><span className="required-star">*</span> 手机号码：</label>
                     <div className="grid-input">
                       <div className="phone-row">
-                        <select className="country-select" value={"+86"} onChange={() => {}}>
+                        <select
+                          className="country-select"
+                          value={formData.countryCode}
+                          name="countryCode"
+                          onChange={handleInputChange}
+                        >
                           <option value="+86">+86 中国</option>
+                          <option value="+852">+852 中国香港</option>
+                          <option value="+853">+853 中国澳门</option>
+                          <option value="+886">+886 中国台湾</option>
+                          <option value="+1">+1 美国/加拿大</option>
+                          <option value="+44">+44 英国</option>
+                          <option value="+81">+81 日本</option>
+                          <option value="+82">+82 韩国</option>
+                          <option value="+49">+49 德国</option>
+                          <option value="+33">+33 法国</option>
+                          <option value="+65">+65 新加坡</option>
+                          <option value="+91">+91 印度</option>
+                          <option value="+61">+61 澳大利亚</option>
                         </select>
                         <input
                           type="tel"
@@ -463,7 +485,7 @@ const Register: React.FC<RegisterProps> = () => {
                 <h3>手机验证</h3>
                 
                 <div className="verification-info">
-                  <p>验证码已发送至手机号：{formData.phoneNumber}</p>
+                  <p>验证码已发送至手机号：{`${formData.countryCode} ${formData.phoneNumber}`}</p>
                 </div>
 
                 <div className="form-group verification-group">

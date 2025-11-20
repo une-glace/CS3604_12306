@@ -1,8 +1,7 @@
 const User = require('../models/User');
-const { validateRegisterData, validateUsername, validatePassword } = require('../utils/validation');
+const { validateRegisterData, validateUsername, validatePassword, validateEmail, validatePhoneNumber } = require('../utils/validation');
 const { hashPassword, comparePassword, generateToken } = require('../utils/auth');
 const { createDefaultPassenger } = require('./passengerController');
-const { validateEmail } = require('../utils/validation');
 
 // 用户注册
 const register = async (req, res) => {
@@ -16,6 +15,7 @@ const register = async (req, res) => {
       idNumber,
       email,
       phoneNumber,
+      countryCode,
       passengerType
     } = req.body;
 
@@ -90,6 +90,7 @@ const register = async (req, res) => {
       id_number: idNumber,
       email: email || null,
       phone_number: phoneNumber,
+      country_code: countryCode || '+86',
       passenger_type: passengerType || '1'
     });
 
@@ -112,6 +113,7 @@ const register = async (req, res) => {
       idNumber: newUser.id_number,
       email: newUser.email,
       phoneNumber: newUser.phone_number,
+      countryCode: newUser.country_code,
       passengerType: newUser.passenger_type,
       status: newUser.status,
       createdAt: newUser.created_at
@@ -200,6 +202,7 @@ const login = async (req, res) => {
       idNumber: user.id_number,
       email: user.email,
       phoneNumber: user.phone_number,
+      countryCode: user.country_code,
       passengerType: user.passenger_type,
       status: user.status,
       lastLoginAt: user.last_login_at
@@ -246,6 +249,7 @@ const getCurrentUser = async (req, res) => {
       idNumber: user.id_number,
       email: user.email,
       phoneNumber: user.phone_number,
+      countryCode: user.country_code,
       passengerType: user.passenger_type,
       status: user.status,
       lastLoginAt: user.last_login_at,
@@ -274,10 +278,27 @@ module.exports = {
   // 更新个人信息（目前仅支持邮箱）
   updateProfile: async (req, res) => {
     try {
-      const { email } = req.body;
-      const emailValidation = validateEmail(email);
-      if (!emailValidation.isValid) {
-        return res.status(400).json({ success: false, message: emailValidation.message });
+      const { email, phoneNumber, countryCode } = req.body;
+
+      if (email !== undefined) {
+        const emailValidation = validateEmail(email);
+        if (!emailValidation.isValid) {
+          return res.status(400).json({ success: false, message: emailValidation.message });
+        }
+      }
+
+      if (phoneNumber !== undefined) {
+        const phoneValidation = validatePhoneNumber(phoneNumber);
+        if (!phoneValidation.isValid) {
+          return res.status(400).json({ success: false, message: phoneValidation.message });
+        }
+        // 检查手机号是否已存在（排除当前用户）
+        const existingPhone = await User.findOne({
+          where: { phone_number: phoneNumber, id: { [require('sequelize').Op.ne]: req.user.id } }
+        });
+        if (existingPhone) {
+          return res.status(400).json({ success: false, message: '该手机号已被其他账户使用' });
+        }
       }
 
       const user = await User.findByPk(req.user.id);
@@ -285,9 +306,14 @@ module.exports = {
         return res.status(404).json({ success: false, message: '用户不存在' });
       }
 
-      await user.update({ email });
+      const updatePayload = {};
+      if (email !== undefined) Object.assign(updatePayload, { email });
+      if (phoneNumber !== undefined) Object.assign(updatePayload, { phone_number: phoneNumber });
+      if (countryCode !== undefined) Object.assign(updatePayload, { country_code: countryCode });
 
-      res.json({ success: true, message: '更新成功', data: { email } });
+      await user.update(updatePayload);
+
+      res.json({ success: true, message: '更新成功', data: { email: user.email, phoneNumber: user.phone_number, countryCode: user.country_code } });
     } catch (error) {
       console.error('更新个人信息错误:', error);
       res.status(500).json({ success: false, message: '服务器内部错误' });

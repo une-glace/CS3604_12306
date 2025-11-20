@@ -52,12 +52,19 @@ const User = sequelize.define('User', {
     }
   },
   phone_number: {
-    type: DataTypes.STRING(11),
+    type: DataTypes.STRING(20),
     allowNull: false,
     unique: true,
     validate: {
-      is: /^1[3-9]\d{9}$/
+      // 允许中国手机号或通用 E.164（可带 +）
+      is: /^(\+?[1-9]\d{6,14}|1[3-9]\d{9})$/
     }
+  },
+  country_code: {
+    type: DataTypes.STRING(8),
+    allowNull: false,
+    defaultValue: '+86',
+    comment: '电话国家/地区代码（如 +86, +1 等）'
   },
   passenger_type: {
     type: DataTypes.ENUM('1', '2'),

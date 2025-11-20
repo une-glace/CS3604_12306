@@ -76,16 +76,17 @@ const validateIdNumber = (idNumber, idType = '1') => {
   return { isValid: true };
 };
 
-// 手机号验证
+// 手机号验证（支持中国手机号或通用 E.164）
 const validatePhoneNumber = (phoneNumber) => {
   if (!phoneNumber || typeof phoneNumber !== 'string') {
     return { isValid: false, message: '手机号不能为空' };
   }
-  
-  if (!/^1[3-9]\d{9}$/.test(phoneNumber)) {
+  const normalized = phoneNumber.trim();
+  const E164 = /^\+?[1-9]\d{6,14}$/; // 可带+，总长度7-15
+  const CN = /^1[3-9]\d{9}$/; // 中国大陆手机号
+  if (!E164.test(normalized) && !CN.test(normalized)) {
     return { isValid: false, message: '请输入正确的手机号码' };
   }
-  
   return { isValid: true };
 };
 

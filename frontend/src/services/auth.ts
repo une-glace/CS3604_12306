@@ -17,6 +17,7 @@ interface RegisterData {
   idNumber: string;
   email?: string;
   phoneNumber: string;
+  countryCode?: string;
   passengerType: string;
 }
 
@@ -75,7 +76,7 @@ export const getCurrentUser = async (): Promise<ApiResponse<{ user: User }>> => 
 };
 
 // 更新个人信息（目前仅支持邮箱）
-export const updateProfile = async (payload: { email: string }): Promise<ApiResponse<{ email: string }>> => {
+export const updateProfile = async (payload: { email?: string; phoneNumber?: string; countryCode?: string }): Promise<ApiResponse<{ email?: string; phoneNumber?: string; countryCode?: string }>> => {
   try {
     const response = await put('/auth/profile', payload);
     return response;
