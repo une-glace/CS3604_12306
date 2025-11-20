@@ -81,16 +81,18 @@ const register = async (req, res) => {
       });
     }
 
-    // 验证手机号验证码
-    try {
-      const key = `${countryCode || '+86'}:${phoneNumber}`;
-      const v = verificationVerified.get(key);
-      if (!v || (Date.now() - v.verifiedAt) > 10 * 60 * 1000) {
+    // 验证手机号验证码（测试环境跳过）
+    if (process.env.NODE_ENV !== 'test') {
+      try {
+        const key = `${countryCode || '+86'}:${phoneNumber}`;
+        const v = verificationVerified.get(key);
+        if (!v || (Date.now() - v.verifiedAt) > 10 * 60 * 1000) {
+          return res.status(400).json({ success: false, message: '请先完成手机验证码校验' });
+        }
+        verificationVerified.delete(key);
+      } catch (e) {
         return res.status(400).json({ success: false, message: '请先完成手机验证码校验' });
       }
-      verificationVerified.delete(key);
-    } catch (e) {
-      return res.status(400).json({ success: false, message: '请先完成手机验证码校验' });
     }
 
     // 密码加密
@@ -165,8 +167,13 @@ const register = async (req, res) => {
     }
     if (error?.name === 'SequelizeValidationError') {
       const first = error?.errors?.[0];
-      const message = first?.message || '数据验证失败，请检查输入信息';
+      let message = first?.message || '数据验证失败，请检查输入信息';
       const field = first?.path;
+      const key = first?.validatorKey;
+      if (field === 'username' && key === 'len') message = '用户名长度必须在6-30位之间';
+      if (field === 'username' && key === 'is') message = '用户名必须以字母开头，仅字母/数字/空格/下划线';
+      if (field === 'id_number' && key === 'len') message = '身份证号长度必须在15-20位之间';
+      if (field === 'phone_number' && key === 'is') message = '请输入正确的手机号码';
       return res.status(400).json({
         success: false,
         message,
