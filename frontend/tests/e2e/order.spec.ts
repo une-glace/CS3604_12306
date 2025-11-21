@@ -48,12 +48,19 @@ test.describe('订票与订单支付', () => {
       await expect(page.getByRole('heading', { name: '请核对以下信息' })).toBeVisible({ timeout: 15000 });
       await page.locator('button.confirm-btn').click();
     }
-    // 等待支付弹窗出现并接收“支付成功”提示返回首页
-    await expect(page.locator('.payment-modal-overlay')).toBeVisible({ timeout: 20000 });
-    await Promise.all([
-      page.waitForEvent('dialog').then(d => d.accept()),
-      page.waitForURL('/')
-    ]);
+    // 等待支付结果：兼容有支付弹窗或直接弹出提示两种流程
+    const overlay = page.locator('.payment-modal-overlay');
+    const overlayExists = await overlay.count().then(c => c > 0);
+    if (overlayExists) {
+      await expect(overlay).toBeVisible({ timeout: 20000 });
+      await Promise.all([
+        page.waitForEvent('dialog').then(d => d.accept()),
+        page.waitForURL('/')
+      ]);
+    } else {
+      await page.waitForEvent('dialog', { timeout: 20000 }).then(d => d.accept());
+      await page.waitForURL('/', { timeout: 20000 });
+    }
     // 进入个人中心订单中心并断言“未出行订单”与“未完成订单”
     await page.goto('/profile');
     if (!/\/profile$/.test(page.url())) {

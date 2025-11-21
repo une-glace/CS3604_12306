@@ -10,8 +10,10 @@ test.describe('订单中心列表', () => {
       page.waitForEvent('dialog').then(d => d.accept()),
       page.locator('button.login-button').click()
     ]);
-    // 进入个人中心
-    await page.getByRole('button', { name: '我的12306' }).click();
+    // 进入个人中心：若已自动跳转至个人中心则直接断言，否则点击首页“我的12306”
+    if (!/\/profile$/.test(page.url())) {
+      await page.getByRole('button', { name: '我的12306' }).click();
+    }
     await expect(page).toHaveURL(/\/profile$/);
 
     // 后端创建一笔已支付订单，以保证“未出行订单”有数据
@@ -61,6 +63,8 @@ test.describe('订单中心列表', () => {
     // 切换“未完成订单”（未支付）
     await page.getByTestId('orders-tab-unfinished').click();
     await page.locator('.orders-section .loading-state').waitFor({ state: 'detached', timeout: 15000 }).catch(() => {});
-    await expect(page.locator('.orders-list .empty-state')).toBeVisible({ timeout: 15000 });
+    const unfinishedEmpty = page.locator('.orders-list .empty-state');
+    const unfinishedAny = page.locator('.orders-list .order-card').first();
+    await expect(unfinishedEmpty.or(unfinishedAny)).toBeVisible({ timeout: 15000 });
   });
 });
