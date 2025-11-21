@@ -21,6 +21,7 @@ export default defineConfig({
     globals: true,
     include: ['src/**/*.spec.{ts,tsx}'],
     coverage: {
+      provider: 'v8',
       reporter: ['text', 'html'],
     }
   }

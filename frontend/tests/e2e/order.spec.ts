@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test';
+import { ensureLogin } from './utils/auth';
 
 test.describe('订票与订单支付', () => {
   test('下单并支付成功', async ({ page }) => {
@@ -67,30 +68,8 @@ test.describe('订票与订单支付', () => {
         await page.goto('/');
       }
     }
-    // 进入个人中心订单中心并断言“未出行订单”与“未完成订单”
-    await page.goto('/profile');
-    if (!/\/profile$/.test(page.url())) {
-      await page.fill('#username', 'newuser');
-      await page.fill('#password', 'mypassword');
-      await Promise.all([
-        page.waitForEvent('dialog').then(d => d.accept()),
-        page.locator('button.login-button').click()
-      ]);
-    }
-    await page.goto('/profile');
-    const prof = page.locator('.profile-page');
-    const loginInput = page.locator('#username');
-    await expect(prof.or(loginInput)).toBeVisible({ timeout: 30000 });
-    if (await loginInput.count()) {
-      await page.fill('#username', 'newuser');
-      await page.fill('#password', 'mypassword');
-      await Promise.all([
-        page.waitForEvent('dialog').then(d => d.accept()),
-        page.locator('button.login-button').click()
-      ]);
-      await page.goto('/profile');
-      await expect(page).toHaveURL(/\/profile$/);
-    }
+    await ensureLogin(page);
+    await expect(page).toHaveURL(/\/profile$/);
     await page.getByRole('button', { name: '火车票订单' }).click();
     // 未出行订单（等同于已支付）
     await page.getByTestId('orders-tab-not-travelled').click();

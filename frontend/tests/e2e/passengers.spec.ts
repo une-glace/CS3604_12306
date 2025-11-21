@@ -1,18 +1,9 @@
 import { test, expect } from '@playwright/test';
+import { ensureLogin } from './utils/auth';
 
 test.describe('常用乘车人管理', () => {
   test.beforeEach(async ({ page }) => {
-    await page.goto('/');
-    await page.getByRole('button', { name: '登录' }).click();
-    await page.fill('#username', 'newuser');
-    await page.fill('#password', 'mypassword');
-    await Promise.all([
-      page.waitForEvent('dialog', { timeout: 20000 }).then(d => d.accept()),
-      page.locator('button.login-button').click()
-    ]);
-    if (!/\/profile$/.test(page.url())) {
-      await page.goto('/profile');
-    }
+    await ensureLogin(page);
     await expect(page).toHaveURL(/\/profile$/);
   });
 

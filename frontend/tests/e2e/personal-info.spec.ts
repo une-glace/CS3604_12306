@@ -1,15 +1,9 @@
 import { test, expect } from '@playwright/test';
+import { ensureLogin } from './utils/auth';
 
 test.describe('个人信息编辑', () => {
   test('修改邮箱并保存', async ({ page }) => {
-    await page.goto('/');
-    await page.getByRole('button', { name: '登录' }).click();
-    await page.fill('#username', 'newuser');
-    await page.fill('#password', 'mypassword');
-    await Promise.all([
-      page.waitForEvent('dialog').then(d => d.accept()),
-      page.locator('button.login-button').click()
-    ]);
+    await ensureLogin(page);
     await expect(page).toHaveURL(/\/profile$/);
 
     await page.getByRole('button', { name: '查看个人信息' }).click();

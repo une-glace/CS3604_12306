@@ -19,7 +19,7 @@ const Order = sequelize.define('Order', {
     allowNull: false,
     field: 'user_id', // 映射到数据库字段名
     references: {
-      model: 'Users',
+      model: 'users',
       key: 'id'
     },
     comment: '用户ID'

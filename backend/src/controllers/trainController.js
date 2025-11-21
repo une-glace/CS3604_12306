@@ -179,11 +179,14 @@ const getTrainDetail = async (req, res) => {
   }
 };
 
-// 获取热门路线
+let popularRoutesCache = { data: null, expiresAt: 0 };
 const getPopularRoutes = async (req, res) => {
   try {
-    // 这里可以根据实际业务需求返回热门路线
-    // 暂时返回一些示例数据
+    const ttl = parseInt(process.env.POPULAR_ROUTES_TTL_MS || '300000', 10);
+    const now = Date.now();
+    if (popularRoutesCache.data && popularRoutesCache.expiresAt > now) {
+      return res.json({ success: true, data: { routes: popularRoutesCache.data } });
+    }
     const popularRoutes = [
       { fromStation: '北京南', toStation: '上海虹桥', count: 1250 },
       { fromStation: '广州南', toStation: '深圳北', count: 980 },
@@ -194,12 +197,8 @@ const getPopularRoutes = async (req, res) => {
       { fromStation: '武汉', toStation: '长沙南', count: 587 },
       { fromStation: '天津西', toStation: '济南西', count: 523 }
     ];
-
-    res.json({
-      success: true,
-      data: { routes: popularRoutes }
-    });
-
+    popularRoutesCache = { data: popularRoutes, expiresAt: now + ttl };
+    res.json({ success: true, data: { routes: popularRoutes } });
   } catch (error) {
     console.error('获取热门路线错误:', error);
     res.status(500).json({

@@ -1,44 +1,9 @@
 import { test, expect } from '@playwright/test';
+import { ensureLogin } from './utils/auth';
 
 test.describe('订单中心列表', () => {
   test('未出行与未完成列表断言', async ({ page }) => {
-    await page.goto('/');
-    await page.getByRole('button', { name: '登录' }).click();
-    await page.fill('#username', 'newuser');
-    await page.fill('#password', 'mypassword');
-    try {
-      await Promise.all([
-        page.waitForEvent('dialog', { timeout: 8000 }).then(d => d.accept()),
-        page.locator('button.login-button').click()
-      ]);
-    } catch (e) { void e; }
-    if (!/\/profile$/.test(page.url())) {
-      await page.goto('/profile');
-    }
-    if (/\/login$/.test(page.url())) {
-      const loginApi = await page.request.post('http://127.0.0.1:3000/api/v1/auth/login', {
-        data: { username: 'newuser', password: 'mypassword' }
-      });
-      let token: string | null = null;
-      if (loginApi.status() === 200) {
-        token = (await loginApi.json()).data?.token || null;
-      } else {
-        const send = await page.request.post('http://127.0.0.1:3000/api/v1/auth/send-code', { data: { countryCode: '+86', phoneNumber: '13812341234' } });
-        const code = send.status() === 200 ? (await send.json()).code : '000000';
-        await page.request.post('http://127.0.0.1:3000/api/v1/auth/verify-code', { data: { countryCode: '+86', phoneNumber: '13812341234', code } });
-        const reg = await page.request.post('http://127.0.0.1:3000/api/v1/auth/register', {
-          data: { username: 'newuser', password: 'mypassword', confirmPassword: 'mypassword', realName: '测试用户', idType: '1', idNumber: '11010519491231002X', email: 'newuser@example.com', phoneNumber: '13812341234', countryCode: '+86', passengerType: '1' }
-        });
-        if (reg.status() === 201 || reg.status() === 200) {
-          token = (await reg.json()).data?.token || null;
-        }
-      }
-      if (token) {
-        await page.evaluate((t) => localStorage.setItem('authToken', t as string), token);
-        await page.goto('/profile');
-      }
-    }
-    await expect(page).toHaveURL(/\/profile$/);
+    await ensureLogin(page);
 
     // 后端创建一笔已支付订单，以保证“未出行订单”有数据
     const apiLogin = await page.request.post('http://127.0.0.1:3000/api/v1/auth/login', {

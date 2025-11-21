@@ -4,6 +4,13 @@ on:
   push:
     branches:
       - '**'
+  pull_request:
+    branches:
+      - '**'
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   backend-tests:
@@ -30,6 +37,7 @@ jobs:
       - name: Run backend tests (Jest with coverage)
         env:
           NODE_ENV: test
+          DB_DIALECT: sqlite
         run: npm test -- --coverage
 
       - name: Upload backend coverage
@@ -69,8 +77,14 @@ jobs:
         run: npx playwright install --with-deps
 
       - name: Start backend server
+        env:
+          NODE_ENV: test
+          DB_DIALECT: sqlite
+          ORDER_UNPAID_TTL_MS: 180000
+          ORDER_CLEANUP_INTERVAL_MS: 30000
+          POPULAR_ROUTES_TTL_MS: 300000
         run: |
-          NODE_ENV=test npm start --prefix backend &
+          npm start --prefix backend &
 
       - name: Start frontend dev server (vite)
         run: |
@@ -86,6 +100,18 @@ jobs:
       - name: Run Frontend Unit Tests (Vitest)
         working-directory: frontend
         run: npm run test:unit -- --coverage
+
+      - name: Upload frontend coverage
+        uses: actions/upload-artifact@v4
+        with:
+          name: frontend-coverage
+          path: frontend/coverage
+          if-no-files-found: ignore
+          retention-days: 7
+
+      - name: Frontend build
+        working-directory: frontend
+        run: npm run build
 
       - name: Frontend Lint (non-blocking)
         continue-on-error: true
