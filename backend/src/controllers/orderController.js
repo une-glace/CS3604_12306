@@ -352,7 +352,7 @@ const allocateSeatsForGroup = async (trainNumber, date, seatType, count, prefere
 };
 
 // 获取用户订单列表
-const getUserOrders = async (req, res) => {
+  const getUserOrders = async (req, res) => {
   try {
     const { page = 1, limit = 10, status } = req.query;
     const offset = (page - 1) * limit;
@@ -373,9 +373,9 @@ const getUserOrders = async (req, res) => {
       offset: parseInt(offset)
     });
 
-    // 动态更新已支付且已发车的订单为已出行
     const now = new Date();
     const updates = [];
+    const ttlMs = parseInt(process.env.ORDER_UNPAID_TTL_MS || '120000', 10);
     for (const order of orders.rows) {
       if (order.status === 'paid' && order.departureDate) {
         try {
@@ -389,14 +389,33 @@ const getUserOrders = async (req, res) => {
           if (now >= depart) {
             updates.push(order.update({ status: 'completed' }));
           }
-        } catch (e) {
-          // 忽略单条解析错误
-        }
+        } catch {}
+      }
+      if (order.status === 'unpaid' && order.createdAt) {
+        try {
+          const created = new Date(order.createdAt);
+          if (now.getTime() - created.getTime() > ttlMs) {
+            const seatCounts = {};
+            if (order.passengers && order.passengers.length > 0) {
+              order.passengers.forEach(p => {
+                const key = `${p.seatType}`;
+                seatCounts[key] = (seatCounts[key] || 0) + 1;
+              });
+              for (const [seatType, count] of Object.entries(seatCounts)) {
+                updates.push((async () => {
+                  const trainSeat = await TrainSeat.findOne({ where: { trainNumber: order.trainNumber, date: order.departureDate, seatType } });
+                  if (trainSeat) {
+                    await trainSeat.update({ availableSeats: trainSeat.availableSeats + count });
+                  }
+                })());
+              }
+            }
+            updates.push(order.update({ status: 'cancelled' }));
+          }
+        } catch {}
       }
     }
-    if (updates.length > 0) {
-      await Promise.all(updates);
-    }
+    if (updates.length > 0) await Promise.all(updates);
 
     res.json({
       success: true,

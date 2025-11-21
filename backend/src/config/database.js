@@ -1,23 +1,31 @@
 const { Sequelize } = require('sequelize');
 require('dotenv').config();
 
-// 创建Sequelize实例 - 使用SQLite作为开发数据库
-const sequelize = new Sequelize({
-  dialect: 'sqlite',
-  storage: './database.sqlite',
-  logging: process.env.NODE_ENV === 'development' ? console.log : false,
-  pool: {
-    max: 5,
-    min: 0,
-    acquire: 30000,
-    idle: 10000
-  },
-  define: {
-    timestamps: true,
-    underscored: true,
-    freezeTableName: true
-  }
-});
+const dialect = process.env.DB_DIALECT || 'sqlite';
+let sequelize;
+if (dialect === 'mysql') {
+  sequelize = new Sequelize(
+    process.env.DB_NAME || 'trae_12306',
+    process.env.DB_USER || 'root',
+    process.env.DB_PASS || '',
+    {
+      host: process.env.DB_HOST || '127.0.0.1',
+      port: parseInt(process.env.DB_PORT || '3306', 10),
+      dialect: 'mysql',
+      logging: process.env.NODE_ENV === 'development' ? console.log : false,
+      pool: { max: 20, min: 0, acquire: 30000, idle: 10000 },
+      define: { timestamps: true, underscored: true, freezeTableName: true }
+    }
+  );
+} else {
+  sequelize = new Sequelize({
+    dialect: 'sqlite',
+    storage: process.env.SQLITE_PATH || './database.sqlite',
+    logging: process.env.NODE_ENV === 'development' ? console.log : false,
+    pool: { max: 5, min: 0, acquire: 30000, idle: 10000 },
+    define: { timestamps: true, underscored: true, freezeTableName: true }
+  });
+}
 
 // 测试数据库连接
 const testConnection = async () => {
