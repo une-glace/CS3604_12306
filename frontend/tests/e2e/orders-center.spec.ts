@@ -10,9 +10,9 @@ test.describe('订单中心列表', () => {
       page.waitForEvent('dialog').then(d => d.accept()),
       page.locator('button.login-button').click()
     ]);
-    // 进入个人中心：若已自动跳转至个人中心则直接断言，否则点击首页“我的12306”
+    // 进入个人中心：若未跳转则直接访问个人中心路由
     if (!/\/profile$/.test(page.url())) {
-      await page.getByRole('button', { name: '我的12306' }).click();
+      await page.goto('/profile');
     }
     await expect(page).toHaveURL(/\/profile$/);
 

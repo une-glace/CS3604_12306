@@ -15,4 +15,13 @@ export default defineConfig({
       },
     },
   },
+  test: {
+    environment: 'jsdom',
+    setupFiles: 'src/test/setup.ts',
+    globals: true,
+    include: ['src/**/*.spec.{ts,tsx}'],
+    coverage: {
+      reporter: ['text', 'html'],
+    }
+  }
 });
