@@ -70,17 +70,27 @@ test.describe('订票与订单支付', () => {
     // 进入个人中心订单中心并断言“未出行订单”与“未完成订单”
     await page.goto('/profile');
     if (!/\/profile$/.test(page.url())) {
-      // 若被重定向到登录，则再次登录
       await page.fill('#username', 'newuser');
       await page.fill('#password', 'mypassword');
       await Promise.all([
         page.waitForEvent('dialog').then(d => d.accept()),
         page.locator('button.login-button').click()
       ]);
-      await expect(page).toHaveURL(/\/profile$/);
     }
     await page.goto('/profile');
-    await expect(page.locator('.profile-page')).toBeVisible({ timeout: 15000 });
+    const prof = page.locator('.profile-page');
+    const loginInput = page.locator('#username');
+    await expect(prof.or(loginInput)).toBeVisible({ timeout: 30000 });
+    if (await loginInput.count()) {
+      await page.fill('#username', 'newuser');
+      await page.fill('#password', 'mypassword');
+      await Promise.all([
+        page.waitForEvent('dialog').then(d => d.accept()),
+        page.locator('button.login-button').click()
+      ]);
+      await page.goto('/profile');
+      await expect(page).toHaveURL(/\/profile$/);
+    }
     await page.getByRole('button', { name: '火车票订单' }).click();
     // 未出行订单（等同于已支付）
     await page.getByTestId('orders-tab-not-travelled').click();

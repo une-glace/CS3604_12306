@@ -24,9 +24,10 @@ test.describe('订单中心未完成订单去支付', () => {
     const search = await page.request.get('http://127.0.0.1:3000/api/v1/trains/search', {
       params: { fromStation: '北京南', toStation: '上海虹桥', departureDate: '2025-12-15' }
     });
-    const list = search.status() === 200 ? ((await search.json()).data?.trains || []) : [];
+    type TrainOption = { trainNumber: string; fromStation: string; toStation: string; departureTime: string; arrivalTime: string; duration: string };
+    const list: TrainOption[] = search.status() === 200 ? (((await search.json()).data?.trains || []) as TrainOption[]) : [];
     if (!list.length) test.fail(true, '无可用车次，跳过');
-    const picked = list.find((t: any) => t.trainNumber === 'G101') || list[0];
+    const picked = list.find(t => t.trainNumber === 'G101') || list[0];
     const payload = {
       trainInfo: {
         trainNumber: picked.trainNumber,
