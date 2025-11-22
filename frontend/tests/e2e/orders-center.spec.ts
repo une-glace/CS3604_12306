@@ -35,6 +35,7 @@ test.describe('订单中心列表', () => {
       }
       if (token) {
         await page.evaluate((t) => localStorage.setItem('authToken', t as string), token);
+        await page.reload();
         await page.goto('/profile');
       }
     }
