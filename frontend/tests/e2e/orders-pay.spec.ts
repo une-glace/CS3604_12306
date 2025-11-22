@@ -15,10 +15,8 @@ test.describe('订单中心未完成订单去支付', () => {
 
     // 将令牌注入到页面环境中，确保前端能访问订单中心
     await page.goto('/');
-    // 令牌在上一步已校验，这里声明返回类型为 void、参数类型为 string
-    await page.evaluate<void, string>((t) => {
-      localStorage.setItem('authToken', t);
-    }, token!);
+    await page.evaluate<void, string>((t) => { localStorage.setItem('authToken', t); }, token!);
+    await page.reload({ waitUntil: 'networkidle' });
 
     // 动态查询可用车次，优先选择 G101，否则选择列表第一项
     const search = await page.request.get('http://127.0.0.1:3000/api/v1/trains/search', {

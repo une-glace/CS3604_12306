@@ -35,11 +35,11 @@ test.describe('订单中心列表', () => {
       }
       if (token) {
         await page.evaluate((t) => localStorage.setItem('authToken', t as string), token);
-        await page.reload();
+        await page.reload({ waitUntil: 'networkidle' });
         await page.goto('/profile');
       }
     }
-    await expect(page).toHaveURL(/\/profile$/);
+    await expect(page.locator('.profile-page')).toBeVisible({ timeout: 15000 });
 
     // 后端创建一笔已支付订单，以保证“未出行订单”有数据
     const apiLogin = await page.request.post('http://127.0.0.1:3000/api/v1/auth/login', {

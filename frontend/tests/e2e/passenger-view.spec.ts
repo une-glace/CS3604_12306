@@ -34,7 +34,7 @@ test.describe('常用乘车人-查看', () => {
 
     await page.goto('/');
     await page.evaluate(t => localStorage.setItem('authToken', t), token as string);
-    await page.reload();
+    await page.reload({ waitUntil: 'networkidle' });
     await page.goto('/profile');
     await expect(page).toHaveURL(/\/profile$/);
 
