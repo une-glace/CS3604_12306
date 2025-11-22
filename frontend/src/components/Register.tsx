@@ -156,7 +156,29 @@ const Register: React.FC<RegisterProps> = () => {
 
   // 验证当前步骤
   const validateCurrentStep = (): boolean => {
-    return true;
+    const newErrors: Record<string, string> = {};
+    if (currentStep === 1) {
+      const pwd = formData.password || '';
+      const cpwd = formData.confirmPassword || '';
+      if (!pwd || pwd.length < 6 || pwd.length > 20) {
+        newErrors.password = '密码需6-20位';
+      }
+      if (!cpwd) {
+        newErrors.confirmPassword = '请再次输入登录密码';
+      } else if (pwd !== cpwd) {
+        newErrors.confirmPassword = '确认密码与密码不同！';
+      }
+    }
+    if (currentStep === 2) {
+      if (!verificationCodeSent) {
+        newErrors.phoneVerificationCode = '请先发送验证码';
+      }
+      if (!formData.phoneVerificationCode || formData.phoneVerificationCode.length !== 6) {
+        newErrors.phoneVerificationCode = '请输入6位验证码';
+      }
+    }
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
   };
 
   // 下一步
