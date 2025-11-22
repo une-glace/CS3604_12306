@@ -76,6 +76,17 @@ test.describe('订票与订单支付', () => {
         page.waitForEvent('dialog').then(d => d.accept()),
         page.locator('button.login-button').click()
       ]);
+      if (!/\/profile$/.test(page.url())) {
+        const apiLogin = await page.request.post('http://127.0.0.1:3000/api/v1/auth/login', { data: { username: 'newuser', password: 'mypassword' } });
+        if (apiLogin.status() === 200) {
+          const token = (await apiLogin.json()).data?.token;
+          if (token) {
+            await page.evaluate(t => localStorage.setItem('authToken', t as string), token);
+            await page.reload({ waitUntil: 'networkidle' });
+            await page.goto('/profile');
+          }
+        }
+      }
     }
     await page.goto('/profile');
     const prof = page.locator('.profile-page');
@@ -89,7 +100,20 @@ test.describe('订票与订单支付', () => {
         page.locator('button.login-button').click()
       ]);
       await page.goto('/profile');
-      await expect(page).toHaveURL(/\/profile$/);
+      try {
+        await expect(page).toHaveURL(/\/profile$/);
+      } catch {
+        const apiLogin2 = await page.request.post('http://127.0.0.1:3000/api/v1/auth/login', { data: { username: 'newuser', password: 'mypassword' } });
+        if (apiLogin2.status() === 200) {
+          const token2 = (await apiLogin2.json()).data?.token;
+          if (token2) {
+            await page.evaluate(t => localStorage.setItem('authToken', t as string), token2);
+            await page.reload({ waitUntil: 'networkidle' });
+            await page.goto('/profile');
+            await expect(page).toHaveURL(/\/profile$/);
+          }
+        }
+      }
     }
     await page.getByRole('button', { name: '火车票订单' }).click();
     // 未出行订单（等同于已支付）

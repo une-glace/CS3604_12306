@@ -130,6 +130,24 @@ const ProfilePage: React.FC = () => {
     };
 
     if (user) {
+      setPassengers(prev => {
+        const hasSelf = prev.some(p => p.isDefault || (p.name === user.realName && p.idCard === user.idNumber));
+        if (!hasSelf) {
+          return [
+            {
+              id: 'self',
+              name: user.realName,
+              idCard: user.idNumber,
+              phone: user.phoneNumber,
+              passengerType: '成人',
+              idType: user.idType,
+              isDefault: true
+            },
+            ...prev
+          ];
+        }
+        return prev;
+      });
       fetchPassengers();
     }
   }, [user]);

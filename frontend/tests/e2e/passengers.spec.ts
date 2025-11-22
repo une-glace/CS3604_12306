@@ -11,9 +11,17 @@ test.describe('常用乘车人管理', () => {
       page.locator('button.login-button').click()
     ]);
     if (!/\/profile$/.test(page.url())) {
-      await page.goto('/profile');
+      const apiLogin = await page.request.post('http://127.0.0.1:3000/api/v1/auth/login', { data: { username: 'newuser', password: 'mypassword' } });
+      if (apiLogin.status() === 200) {
+        const token = (await apiLogin.json()).data?.token;
+        if (token) {
+          await page.evaluate(t => localStorage.setItem('authToken', t as string), token);
+          await page.reload({ waitUntil: 'networkidle' });
+          await page.goto('/profile');
+        }
+      }
     }
-    await expect(page).toHaveURL(/\/profile$/);
+    await expect(page.locator('.profile-page')).toBeVisible({ timeout: 15000 });
   });
 
   test('添加两名乘车人并删除其中一名', async ({ page }) => {

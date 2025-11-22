@@ -34,10 +34,12 @@ test.describe('常用乘车人-查看', () => {
 
     await page.goto('/');
     await page.evaluate(t => localStorage.setItem('authToken', t), token as string);
+    await page.reload({ waitUntil: 'networkidle' });
     await page.goto('/profile');
     await expect(page).toHaveURL(/\/profile$/);
 
     await page.getByRole('button', { name: '乘车人' }).click();
+    await page.locator('.loading-container .loading').waitFor({ state: 'detached', timeout: 15000 }).catch(() => {});
     await expect(page.getByRole('heading', { name: '乘车人管理' })).toBeVisible();
 
     const rows = page.locator('.passenger-table .table-row');

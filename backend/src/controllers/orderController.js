@@ -55,16 +55,39 @@ const createOrder = async (req, res) => {
 
     // 检查并预留每种座位类型
     for (const [seatType, count] of Object.entries(seatTypeCount)) {
+      try {
+        if (process.env.NODE_ENV === 'development') {
+          console.log('校验座位', {
+            trainNumber: String(trainInfo.trainNumber),
+            date: String(trainInfo.date),
+            seatType,
+            need: count
+          });
+        }
+      } catch {}
       const trainSeat = await TrainSeat.findOne({
-        where: {
-          trainNumber: trainInfo.trainNumber,
-          date: trainInfo.date, // 修复字段名称，前端传递的是date而不是departureDate
+        where:
+        {
+          trainNumber: String(trainInfo.trainNumber),
+          date: String(trainInfo.date),
           seatType: seatType
         },
         transaction
       });
 
       if (!trainSeat) {
+        try {
+          if (process.env.NODE_ENV === 'development') {
+            const probe = await TrainSeat.findAll({
+              where: {
+                trainNumber: String(trainInfo.trainNumber),
+                date: String(trainInfo.date)
+              },
+              transaction
+            });
+            console.log('探测同日同车次座位条目', probe.map(p => ({ seatType: p.seatType, availableSeats: p.availableSeats })));
+          }
+        } catch {}
         await transaction.rollback();
         return res.status(400).json({
           success: false,
@@ -245,7 +268,11 @@ const allocateSeatsForGroup = async (trainNumber, date, seatType, count, prefere
     include: [{
       model: Order,
       as: 'order',
-      where: { trainNumber, departureDate: date, status: ['unpaid','paid','completed'] }
+      where: { 
+        trainNumber, 
+        departureDate: date, 
+        status: { [Op.in]: ['unpaid','paid','completed'] }
+      }
     }],
     where: { seatType },
     transaction
