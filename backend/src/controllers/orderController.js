@@ -170,6 +170,10 @@ const createOrder = async (req, res) => {
 
       const seatNumber = assignedSeats[i];
 
+      if (passenger.phone && String(passenger.phone).length > 15) {
+        await transaction.rollback();
+        return res.status(400).json({ success: false, message: 'Phone number too long.' });
+      }
       const orderPassenger = await OrderPassenger.create({
         orderId: order.id,
         passengerName: passenger.name,

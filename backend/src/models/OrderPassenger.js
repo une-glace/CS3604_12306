@@ -30,7 +30,7 @@ const OrderPassenger = sequelize.define('OrderPassenger', {
     comment: '身份证号'
   },
   phone: {
-    type: DataTypes.STRING(11),
+    type: DataTypes.STRING(15),
     allowNull: true,
     comment: '手机号'
   },

@@ -67,10 +67,9 @@ const User = sequelize.define('User', {
     comment: '电话国家/地区代码（如 +86, +1 等）'
   },
   passenger_type: {
-    type: DataTypes.ENUM('1', '2'),
+    type: DataTypes.ENUM('成人', '儿童'),
     allowNull: false,
-    defaultValue: '1',
-    comment: '1:成人, 2:儿童'
+    defaultValue: '成人'
   },
   status: {
     type: DataTypes.ENUM('active', 'inactive', 'suspended'),

@@ -31,6 +31,12 @@ if (dialect === 'mysql') {
 const testConnection = async () => {
   try {
     await sequelize.authenticate();
+    if (dialect !== 'mysql') {
+      try {
+        await sequelize.query('PRAGMA journal_mode=WAL;');
+        await sequelize.query('PRAGMA busy_timeout=5000;');
+      } catch {}
+    }
     console.log('✅ 数据库连接成功');
   } catch (error) {
     console.error('❌ 数据库连接失败:', error.message);

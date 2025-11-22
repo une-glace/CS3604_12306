@@ -234,7 +234,7 @@ const createDefaultPassenger = async (userId, userData) => {
       id_type: userData.id_type || '1',
       id_number: userData.id_number,
       phone: userData.phone_number,
-      passenger_type: userData.passenger_type === '1' ? '成人' : '儿童',
+      passenger_type: (userData.passenger_type === '1' || userData.passenger_type === '成人') ? '成人' : '儿童',
       is_default: true
     });
   } catch (error) {

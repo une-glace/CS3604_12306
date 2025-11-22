@@ -77,7 +77,8 @@ const testConnection = async () => {
 // 同步数据库表结构
 const syncDatabase = async (force = false) => {
   try {
-    await sequelize.sync({ force });
+    const alter = String(process.env.DB_DIALECT || '').toLowerCase() === 'mysql' && !force;
+    await sequelize.sync({ force, alter });
     console.log('✅ 数据库表同步成功');
   } catch (error) {
     console.error('❌ 数据库表同步失败:', error.message);

@@ -108,7 +108,7 @@ const register = async (req, res) => {
       email: email || null,
       phone_number: phoneNumber,
       country_code: countryCode || '+86',
-      passenger_type: passengerType || '1'
+      passenger_type: (passengerType === '2' || passengerType === '儿童') ? '儿童' : '成人'
     });
 
     // 为新用户创建默认乘车人（自己）——失败不阻断注册
