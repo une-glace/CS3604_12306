@@ -16,7 +16,11 @@ test.describe('常用乘车人管理', () => {
     const mapping = ['1','0','X','9','8','7','6','5','4','3','2'];
     const idBase14 = '11010519491231';
     const seq1 = String(Math.floor(Math.random() * 90 + 10));
-    const seq2 = String(Math.floor(Math.random() * 90 + 10));
+    let seq2Num = Math.floor(Math.random() * 90 + 10);
+    if (String(seq2Num) === seq1) {
+      seq2Num = ((parseInt(seq1, 10) - 10 + 1) % 90) + 10;
+    }
+    const seq2 = String(seq2Num);
     const makeId = (seq: string) => {
       const id17 = `${idBase14}0${seq}`; // 17位
       const sum = id17.split('').reduce((acc, ch, i) => acc + parseInt(ch, 10) * weights[i], 0);
