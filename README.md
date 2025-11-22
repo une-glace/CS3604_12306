@@ -1,179 +1,184 @@
-# 12306 官方网站像素级复刻项目
+# 12306 像素级复刻项目
 
 ## 项目概述
-
-本项目旨在像素级复刻中国铁路12306官方网站，包含完整的前端界面和后端API服务。项目严格按照12306官方网站的设计规范、交互逻辑和功能特性进行开发。
+- 像素级复刻中国铁路 12306 网站的核心界面与订票流程，包含前端应用与后端 API。
+- 面向试用与中期验收，提供一键本地运行、测试与可选 MySQL 兼容验证。
 
 ## 项目结构
-
 ```
-12306-replica/
-├── frontend/          # 前端React应用
-├── backend/           # 后端Node.js API服务
-├── docs/             # 项目文档
-├── assets/           # 静态资源
-└── README.md         # 项目说明
+12306/
+├── frontend/          # 前端 React + TypeScript + Vite
+├── backend/           # 后端 Express + Sequelize (SQLite/MySQL)
+├── docs/              # 文档（测试指南、项目计划等）
+└── README.md          # 使用与部署指南（当前文件）
 ```
 
-## 技术栈
+## 技术栈（与当前代码一致）
+- 前端：React 19 + TypeScript、Vite 7、React Router 7
+- 后端：Node.js、Express 5、Sequelize 6、SQLite3、MySQL2
+- 测试：Jest（后端）、Playwright（E2E）、Vitest（前端单测）
 
-### 前端
-- **框架**: React 18 + TypeScript
-- **构建工具**: Vite
-- **样式**: CSS Modules / Styled Components
-- **状态管理**: Redux Toolkit
-- **路由**: React Router
-- **UI组件**: Ant Design
-- **HTTP客户端**: Axios
+## 快速开始（本地试用）
+**环境要求**
+- Node.js 20
+- 可选：Docker（用于 MySQL 兼容测试）
 
-### 后端
-- **运行时**: Node.js
-- **框架**: Express.js
-- **数据库**: MySQL + Redis
-- **ORM**: Sequelize
-- **认证**: JWT
-- **安全**: Helmet, CORS
-- **日志**: Morgan
+**安装依赖（两种方式任选其一）**
 
-## 快速开始
-
-### 环境要求
-- Node.js >= 16.0.0
-- MySQL >= 8.0
-- Redis >= 6.0
-
-### 安装依赖
-
+方式一：进入子目录安装（开发者常用）
 ```bash
-# 安装前端依赖
-cd frontend
-npm install
-
-# 安装后端依赖
-cd ../backend
-npm install
-```
-
-### 启动开发服务器
-
-```bash
-# 启动前端开发服务器
-cd frontend
-npm run dev
-
-# 启动后端API服务器
+# 后端
 cd backend
-npm run dev
+npm install
+
+# 前端
+cd ../frontend
+npm install
 ```
 
-### 访问地址
-- 前端应用: http://localhost:5174
-- 后端API: http://localhost:3000
-
-## 测试用例运行
-
-### 前置准备
-- 确保已安装依赖并能启动前后端开发服务器
-- 建议先初始化测试数据：
-  - 后端执行 `cd backend && node src/scripts/seedData.js`
-  - 或在开发/测试环境启动时自动加载（已配置）
-
-### 启动服务
-- 启动后端：`cd backend && npm run dev`（默认端口 `3000`）
-- 启动前端：`cd frontend && npm run dev`（默认端口 `5174`）
-
-### 前端端到端测试（Playwright）
-- 安装浏览器驱动（首次需要）：`cd frontend && npx playwright install`
-- 运行全部 E2E：`cd frontend && npm run test:e2e`
-- 运行指定用例：
-  - 用户认证：`npm run test:e2e -- -g 用户认证`
-  - 常用乘车人管理：`npm run test:e2e -- -g 常用乘车人管理`
-  - 车票查询：`npm run test:e2e -- -g 车票查询与筛选`
-  - 车次筛选与条件修改：`npm run test:e2e -- -g 车次筛选与条件修改`
-  - 订票与订单支付：`npm run test:e2e -- -g 订票与订单支付`
-  - 订单中心列表：`npm run test:e2e -- -g 订单中心列表`
-  - 未完成订单去支付：`npm run test:e2e -- -g 订单中心未完成订单去支付`
-  - 从列表点击预订：`npm run test:e2e -- -g 从列表点击预订稳定用例`
-
-### 后端接口测试（Jest + Supertest）
-- 执行：`cd backend && npm test`
-- 覆盖范围：认证、订单创建与状态更新、车次查询等
-
-## 核心功能模块
-
-### 1. 用户系统
-- 用户注册/登录
-- 身份验证
-- 个人信息管理
-
-### 2. 车票查询
-- 车次查询
-- 余票查询
-- 时刻表查询
-
-### 3. 订票系统
-- 车票预订
-- 座位选择
-- 订单管理
-
-### 4. 支付系统
-- 多种支付方式
-- 支付状态跟踪
-- 退款处理
-
-### 5. 其他功能
-- 常用联系人管理
-- 历史订单查询
-- 客服系统
-
-## 开发规范
-
-### 代码规范
-- 使用ESLint + Prettier进行代码格式化
-- 遵循TypeScript严格模式
-- 组件命名采用PascalCase
-- 文件命名采用kebab-case
-
-### Git提交规范
-```
-feat: 新功能
-fix: 修复bug
-docs: 文档更新
-style: 代码格式调整
-refactor: 代码重构
-test: 测试相关
-chore: 构建过程或辅助工具的变动
+方式二：在仓库根目录使用 --prefix（一键跨平台）
+```bash
+npm install --prefix backend
+npm install --prefix frontend
 ```
 
-## 项目进度
+**启动服务（两种方式任选其一）**
 
-- [x] 项目初始化
-- [x] 技术栈选择
-- [x] 基础架构搭建
-- [ ] UI组件开发
-- [ ] 核心功能实现
-- [ ] 测试覆盖
-- [ ] 性能优化
-- [ ] 部署上线
+方式一：进入子目录运行（推荐开发模式，自动热重载）
+- 终端 A（后端）：
+  - `cd backend`
+  - `npm run dev`（使用 nodemon 监听源码）
+- 终端 B（前端）：
+  - `cd frontend`
+  - `npm run dev`
 
-## 贡献指南
+方式二：在仓库根目录使用 --prefix（适合一键启停）
+- 启动后端（开发或演示二选一）：
+  - 开发模式：`npm run dev --prefix backend`
+  - 演示模式：`npm start --prefix backend`
+- 启动前端：`npm run dev --prefix frontend`
 
-1. Fork 本仓库
-2. 创建特性分支 (`git checkout -b feature/AmazingFeature`)
-3. 提交更改 (`git commit -m 'Add some AmazingFeature'`)
-4. 推送到分支 (`git push origin feature/AmazingFeature`)
-5. 打开 Pull Request
+- 就绪检查：访问 `http://localhost:3000/health` 与 `http://localhost:5174`
 
-## 许可证
+> 说明：前端已在 `vite.config.ts` 配置 `server.port=5174` 与 `/api` 代理到后端 `http://localhost:3000`。
 
-本项目采用 MIT 许可证 - 查看 [LICENSE](LICENSE) 文件了解详情
+## 部署与运行（生产/演示）
+**方案 A：快速演示（SQLite）**
+- 后端：`PORT=3000 npm start --prefix backend`
+- 前端构建：`npm run build --prefix frontend`
+- 前端预览：`npm run preview --prefix frontend`（默认 `http://localhost:4173`）
+- 反向代理：将前端请求 `/api` 指向后端 `http://localhost:3000`（Nginx/网关均可）
 
-## 联系方式
+**方案 B：MySQL 部署**
+- 启动数据库（示例，Docker）：
+  ```bash
+  docker run -e MYSQL_ROOT_PASSWORD=root -e MYSQL_DATABASE=trae_12306 -p 3306:3306 mysql:8
+  ```
+- 后端环境变量：
+  - `DB_DIALECT=mysql`
+  - `DB_HOST=127.0.0.1` `DB_PORT=3306` `DB_USER=root` `DB_PASS=root` `DB_NAME=trae_12306`
+  - 可选：`API_PREFIX=/api/v1`、`CORS_ORIGIN=http://localhost:5174`
+  - 订单回收与状态轮转：`ORDER_UNPAID_TTL_MS`、`ORDER_CLEANUP_INTERVAL_MS`
+- 启动后端：`npm start --prefix backend`
+- 前端同方案 A
 
-如有问题或建议，请通过以下方式联系：
-- 项目Issues: [GitHub Issues](https://github.com/your-repo/12306-replica/issues)
-- 邮箱: your-email@example.com
+### Nginx 反向代理示例
+```nginx
+server {
+  listen 80;
+  server_name your-domain.com;
 
----
+  # 前端静态资源（构建产物）
+  root /var/www/12306-frontend/dist;
+  index index.html;
 
-**注意**: 本项目仅用于学习和研究目的，不得用于商业用途。所有设计和功能均参考12306官方网站，版权归中国铁路总公司所有。
+  location / {
+    try_files $uri $uri/ /index.html;
+  }
+
+  # 代理后端 API
+  location /api/v1/ {
+    proxy_pass http://127.0.0.1:3000/api/v1/;
+    proxy_set_header Host $host;
+    proxy_set_header X-Real-IP $remote_addr;
+    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+    proxy_http_version 1.1;
+  }
+}
+```
+
+注意：前端当前使用绝对地址 `http://127.0.0.1:3000/api/v1`（`frontend/src/services/api.ts:1`）。若部署到远程域名，请确保后端可通过该地址访问，或将该常量调整为部署域名的 API 根路径并相应设置 `CORS_ORIGIN`。
+
+### Docker Compose 示例（MySQL + Backend）
+```yaml
+version: '3.8'
+services:
+  mysql:
+    image: mysql:8
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: trae_12306
+    ports:
+      - '3306:3306'
+    healthcheck:
+      test: ['CMD', 'mysqladmin', 'ping', '-proot']
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  backend:
+    build: ./backend
+    environment:
+      NODE_ENV: production
+      DB_DIALECT: mysql
+      DB_HOST: mysql
+      DB_PORT: 3306
+      DB_USER: root
+      DB_PASS: root
+      DB_NAME: trae_12306
+      API_PREFIX: /api/v1
+      CORS_ORIGIN: http://localhost:5174
+    depends_on:
+      mysql:
+        condition: service_healthy
+    ports:
+      - '3000:3000'
+```
+该示例仅用于后端与数据库的容器化；前端可在宿主机上进行构建与静态服务。若需要前端容器与统一域名，请将 `frontend` 构建产物挂载到 Nginx 容器并确保前端的 API 地址与后端一致。
+
+## 测试与质量
+- 测试与运行指南：详见 `docs/测试与运行指南.md`
+- 后端 SQLite 测试：`npm test --prefix backend`
+- 后端 MySQL 测试：`npm run test:mysql --prefix backend`
+- 前端 E2E（需服务就绪）：
+  - 安装浏览器：`npx playwright install`
+  - 启动服务后执行：`npm run test:e2e --prefix frontend`
+- 前端单测：`npm run test:unit --prefix frontend -- --coverage`
+- 质量检查：`npm run lint --prefix frontend && npm run typecheck --prefix frontend`
+
+## 功能范围（融合项目计划）
+- 首页与购票入口、公告与导航
+- 用户系统：注册、登录、身份验证、个人中心、常用乘车人管理
+- 车票服务：车次查询、余票与时刻表、订票和订单管理
+- 支付流程：订单支付、支付状态、退票/改签（模拟）
+- 其他：帮助与站点查询（演示数据）
+
+## 里程碑与质量（摘要）
+- 里程碑：组件库、核心页面、API、集成与验收（详见 `docs/项目计划.md`）
+- 质量保障：ESLint、TypeScript 类型检查、自动化测试（E2E/单测/后端集成）
+
+## 常见问题
+- 无法访问接口：检查后端是否运行、`/health` 是否返回 OK、前端代理是否正确
+- E2E 登录不稳定：使用统一登录工具 `frontend/tests/e2e/utils/auth.ts` 的 `ensureLogin(page)`
+- SQLite 并发写锁：已启用 WAL 与 `busy_timeout`；若仍异常，确认单机负载与并发测试设置
+- MySQL 兼容：`users.passenger_type` 使用中文枚举；`order_passengers.phone` 为 `VARCHAR(15)`，超长后端返回 400
+- 生产部署注意：前端默认调用 `http://127.0.0.1:3000/api/v1`，跨域部署时请配置后端 `CORS_ORIGIN` 为前端域名，或调整前端 `API_BASE_URL` 与 Nginx 代理。
+
+## 开发与贡献
+- 代码规范：ESLint、TypeScript 严格模式、组件命名 PascalCase、文件命名 kebab-case
+- Git 提交规范：`feat/fix/docs/style/refactor/test/chore`
+- PR 流程：Fork → 分支 → 提交 → 推送 → 发起 PR
+
+## 许可证与声明
+- 许可证：MIT（见 `LICENSE`）
+- 声明：本项目仅用于学习与研究；UI 与流程参考 12306 网站，版权归相关方所有
