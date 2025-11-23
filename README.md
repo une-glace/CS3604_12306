@@ -62,7 +62,7 @@ npm install --prefix frontend
 
 > 说明：前端已在 `vite.config.ts` 配置 `server.port=5174` 与 `/api` 代理到后端 `http://localhost:3000`。
 
-## 部署与运行（生产/演示）
+## 部署与运行（目前在课程上没有此需求）
 **方案 A：快速演示（SQLite）**
 - 后端：`PORT=3000 npm start --prefix backend`
 - 前端构建：`npm run build --prefix frontend`
