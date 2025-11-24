@@ -430,9 +430,13 @@
   height: 550px;
   overflow: hidden;
 }
+.login-hero .hero-carousel-wrapper {
+  width: 100%;
+}
 .login-hero .hero-carousel img {
   object-fit: cover;
   transform: none; /* 覆盖首页的 scaleX(2) */
+  object-position: left center;
 }
 
 /* 右侧叠加登录面板 */
