@@ -415,5 +415,58 @@ module.exports = {
     } catch (e) {
       return res.status(500).json({ success: false, message: '服务器内部错误' });
     }
+  },
+  forgotValidate: async (req, res) => {
+    try {
+      const { countryCode, phoneNumber, idNumber } = req.body || {};
+      if (!phoneNumber || !idNumber) {
+        return res.status(400).json({ success: false, message: '缺少必要参数' });
+      }
+      const phoneValidation = validatePhoneNumber(phoneNumber);
+      if (!phoneValidation.isValid) {
+        return res.status(400).json({ success: false, message: phoneValidation.message });
+      }
+      const user = await User.findOne({ where: { phone_number: phoneNumber, id_number: idNumber } });
+      if (!user) {
+        return res.status(404).json({ success: false, message: '未找到匹配的注册用户' });
+      }
+      if (countryCode && user.country_code && countryCode !== user.country_code) {
+        // 不强制国家码一致，但提示
+      }
+      return res.json({ success: true, message: '校验通过' });
+    } catch (e) {
+      return res.status(500).json({ success: false, message: '服务器内部错误' });
+    }
+  },
+  resetPassword: async (req, res) => {
+    try {
+      const { countryCode, phoneNumber, idNumber, newPassword, confirmPassword } = req.body || {};
+      if (!phoneNumber || !idNumber || !newPassword || !confirmPassword) {
+        return res.status(400).json({ success: false, message: '缺少必要参数' });
+      }
+      if (newPassword !== confirmPassword) {
+        return res.status(400).json({ success: false, message: '两次输入的密码不一致' });
+      }
+      const pwdValidation = validatePassword(newPassword);
+      if (!pwdValidation.isValid) {
+        return res.status(400).json({ success: false, message: pwdValidation.message || '密码不符合要求' });
+      }
+      const key = `${countryCode || '+86'}:${phoneNumber}`;
+      const v = verificationVerified.get(key);
+      if (!v || (Date.now() - v.verifiedAt) > 10 * 60 * 1000) {
+        return res.status(400).json({ success: false, message: '请先完成手机验证码校验' });
+      }
+      verificationVerified.delete(key);
+      const user = await User.findOne({ where: { phone_number: phoneNumber, id_number: idNumber } });
+      if (!user) {
+        return res.status(404).json({ success: false, message: '未找到匹配的注册用户' });
+      }
+      const hashed = await hashPassword(newPassword);
+      await user.update({ password: hashed });
+      return res.json({ success: true, message: '密码重置成功' });
+    } catch (e) {
+      console.error('重置密码错误:', e?.message || e);
+      return res.status(500).json({ success: false, message: '服务器内部错误' });
+    }
   }
 };

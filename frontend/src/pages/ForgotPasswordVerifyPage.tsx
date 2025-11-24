@@ -2,22 +2,38 @@ import React, { useEffect, useState } from 'react';
 import './ForgotPasswordVerifyPage.css';
 import Footer from '../components/Footer';
 import { useNavigate, useLocation } from 'react-router-dom';
+import { sendPhoneCode, verifyPhoneCode } from '../services/auth';
+import { useAuth } from '../contexts/AuthContext';
+import './HomePage.css';
 
 const ForgotPasswordVerifyPage: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  interface FPState { countryCode?: string; phone?: string }
+  const { isLoggedIn, logout } = useAuth();
+  interface FPState { countryCode?: string; phone?: string; idNumber?: string }
   const routeState = (location.state as FPState) || {};
   const displayCountryCode = routeState.countryCode || '+86';
   const displayPhone = routeState.phone || '';
+  const idNumber = routeState.idNumber || '';
   const [code, setCode] = useState('');
   const [sending, setSending] = useState(false);
   const [cooldown, setCooldown] = useState(0);
   const [verifying, setVerifying] = useState(false);
-  const onSend = () => { 
+  const onSend = async () => { 
     if (sending) return; 
-    setSending(true);
-    setCooldown(60);
+    try {
+      setSending(true);
+      const resp = await sendPhoneCode({ countryCode: displayCountryCode, phoneNumber: displayPhone });
+      if (!resp.success) {
+        alert(resp.message || '发送验证码失败');
+        setSending(false);
+        return;
+      }
+      setCooldown(60);
+    } catch (e: any) {
+      alert(e?.message || '发送验证码失败');
+      setSending(false);
+    }
   };
   useEffect(() => {
     if (!sending || cooldown <= 0) return;
@@ -27,14 +43,74 @@ const ForgotPasswordVerifyPage: React.FC = () => {
   useEffect(() => {
     if (cooldown === 0 && sending) setSending(false);
   }, [cooldown, sending]);
-  const onSubmit = () => {
+  const onSubmit = async () => {
     if (verifying) return;
     if (!code || code.length < 4) return;
     setVerifying(true);
-    navigate('/forgot-password/reset');
+    try {
+      const resp = await verifyPhoneCode({ countryCode: displayCountryCode, phoneNumber: displayPhone, code });
+      if (resp.success) {
+        navigate('/forgot-password/reset', { state: { countryCode: displayCountryCode, phone: displayPhone, idNumber } });
+      } else {
+        alert(resp.message || '验证码校验失败');
+      }
+    } catch (e: any) {
+      alert(e?.message || '验证码校验失败');
+    } finally {
+      setVerifying(false);
+    }
   };
   return (
     <div className="forgot-page">
+      <header className="header">
+        <div className="header-container header-top">
+          <div className="brand">
+            <img className="brand-logo" src="/铁路12306-512x512.png" alt="中国铁路12306" />
+            <div className="brand-text">
+              <div className="brand-title">中国铁路12306</div>
+              <div className="brand-subtitle">12306 CHINA RAILWAY</div>
+            </div>
+          </div>
+          <div className="header-search">
+            <input className="search-input" type="text" placeholder="搜索车票、 餐饮、 常旅客、 相关规章" />
+            <button className="search-button">Q</button>
+          </div>
+          <div className="header-links">
+            <a href="#" className="link">无障碍</a>
+            <span className="sep">|</span>
+            <a href="#" className="link">敬老版</a>
+            <span className="sep">|</span>
+            <a href="#" className="link">English</a>
+            <span className="sep">|</span>
+            <button className="link-btn" onClick={() => { if (isLoggedIn) { navigate('/profile'); } else { navigate('/login'); } }}>我的12306</button>
+            <span className="sep">|</span>
+            {isLoggedIn ? (
+              <button className="link-btn" onClick={async () => { if (window.confirm('确定要退出登录吗？')) { await logout(); window.location.reload(); } }}>退出</button>
+            ) : (
+              <>
+                <button className="link-btn" onClick={() => navigate('/login')}>登录</button>
+                <span className="space" />
+                <button className="link-btn" onClick={() => navigate('/register')}>注册</button>
+              </>
+            )}
+          </div>
+        </div>
+      </header>
+
+      <nav className="navbar">
+        <div className="nav-container">
+          <ul className="nav-links">
+            <li><a href="/" className="active">首页</a></li>
+            <li><a href="/train-list">车票</a></li>
+            <li><a href="#">团购服务</a></li>
+            <li><a href="#">会员服务</a></li>
+            <li><a href="#">站车服务</a></li>
+            <li><a href="#">商旅服务</a></li>
+            <li><a href="#">出行指南</a></li>
+            <li><a href="#">信息查询</a></li>
+          </ul>
+        </div>
+      </nav>
       <div className="fp-container">
         <div className="fp-tabs">
           <div className="fp-tab">人脸找回</div>
