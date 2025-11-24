@@ -1,0 +1,97 @@
+- type: Database
+  id: DB-FindUserByPhone
+  description: 根据国家码与手机号查询用户并返回基础标识。
+  dependencies:
+    - none
+  acceptanceCriteria:
+    - 输入包含国家码与手机号，格式校验通过。
+    - 若存在绑定用户，返回用户ID与手机号校验状态为通过。
+    - 若不存在，返回空结果而非泄露信息。
+  changeLog:
+    - date: "2025-11-24"
+      description: "初始创建。"
+
+- type: Database
+  id: DB-ValidateIdentity
+  description: 校验用户证件类型与证件号码是否与账户信息一致。
+  dependencies:
+    - DB-FindUserByPhone
+  acceptanceCriteria:
+    - 支持居民身份证/护照/港澳通行证/台湾通行证。
+    - 信息不匹配时返回校验失败并不泄露账户是否存在。
+  changeLog:
+    - date: "2025-11-24"
+      description: "初始创建。"
+
+- type: Database
+  id: DB-CheckRateLimit
+  description: 校验验证码发送频率与每日次数上限，并记录发送尝试计数。
+  dependencies:
+    - DB-FindUserByPhone
+  acceptanceCriteria:
+    - 单号码60秒内仅允许一次发送，日上限（例如5次）。
+    - 超限返回受限状态，不创建新验证码记录。
+  changeLog:
+    - date: "2025-11-24"
+      description: "初始创建。"
+
+- type: Database
+  id: DB-CreateVerificationCode
+  description: 为用户创建一次性手机验证码记录（含过期时间与状态）。
+  dependencies:
+    - DB-CheckRateLimit
+  acceptanceCriteria:
+    - 生成长度6的验证码，设置TTL为5分钟，状态为created。
+    - 同一用户在有效期内仅有一条未使用验证码记录。
+    - 不持久化明文验证码到日志或外部输出。
+  changeLog:
+    - date: "2025-11-24"
+      description: "初始创建。"
+
+- type: Database
+  id: DB-GetActiveVerificationCode
+  description: 查询用户当前未过期且未使用的验证码记录。
+  dependencies:
+    - DB-FindUserByPhone
+  acceptanceCriteria:
+    - 返回最近一条状态为created且未过期的验证码记录。
+    - 过期或不存在时返回空。
+  changeLog:
+    - date: "2025-11-24"
+      description: "初始创建。"
+
+- type: Database
+  id: DB-VerifyCode
+  description: 校验验证码是否正确、未过期且未使用。
+  dependencies:
+    - DB-GetActiveVerificationCode
+  acceptanceCriteria:
+    - 正确验证码返回校验通过并生成一次性重置令牌标识。
+    - 错误或过期返回失败，并累计错误次数用于防暴力策略。
+  changeLog:
+    - date: "2025-11-24"
+      description: "初始创建。"
+
+- type: Database
+  id: DB-ConsumeVerificationCode
+  description: 将验证码记录状态更新为used，防止重复使用。
+  dependencies:
+    - DB-VerifyCode
+  acceptanceCriteria:
+    - 标记使用后不可再次验证，同步清理或失效旧重置令牌。
+  changeLog:
+    - date: "2025-11-24"
+      description: "初始创建。"
+
+- type: Database
+  id: DB-UpdateUserPassword
+  description: 使用安全散列更新用户密码，并使旧会话失效。
+  dependencies:
+    - DB-FindUserByPhone
+    - DB-ConsumeVerificationCode
+  acceptanceCriteria:
+    - 密码符合策略（至少6位，包含字母/数字/下划线中的两种）。
+    - 更新后清除所有活跃会话与刷新令牌。
+  changeLog:
+    - date: "2025-11-24"
+      description: "初始创建。"
