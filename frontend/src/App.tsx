@@ -8,6 +8,10 @@ import OrderPage from './pages/OrderPage'
 import ProfilePage from './pages/ProfilePage'
 import OrderDetailPage from './pages/OrderDetailPage'
 import Login from './components/Login'
+import ForgotPasswordPage from './pages/ForgotPasswordPage'
+import ForgotPasswordVerifyPage from './pages/ForgotPasswordVerifyPage'
+import ForgotPasswordResetPage from './pages/ForgotPasswordResetPage'
+import ForgotPasswordDonePage from './pages/ForgotPasswordDonePage'
 import Register from './components/Register'
 
 function App() {
@@ -22,6 +26,10 @@ function App() {
             <Route path="/order" element={<OrderPage />} />
             <Route path="/order-detail/:orderId" element={<OrderDetailPage />} />
             <Route path="/profile" element={<ProfilePage />} />
+            <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+            <Route path="/forgot-password/verify" element={<ForgotPasswordVerifyPage />} />
+            <Route path="/forgot-password/reset" element={<ForgotPasswordResetPage />} />
+            <Route path="/forgot-password/done" element={<ForgotPasswordDonePage />} />
             <Route 
               path="/login" 
               element={

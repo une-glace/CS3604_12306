@@ -1,0 +1,109 @@
+- type: Backend
+  id: API-POST-ForgotPasswordInit
+  route: POST /api/auth/forgot-password/init
+  description: 校验手机号与证件信息，返回可继续找回流程的会话标识。
+  input:
+    type: JSON
+    body:
+      countryCode: string
+      phoneNumber: string
+      idType: string
+      idNumber: string
+  output:
+    success:
+      statusCode: 200
+      body: { userId: "uuid", next: "verify" }
+    error:
+      - statusCode: 400
+        body: { error: "Invalid input or format." }
+      - statusCode: 404
+        body: { error: "Account not found or not eligible." }
+  dependencies:
+    - DB-FindUserByPhone
+    - DB-ValidateIdentity
+  acceptanceCriteria:
+    - 手机与证件信息匹配时返回200与userId；否则返回404。
+    - 不泄露账户存在与否的额外信息。
+  changeLog:
+    - date: "2025-11-24"
+      description: "初始创建。"
+
+- type: Backend
+  id: API-POST-ForgotPasswordSendCode
+  route: POST /api/auth/forgot-password/send-code
+  description: 发送手机验证码并返回TTL与节流状态。
+  input:
+    type: JSON
+    body:
+      userId: string
+  output:
+    success:
+      statusCode: 200
+      body: { status: "sent", ttlSeconds: 300 }
+    error:
+      - statusCode: 429
+        body: { error: "Rate limit exceeded." }
+      - statusCode: 404
+        body: { error: "User not found." }
+  dependencies:
+    - DB-CheckRateLimit
+    - DB-CreateVerificationCode
+  acceptanceCriteria:
+    - 未超限时返回200与TTL；超限返回429。
+  changeLog:
+    - date: "2025-11-24"
+      description: "初始创建。"
+
+- type: Backend
+  id: API-POST-ForgotPasswordVerifyCode
+  route: POST /api/auth/forgot-password/verify-code
+  description: 校验手机验证码并返回一次性密码重置令牌。
+  input:
+    type: JSON
+    body:
+      userId: string
+      code: string
+  output:
+    success:
+      statusCode: 200
+      body: { verified: true, resetToken: "jwt" }
+    error:
+      - statusCode: 400
+        body: { error: "Invalid or wrong code." }
+      - statusCode: 410
+        body: { error: "Code expired." }
+  dependencies:
+    - DB-GetActiveVerificationCode
+    - DB-VerifyCode
+  acceptanceCriteria:
+    - 正确且未过期返回200与resetToken；错误或过期返回相应错误。
+  changeLog:
+    - date: "2025-11-24"
+      description: "初始创建。"
+
+- type: Backend
+  id: API-POST-ForgotPasswordReset
+  route: POST /api/auth/forgot-password/reset
+  description: 使用重置令牌设置新密码并完成流程。
+  input:
+    type: JSON
+    body:
+      resetToken: string
+      newPassword: string
+  output:
+    success:
+      statusCode: 200
+      body: { reset: "ok" }
+    error:
+      - statusCode: 400
+        body: { error: "Password policy violation." }
+      - statusCode: 401
+        body: { error: "Invalid reset token." }
+  dependencies:
+    - DB-UpdateUserPassword
+    - DB-ConsumeVerificationCode
+  acceptanceCriteria:
+    - 新密码符合策略并更新成功，返回200；令牌无效或策略不满足返回错误。
+  changeLog:
+    - date: "2025-11-24"
+      description: "初始创建。"
