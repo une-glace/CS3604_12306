@@ -6,6 +6,8 @@ interface CarouselItem {
   image: string
   title: string
   link?: string
+  objectPosition?: string
+  offsetXPercent?: number
 }
 
 interface CarouselProps {
@@ -71,14 +73,28 @@ const Carousel: React.FC<CarouselProps> = ({
             {item.link ? (
               <a href={item.link} target="_blank" rel="noopener noreferrer">
                 {item.image ? (
-                  <img src={item.image} alt={item.title} />
+                  <img
+                    src={item.image}
+                    alt={item.title}
+                    style={{
+                      ...(item.objectPosition ? { objectPosition: item.objectPosition } : {}),
+                      ...(typeof item.offsetXPercent === 'number' ? { transform: `translateX(-${item.offsetXPercent}%)` } : {})
+                    }}
+                  />
                 ) : (
                   <div className="hero-carousel-placeholder">{item.title}</div>
                 )}
               </a>
             ) : (
               item.image ? (
-                <img src={item.image} alt={item.title} />
+                <img
+                  src={item.image}
+                  alt={item.title}
+                  style={{
+                    ...(item.objectPosition ? { objectPosition: item.objectPosition } : {}),
+                    ...(typeof item.offsetXPercent === 'number' ? { transform: `translateX(-${item.offsetXPercent}%)` } : {})
+                  }}
+                />
               ) : (
                 <div className="hero-carousel-placeholder">{item.title}</div>
               )

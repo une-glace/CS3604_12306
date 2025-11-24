@@ -375,7 +375,7 @@
   color: #fff;
   padding: 40px 0 20px;
   text-align: center;
-  margin-top: 60px;
+  margin-top: 0px;
 }
 
 /* 与首页一致的底部文案布局 */
@@ -427,12 +427,16 @@
 /* 复用 Carousel 组件，但在登录页提升高度并覆盖缩放 */
 .login-hero .hero-carousel {
   width: 100%;
-  height: 550px;
+  height: 650px;
   overflow: hidden;
+}
+.login-hero .hero-carousel-wrapper {
+  width: 100%;
 }
 .login-hero .hero-carousel img {
   object-fit: cover;
   transform: none; /* 覆盖首页的 scaleX(2) */
+  object-position: left center;
 }
 
 /* 右侧叠加登录面板 */

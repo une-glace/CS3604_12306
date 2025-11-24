@@ -129,8 +129,8 @@ const Login: React.FC<LoginProps> = ({ onNavigateToRegister }) => {
 
   // 登录页轮播图片（两张）
   const loginCarouselItems = [
-    { id: 1, image: '/homepage/Carousel/Carousel_1.png', title: '登录轮播一' },
-    { id: 2, image: '/homepage/Carousel/Carousel_2.png', title: '登录轮播二' }
+    { id: 1, image: '/homepage/Carousel/Carousel_1.png', title: '登录轮播一', objectPosition: '80% center' },
+    { id: 2, image: '/homepage/Carousel/Carousel_2.png', title: '登录轮播二', objectPosition: '70% center' }
   ];
 
   return (

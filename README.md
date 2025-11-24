@@ -23,7 +23,7 @@
 - Node.js 20
 - 可选：Docker（用于 MySQL 兼容测试）
 
-**安装依赖（两种方式任选其一）**
+**安装依赖（两种方式任选其一，建议选择方法一）**
 
 方式一：进入子目录安装（开发者常用）
 ```bash
@@ -42,13 +42,13 @@ npm install --prefix backend
 npm install --prefix frontend
 ```
 
-**启动服务（两种方式任选其一）**
+**启动服务（两种方式任选其一，建议使用方法一）**
 
 方式一：进入子目录运行（推荐开发模式，自动热重载）
 - 终端 A（后端）：
   - `cd backend`
   - `npm run dev`（使用 nodemon 监听源码）
-- 终端 B（前端）：
+- 终端 B（前端，建议在chrome中打开）：
   - `cd frontend`
   - `npm run dev`
 
@@ -62,7 +62,7 @@ npm install --prefix frontend
 
 > 说明：前端已在 `vite.config.ts` 配置 `server.port=5174` 与 `/api` 代理到后端 `http://localhost:3000`。
 
-## 部署与运行（生产/演示）
+## 部署与运行（目前在课程上没有此需求）
 **方案 A：快速演示（SQLite）**
 - 后端：`PORT=3000 npm start --prefix backend`
 - 前端构建：`npm run build --prefix frontend`
