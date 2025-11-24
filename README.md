@@ -48,7 +48,7 @@ npm install --prefix frontend
 - 终端 A（后端）：
   - `cd backend`
   - `npm run dev`（使用 nodemon 监听源码）
-- 终端 B（前端）：
+- 终端 B（前端，建议在chrome中打开）：
   - `cd frontend`
   - `npm run dev`
 
