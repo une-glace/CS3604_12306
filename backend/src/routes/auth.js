@@ -1,5 +1,5 @@
 const express = require('express');
-const { register, login, getCurrentUser, updateProfile, sendVerificationCode, verifyVerificationCode } = require('../controllers/authController');
+const { register, login, getCurrentUser, updateProfile, sendVerificationCode, verifyVerificationCode, forgotValidate, resetPassword } = require('../controllers/authController');
 const { authenticateToken } = require('../utils/auth');
 
 const router = express.Router();
@@ -18,6 +18,8 @@ router.put('/profile', authenticateToken, updateProfile);
 
 router.post('/send-code', sendVerificationCode);
 router.post('/verify-code', verifyVerificationCode);
+router.post('/forgot/validate', forgotValidate);
+router.post('/forgot/reset', resetPassword);
 
 // 用户登出（前端处理，删除token）
 router.post('/logout', (req, res) => {

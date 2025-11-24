@@ -105,6 +105,26 @@ export const verifyPhoneCode = async (payload: { countryCode?: string; phoneNumb
   }
 };
 
+// 忘记密码：校验手机号与身份证匹配的注册用户
+export const validateResetAccount = async (payload: { countryCode?: string; phoneNumber: string; idNumber: string }): Promise<ApiResponse<Record<string, never>>> => {
+  try {
+    const response = await post('/auth/forgot/validate', payload);
+    return response;
+  } catch (error: any) {
+    throw new Error(error.message || '账户校验失败');
+  }
+};
+
+// 忘记密码：重置密码（需先通过手机验证码）
+export const resetPassword = async (payload: { countryCode?: string; phoneNumber: string; idNumber: string; newPassword: string; confirmPassword: string }): Promise<ApiResponse<Record<string, never>>> => {
+  try {
+    const response = await post('/auth/forgot/reset', payload);
+    return response;
+  } catch (error: any) {
+    throw new Error(error.message || '密码重置失败');
+  }
+};
+
 // 用户登出
 export const logoutUser = async (): Promise<void> => {
   try {
