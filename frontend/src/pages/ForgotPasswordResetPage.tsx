@@ -9,7 +9,7 @@ import './HomePage.css';
 const ForgotPasswordResetPage: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { isLoggedIn, logout } = useAuth();
+  const { user, isLoggedIn, logout } = useAuth();
   interface FPState { countryCode?: string; phone?: string; idNumber?: string }
   const routeState = (location.state as FPState) || {};
   const countryCode = routeState.countryCode || '+86';
@@ -83,7 +83,11 @@ const ForgotPasswordResetPage: React.FC = () => {
             <button className="link-btn" onClick={() => { if (isLoggedIn) { navigate('/profile'); } else { navigate('/login'); } }}>我的12306</button>
             <span className="sep">|</span>
             {isLoggedIn ? (
-              <button className="link-btn" onClick={async () => { if (window.confirm('确定要退出登录吗？')) { await logout(); window.location.reload(); } }}>退出</button>
+              <>
+                <button className="link-btn" onClick={() => navigate('/profile')}>您好，{user?.realName || '用户'}</button>
+                <span className="sep">|</span>
+                <button className="link-btn" onClick={async () => { if (window.confirm('确定要退出登录吗？')) { await logout(); window.location.reload(); } }}>退出</button>
+              </>
             ) : (
               <>
                 <button className="link-btn" onClick={() => navigate('/login')}>登录</button>

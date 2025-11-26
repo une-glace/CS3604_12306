@@ -28,7 +28,7 @@ interface RegisterProps {
 
 const Register: React.FC<RegisterProps> = () => {
   const navigate = useNavigate();
-  const { isLoggedIn, login, logout } = useAuth();
+  const { user, isLoggedIn, login, logout } = useAuth();
   const [currentStep, setCurrentStep] = useState(1);
   const [formData, setFormData] = useState<RegisterFormData>({
     username: '',
@@ -318,7 +318,11 @@ const Register: React.FC<RegisterProps> = () => {
             <button className="link-btn" onClick={() => { if (isLoggedIn) { navigate('/profile'); } else { navigate('/login'); } }}>我的12306</button>
             <span className="sep">|</span>
             {isLoggedIn ? (
-              <button className="link-btn" onClick={async () => { if (window.confirm('确定要退出登录吗？')) { await logout(); window.location.reload(); } }}>退出</button>
+              <>
+                <button className="link-btn" onClick={() => navigate('/profile')}>您好，{user?.realName || '用户'}</button>
+                <span className="sep">|</span>
+                <button className="link-btn" onClick={async () => { if (window.confirm('确定要退出登录吗？')) { await logout(); window.location.reload(); } }}>退出</button>
+              </>
             ) : (
               <>
                 <button className="link-btn" onClick={() => navigate('/login')}>登录</button>

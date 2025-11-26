@@ -20,7 +20,7 @@ interface BookingData {
 
 const HomePage: React.FC = () => {
   const navigate = useNavigate();
-  const { isLoggedIn, logout } = useAuth();
+  const { user, isLoggedIn, logout } = useAuth();
 
   const carouselItems: CarouselItem[] = [
     { id: 1, image: '/homepage/Carousel/Carousel_1.jpg', title: '轮播一' },
@@ -68,6 +68,24 @@ const HomePage: React.FC = () => {
 
   // 通知栏选项卡状态
   const [activeNoticeTab, setActiveNoticeTab] = React.useState<'news' | 'faq' | 'credit'>('news');
+  const [isTicketOpen, setIsTicketOpen] = React.useState(false);
+  const ticketTimerRef = React.useRef<number | null>(null);
+  const handleTicketEnter = () => {
+    if (ticketTimerRef.current) {
+      clearTimeout(ticketTimerRef.current);
+      ticketTimerRef.current = null;
+    }
+    setIsTicketOpen(true);
+  };
+  const handleTicketLeave = () => {
+    if (ticketTimerRef.current) {
+      clearTimeout(ticketTimerRef.current);
+    }
+    ticketTimerRef.current = window.setTimeout(() => {
+      setIsTicketOpen(false);
+      ticketTimerRef.current = null;
+    }, 180);
+  };
 
   return (
     <div className="homepage">
@@ -104,7 +122,11 @@ const HomePage: React.FC = () => {
             <button className="link-btn" onClick={handleProfileClick}>我的12306</button>
             <span className="sep">|</span>
             {isLoggedIn ? (
-              <button className="link-btn" onClick={handleLogout}>退出</button>
+              <>
+                <button className="link-btn" onClick={handleProfileClick}>您好，{user?.realName || '用户'}</button>
+                <span className="sep">|</span>
+                <button className="link-btn" onClick={handleLogout}>退出</button>
+              </>
             ) : (
               <>
                 <button className="link-btn" onClick={handleLoginClick}>登录</button>
@@ -121,8 +143,31 @@ const HomePage: React.FC = () => {
         <div className="nav-container">
           <ul className="nav-links">
             <li><a href="/" className="active">首页</a></li>
-            {/* 保持原“车票查询/车票预订”跳转关系，改为“车票” */}
-            <li><a href="/train-list">车票</a></li>
+            <li className="ticket-nav" onMouseEnter={handleTicketEnter} onMouseLeave={handleTicketLeave} onFocus={handleTicketEnter} onBlur={handleTicketLeave}>
+              <a href="/train-list">车票</a>
+              <div className={`ticket-dropdown ${isTicketOpen ? 'open' : ''}`} role="menu" aria-label="车票" onMouseEnter={handleTicketEnter} onMouseLeave={handleTicketLeave}>
+                <div className="ticket-grid">
+                  <div className="ticket-col">
+                    <div className="col-title">购买</div>
+                    <a href="/train-list" className="ticket-item">单程</a>
+                    <a href="#" className="ticket-item">往返</a>
+                    <a href="#" className="ticket-item">中转换乘</a>
+                    <a href="#" className="ticket-item">计次•定期票</a>
+                  </div>
+                  <div className="ticket-col">
+                    <div className="col-title">变更</div>
+                    <a href="#" className="ticket-item">退票</a>
+                    <a href="#" className="ticket-item">改签</a>
+                    <a href="#" className="ticket-item">变更到站</a>
+                  </div>
+                  <div className="ticket-col">
+                    <div className="col-title">更多</div>
+                    <a href="#" className="ticket-item">中铁银通卡</a>
+                    <a href="#" className="ticket-item">国际列车</a>
+                  </div>
+                </div>
+              </div>
+            </li>
             <li><a href="#">团购服务</a></li>
             <li><a href="#">会员服务</a></li>
             <li><a href="#">站车服务</a></li>

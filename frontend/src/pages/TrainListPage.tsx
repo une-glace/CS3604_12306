@@ -45,7 +45,7 @@ interface TrainInfo {
 const TrainListPage: React.FC = () => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
-  const { isLoggedIn, logout } = useAuth();
+  const { user, isLoggedIn, logout } = useAuth();
   
   // 从URL参数获取查询条件
   const fromStation = searchParams.get('from') || '';
@@ -322,7 +322,11 @@ const TrainListPage: React.FC = () => {
             <button className="link-btn" onClick={handleProfileClick}>我的12306</button>
             <span className="sep">|</span>
             {isLoggedIn ? (
-              <button className="link-btn" onClick={handleLogout}>退出</button>
+              <>
+                <button className="link-btn" onClick={handleProfileClick}>您好，{user?.realName || '用户'}</button>
+                <span className="sep">|</span>
+                <button className="link-btn" onClick={handleLogout}>退出</button>
+              </>
             ) : (
               <>
                 <button className="link-btn" onClick={handleLoginClick}>登录</button>

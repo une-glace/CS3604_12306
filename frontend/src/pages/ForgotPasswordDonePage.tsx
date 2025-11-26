@@ -7,7 +7,7 @@ import './HomePage.css';
 
 const ForgotPasswordDonePage: React.FC = () => {
   const navigate = useNavigate();
-  const { isLoggedIn, logout } = useAuth();
+  const { user, isLoggedIn, logout } = useAuth();
   const goLogin = () => navigate('/login');
   return (
     <div className="forgot-page">
@@ -34,7 +34,11 @@ const ForgotPasswordDonePage: React.FC = () => {
             <button className="link-btn" onClick={() => { if (isLoggedIn) { navigate('/profile'); } else { navigate('/login'); } }}>我的12306</button>
             <span className="sep">|</span>
             {isLoggedIn ? (
-              <button className="link-btn" onClick={async () => { if (window.confirm('确定要退出登录吗？')) { await logout(); window.location.reload(); } }}>退出</button>
+              <>
+                <button className="link-btn" onClick={() => navigate('/profile')}>您好，{user?.realName || '用户'}</button>
+                <span className="sep">|</span>
+                <button className="link-btn" onClick={async () => { if (window.confirm('确定要退出登录吗？')) { await logout(); window.location.reload(); } }}>退出</button>
+              </>
             ) : (
               <>
                 <button className="link-btn" onClick={() => navigate('/login')}>登录</button>
