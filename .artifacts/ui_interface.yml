@@ -1,0 +1,92 @@
+- type: Frontend
+  id: UI-ForgotPasswordStep1
+  description: 忘记密码第一步页面，填写手机与证件信息并提交。
+  properties:
+    - name: onSubmitSuccess
+      type: function
+      description: 提交成功回调（进入第二步）。
+  state:
+    - countryCode
+    - phoneNumber
+    - idType
+    - idNumber
+    - error
+    - isLoading
+  dependencies:
+    - API-POST-ForgotPasswordInit
+  acceptanceCriteria:
+    - 渲染手机、证件类型、证件号码输入与提交按钮。
+    - 提交时调用 API-POST-ForgotPasswordInit。
+    - 加载态时按钮禁用。
+  changeLog:
+    - date: "2025-11-24"
+      description: "初始创建。"
+
+- type: Frontend
+  id: UI-ForgotPasswordStep2
+  description: 忘记密码第二步页面，显示手机号，输入并验证手机验证码。
+  properties:
+    - name: userId
+      type: string
+      description: 上一步返回的用户标识。
+    - name: onVerifySuccess
+      type: function
+      description: 验证成功回调（进入第三步）。
+  state:
+    - code
+    - sendCooldown
+    - error
+    - isSending
+    - isVerifying
+  dependencies:
+    - API-POST-ForgotPasswordSendCode
+    - API-POST-ForgotPasswordVerifyCode
+  acceptanceCriteria:
+    - 渲染验证码输入框与“获取手机验证码”按钮、提交按钮。
+    - 点击“获取手机验证码”调用 API-POST-ForgotPasswordSendCode 并进入倒计时。
+    - 提交时调用 API-POST-ForgotPasswordVerifyCode。
+  changeLog:
+    - date: "2025-11-24"
+      description: "初始创建。"
+
+- type: Frontend
+  id: UI-ForgotPasswordStep3
+  description: 忘记密码第三步页面，设置新密码并确认。
+  properties:
+    - name: resetToken
+      type: string
+      description: 第二步返回的重置令牌。
+    - name: onResetSuccess
+      type: function
+      description: 重置成功回调（进入完成页）。
+  state:
+    - newPassword
+    - confirmPassword
+    - error
+    - isLoading
+  dependencies:
+    - API-POST-ForgotPasswordReset
+  acceptanceCriteria:
+    - 渲染新密码与确认输入框和提交按钮。
+    - 本地校验密码策略与两次一致性，不通过则阻止提交。
+    - 提交时调用 API-POST-ForgotPasswordReset。
+  changeLog:
+    - date: "2025-11-24"
+      description: "初始创建。"
+
+- type: Frontend
+  id: UI-ForgotPasswordDone
+  description: 忘记密码第四步完成页，显示成功提示与登录入口。
+  properties:
+    - name: onGoLogin
+      type: function
+      description: 点击登录入口时的回调。
+  state:
+    - none
+  dependencies:
+    - none
+  acceptanceCriteria:
+    - 显示“新密码设置成功，您可以使用新密码登录系统！”文案与“登录系统”链接。
+  changeLog:
+    - date: "2025-11-24"
+      description: "初始创建。"
