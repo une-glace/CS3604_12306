@@ -108,7 +108,7 @@ const OrderPage: React.FC = () => {
         const passengerList = await getPassengers();
 
         // 若后端乘车人列表未包含“本人”，则前端注入，保持与个人中心一致
-        let normalized = passengerList.slice();
+        const normalized = passengerList.slice();
         if (user) {
           const hasSelf = normalized.some(p => p.isDefault || (p.name === user.realName && p.idCard === user.idNumber));
           if (!hasSelf) {
@@ -193,7 +193,7 @@ const OrderPage: React.FC = () => {
       const passengerList = await getPassengers();
 
       // 若后端乘车人列表未包含"本人"，则前端注入，保持与个人中心一致
-      let normalized = passengerList.slice();
+      const normalized = passengerList.slice();
       if (user) {
         const hasSelf = normalized.some(p => p.isDefault || (p.name === user.realName && p.idCard === user.idNumber));
         if (!hasSelf) {
@@ -271,7 +271,7 @@ const OrderPage: React.FC = () => {
       document.removeEventListener('visibilitychange', handleVisibilityChange);
       window.removeEventListener('focus', handleFocus);
     };
-  }, []);
+  }, [refreshPassengers]);
   
   // 更新票种（成人/儿童/学生）
   const handleTicketTypeChange = (passengerId: string, ticketType: TicketInfo['ticketType']) => {
@@ -641,14 +641,6 @@ const OrderPage: React.FC = () => {
       </nav>
 
       <div className="order-container">
-        <div className="order-header">
-          <h2>确认订单信息</h2>
-          <div className="breadcrumb">
-            <span>车票预订</span>
-            <span className="separator">&gt;</span>
-            <span className="current">确认订单</span>
-          </div>
-        </div>
 
         {/* 列车信息（以下余票信息仅供参考） */}
         <div className="train-info-section">
@@ -656,9 +648,9 @@ const OrderPage: React.FC = () => {
             <div className="train-summary-header">列车信息（以下余票信息仅供参考）</div>
             <div className="train-summary-body">
               <div className="train-summary-row">
-                {formatDateWithWeek(trainInfo.date)}，
-                {trainInfo.trainNumber}次 {trainInfo.from}站（{trainInfo.departureTime}开）—
-                {trainInfo.to}站（{trainInfo.arrivalTime}到）
+                <span className="summary-date">{formatDateWithWeek(trainInfo.date)}</span>，
+                <span className="summary-train-number">{trainInfo.trainNumber}</span><span className="summary-unit">次</span> {trainInfo.from}<span className="summary-unit">站</span>（<span className="summary-depart-time">{trainInfo.departureTime}</span>开）—
+                {trainInfo.to}<span className="summary-unit">站</span>（<span className="summary-arrive-time">{trainInfo.arrivalTime}</span><span className="summary-unit">到</span>）
               </div>
               <div className="train-summary-seats">
                 {(() => {
@@ -668,17 +660,21 @@ const OrderPage: React.FC = () => {
                     ...order.filter(t => types.includes(t)),
                     ...types.filter(t => !order.includes(t))
                   ];
-                  return orderedTypes.map((t) => (
-                    <div key={t} className="seat-item">
-                      <span className="seat-name">{t}</span>
-                      {getSeatDiscountText(t) && (
-                        <span className="seat-discount">{getSeatDiscountText(t)}</span>
-                      )}
-                      <span className={isSeatAvailable(t) ? 'seat-availability' : 'seat-unavailable'}>
-                        {getSeatAvailabilityText(t)}
-                      </span>
-                    </div>
-                  ));
+                  return orderedTypes.map((t) => {
+                    const price = typeof seatInfo?.[t]?.price === 'number' ? seatInfo![t]!.price : getSeatPrice(t);
+                    return (
+                      <div key={t} className="seat-item">
+                        <span className="seat-name">{t}</span>
+                        <span className="seat-price">（￥<span className="price-value">{price}元</span>）</span>
+                        {getSeatDiscountText(t) && (
+                          <span className="seat-discount">{getSeatDiscountText(t)}</span>
+                        )}
+                        <span className={isSeatAvailable(t) ? 'seat-availability' : 'seat-unavailable'}>
+                          {getSeatAvailabilityText(t)}
+                        </span>
+                      </div>
+                    );
+                  });
                 })()}
               </div>
               <div className="train-summary-note">

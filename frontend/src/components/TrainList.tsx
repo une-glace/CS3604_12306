@@ -48,7 +48,6 @@ const TrainList: React.FC<TrainListProps> = ({ trains, onTrainSelect }) => {
   // 座位类型配置（按示例图收敛并排序）
   const seatTypes = [
     { key: 'business', label: '商务座', shortLabel: '商务' },
-    { key: 'firstClassPlus', label: '特等座', shortLabel: '特等' },
     { key: 'firstClassPremium', label: '优选一等座', shortLabel: '优选一等' },
     { key: 'firstClass', label: '一等座', shortLabel: '一等' },
     { key: 'secondClass', label: '二等座', shortLabel: '二等' },
@@ -93,9 +92,13 @@ const TrainList: React.FC<TrainListProps> = ({ trains, onTrainSelect }) => {
 
   // 解析时长字符串为分钟数
   const parseDuration = (duration: string): number => {
-    const match = duration.match(/(\d+):(\d+)/);
-    if (match) {
-      return parseInt(match[1]) * 60 + parseInt(match[2]);
+    const m1 = duration.match(/(\d+):(\d+)/);
+    if (m1) {
+      return parseInt(m1[1]) * 60 + parseInt(m1[2]);
+    }
+    const m2 = duration.match(/(\d+)小时(\d+)分/);
+    if (m2) {
+      return parseInt(m2[1]) * 60 + parseInt(m2[2]);
     }
     return 0;
   };
@@ -139,6 +142,44 @@ const TrainList: React.FC<TrainListProps> = ({ trains, onTrainSelect }) => {
     return <span className="seat-unavailable">--</span>;
   };
 
+  // 合并座位信息显示（例如 商务/特等、优选/一等）
+  const renderMergedSeatInfo = (train: TrainInfo, keys: (keyof TrainInfo['seats'])[]) => {
+    const normalize = (v: any) => {
+      if (v === undefined || v === null) return { count: 0, available: false, wait: false };
+      if (typeof v === 'number') return { count: v, available: v > 0, wait: false };
+      if (typeof v === 'string') {
+        const s = v.trim();
+        if (s === '有') return { count: 0, available: true, wait: false };
+        if (s === '候补') return { count: 0, available: false, wait: true };
+        if (/^\d+$/.test(s)) {
+          const n = parseInt(s, 10);
+          return { count: n, available: n > 0, wait: false };
+        }
+        return { count: 0, available: false, wait: false };
+      }
+      return { count: 0, available: false, wait: false };
+    };
+
+    let total = 0;
+    let hasAvailable = false;
+    let hasWait = false;
+    keys.forEach(k => {
+      const v = normalize((train.seats as any)[k]);
+      total += v.count;
+      hasAvailable = hasAvailable || v.available;
+      hasWait = hasWait || v.wait;
+    });
+
+    if (hasAvailable || total > 0) {
+      const text = total > 0 ? String(total) : '有';
+      return <span className="seat-available">{text}</span>;
+    }
+    if (hasWait) {
+      return <span className="seat-waitlist">候补</span>;
+    }
+    return <span className="seat-unavailable">--</span>;
+  };
+
   // 获取车次类型样式
   const getTrainTypeClass = (trainType: string) => {
     if (trainType.startsWith('G') || trainType.startsWith('C')) return 'train-type-g';
@@ -161,6 +202,22 @@ const TrainList: React.FC<TrainListProps> = ({ trains, onTrainSelect }) => {
     );
   };
 
+  const formatDuration = (duration: string): string => {
+    const m1 = duration.match(/(\d+):(\d+)/);
+    if (m1) {
+      const h = m1[1];
+      const mm = m1[2].padStart(2, '0');
+      return `${h}:${mm}`;
+    }
+    const m2 = duration.match(/(\d+)小时(\d+)分/);
+    if (m2) {
+      const h = m2[1];
+      const mm = m2[2].padStart(2, '0');
+      return `${h}:${mm}`;
+    }
+    return duration;
+  };
+
   const getArrivalNote = (fromTime: string, toTime: string) => {
     // 简单判断次日到达：到达时间小于出发时间
     if (toTime && fromTime && toTime.localeCompare(fromTime) < 0) {
@@ -174,27 +231,32 @@ const TrainList: React.FC<TrainListProps> = ({ trains, onTrainSelect }) => {
       <div className="train-list-header">
         <div className="header-row">
           <div className="train-info-header">
-            <div className="train-no-header" onClick={() => handleSort('trainNo')}>
-              车次 {renderSortIcon('trainNo')}
+            <div className="train-no-header">
+              车次
             </div>
             <div className="stations-header">
               <div>出发站</div>
               <div>到达站</div>
             </div>
             <div className="times-header">
-              <div className="times-sort" onClick={() => handleSort('departure')}>
-                出发时间 {renderSortIcon('departure')}
+              <div className="times-sort">
+                出发时间
               </div>
-              <div className="times-sort" onClick={() => handleSort('arrival')}>
-                到达时间 {renderSortIcon('arrival')}
+              <div className="times-sort">
+                到达时间
               </div>
             </div>
-            <div className="duration-header" onClick={() => handleSort('duration')}>
-              历时 {renderSortIcon('duration')}
+            <div className="duration-header">
+              历时
             </div>
           </div>
           <div className="seat-headers">
-            {seatTypes.map(seatType => (
+            <div className="seat-header" title="商务座">商务座</div>
+            <div className="seat-header seat-header-multi seat-header-multi-sm" title="优选/一等座">
+              <div>优选</div>
+              <div>一等座</div>
+            </div>
+            {seatTypes.slice(3).map(seatType => (
               <div key={seatType.key} className="seat-header" title={seatType.label}>
                 {seatType.shortLabel}
               </div>
@@ -211,36 +273,33 @@ const TrainList: React.FC<TrainListProps> = ({ trains, onTrainSelect }) => {
           <div key={`${train.trainNo}-${index}`} className="train-row">
             <div className="train-info">
               <div className="train-no">
-                <span className={`train-type ${getTrainTypeClass(train.trainType)}`}>
-                  {train.trainNo}
-                </span>
+                <span className="train-no-text">{train.trainNo}</span>
               </div>
               <div className="stations-info">
-                <div className="station-line">
-                  <span className="station-name">{train.fromStation}</span>
-                </div>
-                <div className="station-line">
-                  <span className="station-name">{train.toStation}</span>
-                </div>
+                {`始 ${train.fromStation}`}<br />{`终 ${train.toStation}`}
               </div>
               <div className="times-info">
                 <div className="time-line">
-                  <span className="time">{train.fromTime}</span>
+                  <span className="time time-departure">{train.fromTime}</span>
                 </div>
                 <div className="time-line">
-                  <span className="time">{train.toTime}</span>
-                </div>
-                <div className="time-line">
-                  <span className="arrival-note">{getArrivalNote(train.fromTime, train.toTime)}</span>
+                  <span className="time time-arrival">{train.toTime}</span>
                 </div>
               </div>
               <div className="duration-info">
-                <div className="duration">{train.duration}</div>
+                <div className="duration">{formatDuration(train.duration)}</div>
+                <div className="arrival-note">{getArrivalNote(train.fromTime, train.toTime)}</div>
               </div>
             </div>
 
             <div className="seat-info">
-              {seatTypes.map(seatType => (
+              <div className="seat-cell">
+                {renderMergedSeatInfo(train, ['business','firstClassPlus'])}
+              </div>
+              <div className="seat-cell">
+                {renderMergedSeatInfo(train, ['firstClassPremium','firstClass'])}
+              </div>
+              {seatTypes.slice(3).map(seatType => (
                 <div key={seatType.key} className="seat-cell">
                   {renderSeatInfo(train, seatType.key)}
                 </div>
@@ -248,9 +307,6 @@ const TrainList: React.FC<TrainListProps> = ({ trains, onTrainSelect }) => {
             </div>
 
             <div className="action-info">
-              <div className="remarks">
-                {train.remarks || '--'}
-              </div>
               <button 
                 className={`book-button ${train.canBook ? 'available' : 'disabled'}`}
                 disabled={!train.canBook}

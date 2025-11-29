@@ -62,6 +62,7 @@ const ProfilePage: React.FC = () => {
   const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
   const [paymentOrderData, setPaymentOrderData] = useState<{ orderId: string; totalPrice: number; trainNumber: string; fromStation: string; toStation: string; departureDate: string; passengerCount: number } | null>(null);
   const [paymentOrderBackendId, setPaymentOrderBackendId] = useState<string | null>(null);
+  const [expandedGroups, setExpandedGroups] = useState<{ orders: boolean; personal: boolean; common: boolean }>({ orders: true, personal: true, common: true });
   
   // ===== 编辑按钮占位处理（保留现有跳转关系） =====
   const [isEditingContact, setIsEditingContact] = useState(false);
@@ -208,6 +209,17 @@ const ProfilePage: React.FC = () => {
       fetchOrders();
     }
   };
+
+  const toggleGroup = (key: 'orders' | 'personal' | 'common') => {
+    setExpandedGroups(prev => ({ ...prev, [key]: !prev[key] }));
+  };
+
+  const sidebarCrumbs = (() => {
+    if (activeSection === 'orders') return [{ label: '订单中心', section: 'orders' }, { label: '火车票订单', section: 'orders' }];
+    if (activeSection === 'personal-info') return [{ label: '个人信息', section: 'personal-info' }, { label: '查看个人信息', section: 'personal-info' }];
+    if (activeSection === 'passengers') return [{ label: '常用信息管理', section: 'passengers' }, { label: '乘车人', section: 'passengers' }];
+    return [{ label: '个人中心', section: 'center-home' }];
+  })();
 
   const getGreetingPeriod = () => {
     const hour = new Date().getHours();
@@ -685,16 +697,25 @@ const ProfilePage: React.FC = () => {
 
       {/* 主要内容 */}
       <div className="profile-main">
+        {/* 顶部面包屑，横向跨两列 */}
+        <div className="sidebar-breadcrumb">
+          <span className="crumb-label">当前位置：</span>
+          {sidebarCrumbs.map((c, idx) => (
+            <React.Fragment key={idx}>
+              <button type="button" className="crumb-link" onClick={() => handleSectionChange(c.section)}>{c.label}</button>
+              {idx < sidebarCrumbs.length - 1 && <span className="crumb-sep">{'>'}</span>}
+            </React.Fragment>
+          ))}
+        </div>
         {/* 左侧导航 */}
         <aside className="profile-sidebar">
           {/* 删除用户信息卡片 */}
-
-          <nav className="sidebar-nav">
+          <div className="sidebar-nav">
             {/* 顶层标题 */}
-            <div className="nav-group">
-              <h4>
-                <button
-                  type="button"
+              <div className="nav-group">
+                <h4>
+                  <button
+                    type="button"
                   className="group-button"
                   onClick={() => handleSectionChange('center-home')}
                   aria-pressed={activeSection === 'center-home'}
@@ -707,8 +728,13 @@ const ProfilePage: React.FC = () => {
 
             {/* 订单中心 */}
             <div className="nav-group">
-              <h4>订单中心</h4>
-              <ul>
+              <h4>
+                <div className="tree-group-header">
+                  <span>订单中心</span>
+                  <button className="tree-toggle" aria-expanded={expandedGroups.orders} onClick={() => toggleGroup('orders')}>{expandedGroups.orders ? '▾' : '▸'}</button>
+                </div>
+              </h4>
+              <ul className={`tree-list ${expandedGroups.orders ? 'expanded' : 'collapsed'}`}>
                 <li>
                   <button
                     className={activeSection === 'orders' ? 'active' : ''}
@@ -741,8 +767,13 @@ const ProfilePage: React.FC = () => {
 
             {/* 个人信息 */}
             <div className="nav-group">
-              <h4>个人信息</h4>
-              <ul>
+              <h4>
+                <div className="tree-group-header">
+                  <span>个人信息</span>
+                  <button className="tree-toggle" aria-expanded={expandedGroups.personal} onClick={() => toggleGroup('personal')}>{expandedGroups.personal ? '▾' : '▸'}</button>
+                </div>
+              </h4>
+              <ul className={`tree-list ${expandedGroups.personal ? 'expanded' : 'collapsed'}`}>
                 <li>
                   <button
                     className={activeSection === 'personal-info' ? 'active' : ''}
@@ -759,8 +790,13 @@ const ProfilePage: React.FC = () => {
 
             {/* 常用信息管理 */}
             <div className="nav-group">
-              <h4>常用信息管理</h4>
-              <ul>
+              <h4>
+                <div className="tree-group-header">
+                  <span>常用信息管理</span>
+                  <button className="tree-toggle" aria-expanded={expandedGroups.common} onClick={() => toggleGroup('common')}>{expandedGroups.common ? '▾' : '▸'}</button>
+                </div>
+              </h4>
+              <ul className={`tree-list ${expandedGroups.common ? 'expanded' : 'collapsed'}`}>
                 <li>
                   <button
                     className={activeSection === 'passengers' ? 'active' : ''}
@@ -791,7 +827,7 @@ const ProfilePage: React.FC = () => {
                 <li><button disabled>建议</button></li>
               </ul>
             </div>
-          </nav>
+          </div>
         </aside>
 
         {/* 右侧内容区域 */}
@@ -802,7 +838,17 @@ const ProfilePage: React.FC = () => {
                 <div className="welcome-header">
                   <div className="megaphone-icon" aria-hidden="true" />
                   <div className="greeting-text">
-                    {(user && user.realName) ? `${user.realName}，${getGreetingPeriod()}好！` : `您好，${getGreetingPeriod()}好！`}
+                    {user && user.realName ? (
+                      <>
+                        <span className="greeting-name">{user.realName}</span>
+                        <span>，{getGreetingPeriod()}好！</span>
+                      </>
+                    ) : (
+                      <>
+                        <span>您好</span>
+                        <span>，{getGreetingPeriod()}好！</span>
+                      </>
+                    )}
                   </div>
                 </div>
                 <div className="notice-card">
@@ -832,15 +878,7 @@ const ProfilePage: React.FC = () => {
             </div>
           )}
           {activeSection === 'personal-info' && (
-            <div className="content-section">
-              <div className="section-header">
-                <h2>个人信息</h2>
-                <div className="breadcrumb">
-                  <span>个人信息</span>
-                  <span className="separator">{'>'}</span>
-                  <span className="current">查看个人信息</span>
-                </div>
-              </div>
+            <div className="content-section person-info">
 
               {/* 基本信息 */}
               <section className="info-section">
@@ -974,14 +1012,6 @@ const ProfilePage: React.FC = () => {
 
           {activeSection === 'passengers' && (
             <div className="content-section">
-              <div className="section-header">
-                <h2>乘车人管理</h2>
-                <div className="breadcrumb">
-                  <span>常用信息管理</span>
-                  <span className="separator">{'>'}</span>
-                  <span className="current">乘车人</span>
-                </div>
-              </div>
 
               <div className="passengers-section">
                 {/* 搜索工具栏 */}
@@ -1009,35 +1039,7 @@ const ProfilePage: React.FC = () => {
                   >查询</button>
                 </div>
 
-                {/* 管理操作栏 */}
-                <div className="manage-bar">
-                  <button className="add-action" onClick={handleAddPassenger}>➕ 添加</button>
-                  <button
-                    className="bulk-delete-action"
-                    onClick={async () => {
-                      if (selectedPassengerIds.length === 0) {
-                        alert('请选择需要删除的乘车人');
-                        return;
-                      }
-                      if (!window.confirm(`确定批量删除选中的${selectedPassengerIds.length}个乘车人吗？`)) return;
-                      try {
-                        const toDelete = selectedPassengerIds.filter(id => {
-                          const p = passengers.find(x => x.id === id);
-                          return !p?.isDefault;
-                        });
-                        for (const id of toDelete) {
-                          await apiDeletePassenger(id);
-                        }
-                        setPassengers(prev => prev.filter(p => !toDelete.includes(p.id)));
-                        setSelectedPassengerIds([]);
-                      } catch (err) {
-                        console.error('批量删除失败:', err);
-                        alert('批量删除失败，请稍后重试');
-                      }
-                    }}
-                  >🗑 批量删除</button>
-                </div>
-
+                
                 {/* 乘车人表格 */}
                 {(() => {
                   // 排序：默认乘车人优先
@@ -1057,6 +1059,35 @@ const ProfilePage: React.FC = () => {
                         <div className="col-phone">手机／电话</div>
                         <div className="col-verify">核验状态</div>
                         <div className="col-actions">操作</div>
+                      </div>
+
+                      {/* 表内操作栏 */}
+                      <div className="table-action-row">
+                        <button className="add-action" onClick={handleAddPassenger}>添加</button>
+                        <button
+                          className="bulk-delete-action"
+                          onClick={async () => {
+                            if (selectedPassengerIds.length === 0) {
+                              alert('请选择需要删除的乘车人');
+                              return;
+                            }
+                            if (!window.confirm(`确定批量删除选中的${selectedPassengerIds.length}个乘车人吗？`)) return;
+                            try {
+                              const toDelete = selectedPassengerIds.filter(id => {
+                                const p = passengers.find(x => x.id === id);
+                                return !p?.isDefault;
+                              });
+                              for (const id of toDelete) {
+                                await apiDeletePassenger(id);
+                              }
+                              setPassengers(prev => prev.filter(p => !toDelete.includes(p.id)));
+                              setSelectedPassengerIds([]);
+                            } catch (err) {
+                              console.error('批量删除失败:', err);
+                              alert('批量删除失败，请稍后重试');
+                            }
+                          }}
+                        >批量删除</button>
                       </div>
 
                       {/* 行 */}

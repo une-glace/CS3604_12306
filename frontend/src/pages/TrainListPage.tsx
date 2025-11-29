@@ -79,13 +79,23 @@ const TrainListPage: React.FC = () => {
   const mapToTrainInfo = (t: any): TrainInfo => {
     const seats: TrainInfo['seats'] = {};
     const si = t.seatInfo || {};
-    if (si['商务座']) seats.business = si['商务座'].availableSeats > 0 ? '有' : '无';
-    if (si['一等座']) seats.firstClass = si['一等座'].availableSeats > 0 ? '有' : '无';
-    if (si['二等座']) seats.secondClass = si['二等座'].availableSeats > 0 ? '有' : '无';
-    if (si['硬座']) seats.hardSeat = si['硬座'].availableSeats > 0 ? '有' : '无';
-    if (si['硬卧']) seats.hardSleeper = si['硬卧'].availableSeats > 0 ? '有' : '无';
-    if (si['软卧']) seats.softSleeper = si['软卧'].availableSeats > 0 ? '有' : '无';
-    const canBook = Object.values(si).some((x: any) => x && x.availableSeats > 0);
+    const fmt = (item: any) => {
+      if (!item) return undefined;
+      if (item.availableSeats > 0) return '有';
+      if (item.isAvailable === true) return '候补';
+      return '无';
+    };
+    if (si['商务座']) seats.business = fmt(si['商务座']);
+    if (si['特等座']) seats.firstClassPlus = fmt(si['特等座']);
+    if (si['优选一等座']) seats.firstClassPremium = fmt(si['优选一等座']);
+    if (si['一等座']) seats.firstClass = fmt(si['一等座']);
+    if (si['二等座']) seats.secondClass = fmt(si['二等座']);
+    if (si['硬座']) seats.hardSeat = fmt(si['硬座']);
+    if (si['硬卧']) seats.hardSleeper = fmt(si['硬卧']);
+    if (si['软卧']) seats.softSleeper = fmt(si['软卧']);
+    const canBook = Object.keys(si).length === 0
+      ? true
+      : Object.values(si).some((x: any) => x && x.availableSeats > 0);
     const isHighSpeed = t.trainType === 'G' || t.trainType === 'C';
     return {
       trainNo: t.trainNumber,
@@ -175,7 +185,7 @@ const TrainListPage: React.FC = () => {
     }
 
     // 车次类型筛选
-    if (Array.isArray(filters.trainTypes) && filters.trainTypes.length > 0 && !filters.trainTypes.includes('all')) {
+    if (Array.isArray(filters.trainTypes) && filters.trainTypes.length > 0) {
       filtered = filtered.filter(train => {
         return filters.trainTypes.some((type: string) => {
           if (type === 'GC') return train.trainType === 'G' || train.trainType === 'C';
@@ -191,15 +201,23 @@ const TrainListPage: React.FC = () => {
     }
 
     // 出发车站筛选
-    if (Array.isArray(filters.departureStations) && filters.departureStations.length > 0 && !filters.departureStations.includes('all')) {
-      const set = new Set(filters.departureStations);
-      filtered = filtered.filter(train => set.has(train.fromStation));
+    if (Array.isArray(filters.departureStations) && filters.departureStations.length > 0) {
+      const allFrom = Array.from(new Set(trains.map(t => t.fromStation)));
+      const isAllSelected = filters.departureStations.length === allFrom.length;
+      if (!isAllSelected) {
+        const set = new Set(filters.departureStations);
+        filtered = filtered.filter(train => set.has(train.fromStation));
+      }
     }
 
     // 到达车站筛选
-    if (Array.isArray(filters.arrivalStations) && filters.arrivalStations.length > 0 && !filters.arrivalStations.includes('all')) {
-      const set = new Set(filters.arrivalStations);
-      filtered = filtered.filter(train => set.has(train.toStation));
+    if (Array.isArray(filters.arrivalStations) && filters.arrivalStations.length > 0) {
+      const allTo = Array.from(new Set(trains.map(t => t.toStation)));
+      const isAllSelected = filters.arrivalStations.length === allTo.length;
+      if (!isAllSelected) {
+        const set = new Set(filters.arrivalStations);
+        filtered = filtered.filter(train => set.has(train.toStation));
+      }
     }
 
     // 席别筛选
@@ -241,8 +259,11 @@ const TrainListPage: React.FC = () => {
 
   // 处理车次选择
   const handleTrainSelect = (train: TrainInfo) => {
-    console.log('选择车次:', train);
-    // 无论登录与否，均跳转到订单页面（测试要求）
+    if (!isLoggedIn) {
+      setSelectedTrain(train);
+      setShowLoginModal(true);
+      return;
+    }
     navigateToOrder(train);
   };
 
@@ -251,8 +272,8 @@ const TrainListPage: React.FC = () => {
     // 构建订单页面的查询参数
     const orderParams = new URLSearchParams({
       trainNumber: train.trainNo,
-      from: fromStation,
-      to: toStation,
+      from: train.fromStation,
+      to: train.toStation,
       departureTime: train.fromTime,
       arrivalTime: train.toTime,
       date: departDate,
@@ -377,6 +398,7 @@ const TrainListPage: React.FC = () => {
         availableArrivalStations={availableArrivalStations}
         onFiltersChange={handleFiltersChange}
         onDateSelect={handleDateSelect}
+        hasQuery={hasQuery}
       />
 
       {/* 主要内容区域 */}
@@ -394,13 +416,14 @@ const TrainListPage: React.FC = () => {
               <>
                 <div className="result-summary">
                   <span className="result-count">
-                    共找到 <strong>{filteredTrains.length}</strong> 趟车次
+                    {fromStation}{' --> '}{toStation} （{(() => {
+                      const d = new Date(departDate);
+                      const md = `${d.getMonth() + 1}月${d.getDate()}日`;
+                      const days = ['周日','周一','周二','周三','周四','周五','周六'];
+                      const wk = days[d.getDay()] || '';
+                      return `${md} ${wk}`;
+                    })()}）共计{filteredTrains.length}车次
                   </span>
-                  <div className="result-tips">
-                    <span className="tip-item">🟢 有票</span>
-                    <span className="tip-item">🟠 候补</span>
-                    <span className="tip-item">⚪ 无票</span>
-                  </div>
                 </div>
                 
                 <TrainList 

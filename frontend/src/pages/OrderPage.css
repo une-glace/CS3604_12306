@@ -1,16 +1,16 @@
 /* 订单页面主容器 */
 .order-page {
   min-height: 100vh;
-  background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+  background: #fff;
   padding: 20px 0;
 }
 
 .order-container {
   max-width: 1200px;
-  margin: 0 auto;
-  background: white;
+  margin: 12px auto 0;
+  background: #fff;
   border-radius: 12px;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+  box-shadow: none;
   overflow: hidden;
 }
 
@@ -60,44 +60,62 @@
 
 /* 列车信息区域 */
 .train-info-section {
-  padding: 30px;
+  padding: 0;
   border-bottom: 1px solid #e8e8e8;
   background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+  width: 980px;
+  margin: 0 auto;
 }
 
 .train-summary {
   border: 1px solid #e6f0fc;
   border-radius: 8px;
   overflow: hidden;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.06);
+  box-shadow: none;
+  width: 980px;
 }
 
 .train-summary-header {
-  background: linear-gradient(135deg, #4a90e2 0%, #357abd 100%);
+  background: #3399FF;
   color: #fff;
   padding: 10px 16px;
-  font-size: 14px;
+  font-size: 12px;
+  max-height: 32px;
 }
 
 .train-summary-body {
-  background: #f7fbff;
-  padding: 16px;
+  background: #f0f7ff;
+  padding: 8px 12px;
+  height: 98px;
+  box-sizing: border-box;
+  border: 1px solid #357abd;
 }
 
 .train-summary-row {
   font-size: 16px;
   color: #333;
-  margin-bottom: 12px;
+  margin-bottom: 4px;
+}
+
+.train-summary-row .summary-date,
+.train-summary-row .summary-train-number,
+.train-summary-row .summary-depart-time {
+  font-weight: 700;
+  color: #000;
+}
+
+.train-summary-row .summary-unit,
+.train-summary-row .summary-arrive-time {
+  font-size: 14px;
 }
 
 .train-summary-seats {
   display: flex;
-  flex-wrap: nowrap; /* 同一行展示，不换行 */
-  gap: 24px;
-  border-top: 1px dashed #d9e6fb;
-  padding-top: 12px;
-  margin-top: 8px;
-  overflow-x: auto; /* 宽度不足时可横向滚动 */
+  flex-wrap: nowrap;
+  gap: 12px;
+  padding-top: 4px;
+  margin-top: 4px;
+  overflow-x: auto;
   white-space: nowrap;
 }
 
@@ -111,26 +129,32 @@
 .seat-name {
   color: #333;
   font-weight: 600;
+  font-family: SimSun, "宋体", serif;
 }
 
 .seat-price {
-  color: #e74c3c;
+  color: #333;
+}
+.seat-price .price-value {
+  color: #ff8c00;
+  font-weight: 600;
 }
 
 .seat-discount {
-  color: #f5a623;
+  color: #1a7f37;
+  font-weight: 600;
 }
 
 .seat-availability {
-  color: #2ecc71;
+  color: #000;
 }
 
 .seat-unavailable {
-  color: #999999; /* 无票显示为灰色 */
+  color: #000;
 }
 
 .train-summary-note {
-  margin-top: 12px;
+  margin-top: 6px;
   font-size: 12px;
   color: #666;
 }
@@ -150,20 +174,20 @@
 }
 
 .train-info-card {
-  background: white;
+  background: #fff;
   border: 1px solid #e8e8e8;
   border-radius: 12px;
   padding: 25px;
   display: flex;
   align-items: center;
   gap: 30px;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+  box-shadow: none;
   transition: all 0.3s ease;
 }
 
 .train-info-card:hover {
-  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.12);
-  transform: translateY(-2px);
+  box-shadow: none;
+  transform: none;
 }
 
 .train-number {
@@ -224,9 +248,93 @@
 
 /* 乘客信息区域 */
 .passenger-section {
-  padding: 30px;
-  border-bottom: 1px solid #e8e8e8;
-  background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+  padding: 0;
+  border: 1px solid #9ec9ff;
+  border-radius: 6px;
+  background: #fff;
+  width: 980px;
+  margin: 16px auto;
+}
+
+.passenger-header-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: linear-gradient(135deg, #4a90e2 0%, #357abd 100%);
+  color: #fff;
+  padding: 8px 16px;
+  max-height: 32px;
+  border-top-left-radius: 6px;
+  border-top-right-radius: 6px;
+}
+
+.passenger-header-title {
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.passenger-search {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  max-height: 20px;
+}
+
+.passenger-search-input {
+  height: 20px;
+  padding: 0 8px;
+  border: 1px solid #cfe1ff;
+  border-radius: 4px;
+  max-width: 120px;
+  background: #fff;
+}
+
+.passenger-search-btn {
+  max-height: 20px;
+  max-width: 20px;
+  padding: 0 0px;
+  border: 1px solid #cfe1ff;
+  border-radius: 4px;
+  background: #fff;
+  color: #0066cc;
+}
+
+.passenger-chooser {
+  padding: 12px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 0px;
+  max-height: 53.5px;
+}
+
+.chooser-label {
+  font-size: 10px;
+  color: #333;
+  margin-bottom: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.chooser-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 16px;
+}
+
+.passenger-table {
+  margin: 0 16px 12px;
+  border-top: 1px solid #e6f0fc;
+}
+
+.passenger-table-header {
+  background: #f7fbff;
+  border-bottom: 1px solid #e6f0fc;
+  max-height: 28.5px;
+}
+
+.order-banner {
+  margin: 0 16px 16px;
 }
 
 .section-header {
@@ -286,16 +394,16 @@
   align-items: center;
   justify-content: space-between;
   padding: 20px;
-  background: white;
+  background: #fff;
   border: 1px solid #e8e8e8;
   border-radius: 10px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  box-shadow: none;
   transition: all 0.3s ease;
 }
 
 .passenger-item:hover {
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
-  transform: translateY(-1px);
+  box-shadow: none;
+  transform: none;
 }
 
 .passenger-info {
@@ -350,7 +458,7 @@
 .ticket-info-section {
   padding: 30px;
   border-bottom: 1px solid #e8e8e8;
-  background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+  background: #fff;
 }
 
 .ticket-table {
@@ -404,17 +512,20 @@
 .col-ticket-type {
   color: #666;
   min-width: 80px;
+  max-height: 38.5px;
 }
 
 .col-seat-type {
   min-width: 150px;
+  max-height: 38.5px;
 }
 
 .col-seat-type select {
   width: 100%;
-  padding: 10px 12px;
+  max-height: 30px;
+  padding: 6px 12px;
   border: 2px solid #e8e8e8;
-  border-radius: 8px;
+  border-radius: 0px;
   font-size: 14px;
   background: white;
   color: #333;
@@ -449,7 +560,7 @@
 /* 订单汇总区域 */
 .order-summary {
   padding: 30px;
-  background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+  background: #fff;
   border-top: 3px solid #4a90e2;
 }
 
@@ -790,7 +901,7 @@
   font-size: 13px;
 }
 .passenger-table-row {
-  height: 48px;
+  height: 38.5px;
   padding: 0 12px;
   border-top: 1px solid #f0f0f0;
 }
@@ -818,6 +929,7 @@
   margin-top: 10px;
   font-size: 12px;
   color: #666;
+  text-indent: 2em;
 }
 .order-agreement .link {
   color: #1e88e5;
@@ -829,6 +941,7 @@
   display: flex;
   justify-content: center;
   gap: 16px;
+  background: #fff;
 }
 .btn-prev {
   padding: 8px 16px;
@@ -847,7 +960,7 @@
 /* 统一：方形选择栏样式（应用到票种/席别/证件类型） */
 .square-select {
   width: 100%;
-  height: 40px;
+  max-height: 30px;
   padding: 6px 12px;
   border: 2px solid #e8e8e8;
   border-radius: 0; /* 方形 */

@@ -16,7 +16,8 @@
 .header-row {
   display: flex;
   align-items: center;
-  padding: 12px 0;
+  height: 52px;
+  padding: 0;
   font-weight: 500;
   font-size: 13px;
   color: #fff;
@@ -25,8 +26,11 @@
 .train-info-header {
   display: flex;
   align-items: center;
-  min-width: 250px; /* 原为 600px，缩小以减少“历时”与席别间距 */
+  width: 354px;
+  height: 52px;
   padding: 0 15px;
+  font-size: 12px;
+  align-items: center;
 }
 
 .train-no-header,
@@ -49,10 +53,10 @@
   background: rgba(255, 255, 255, 0.1);
 }
 
-.train-no-header { width: 80px; }
-.stations-header { width: 120px; cursor: default; flex-direction: column; align-items: center; line-height: 1.2; }
-.times-header { width: 140px; flex-direction: column; align-items: center; line-height: 1.2; }
-.duration-header { width: 60px; }
+.train-no-header { width: 90px; }
+.stations-header { width: 100px; cursor: default; flex-direction: column; align-items: center; line-height: 1.2; }
+.times-header { width: 82px; flex-direction: column; align-items: center; line-height: 1.2; }
+.duration-header { width: 82px; }
 
 .sort-icon { font-size: 12px; color: #e6f0ff; transition: color 0.2s; }
 .sort-icon.active { color: #fff; }
@@ -61,15 +65,18 @@
 
 .seat-headers {
   display: flex;
-  flex: 1;
-  min-width: 0;
+  flex-wrap: nowrap;
 }
 
 .seat-header {
-  flex: 1;
+  flex: none;
+  width: 66px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   text-align: center;
   padding: 8px 4px;
-  font-size: 12px;
+  font-size: 13px;
   border-left: 1px solid #2a6fc0;
   color: #fff;
   white-space: nowrap;
@@ -77,11 +84,29 @@
   text-overflow: ellipsis;
 }
 
+.seat-header-multi {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  white-space: normal;
+}
+
+.seat-header-multi div {
+  line-height: 1.1;
+}
+
+.seat-header-multi-sm div {
+  font-size: 12px;
+}
+
 .action-header {
-  width: 120px;
+  width: 100px;
   text-align: center;
   padding: 8px 15px;
   border-left: 1px solid #e5e5e5;
+  font-size: 13px;
 }
 
 .train-list-body {
@@ -95,10 +120,18 @@
   align-items: center;
   border-bottom: 1px solid #f0f0f0;
   transition: background-color 0.2s;
+  height: 40.5px;
 }
 
 .train-row:hover {
   background: #f8f9fa;
+}
+
+.train-list-body .train-row:nth-child(odd) {
+  background: #fff;
+}
+.train-list-body .train-row:nth-child(even) {
+  background: #f0f8ff;
 }
 
 .train-row:last-child {
@@ -108,14 +141,16 @@
 .train-info {
   display: flex;
   align-items: center;
-  min-width: 250px; /* 原为 700px，缩小以减少主体列与席别间距 */
-  padding: 15px;
+  width: 354px;
+  padding: 4px;
+  height: 40.5px;
 }
 
 .train-no {
-  width: 80px;
+  width: 90px;
   display: flex;
   align-items: center;
+  justify-content: center;
 }
 
 .train-type {
@@ -152,38 +187,69 @@
   background: #999999;
 }
 
-.stations-info { width: 120px; padding: 0 12px; }
-.station-line { display: flex; align-items: center; justify-content: center; margin: 2px 0; }
-.station-name { font-size: 14px; font-weight: 500; color: #333; }
+.stations-info { width: 100px; padding: 0 0px; height: 40.5px; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; font-size: 12px;}
+.station-line { display: flex; align-items: center; justify-content: center; margin: 2px 0; height: 20px;}
+.station-name { font-size: 10px; font-weight: 400; color: #333; height: 20px; line-height: 20px;}
 
-.times-info { width: 140px; text-align: center; padding: 0 12px; }
-.time-line { display: flex; justify-content: center; align-items: baseline; gap: 6px; }
-.time { font-size: 16px; font-weight: 500; color: #333; }
-.arrival-note { font-size: 12px; color: #999; }
+.station-badge {
+  display: inline-block;
+  padding: 0 4px;
+  border-radius: 3px;
+  font-size: 10px;
+  line-height: 16px;
+  margin-right: 4px;
+}
+.station-badge-start {
+  background: #d2b48c;
+  color: #333;
+}
+.station-badge-end {
+  background: #006400;
+  color: #fff;
+}
+
+.times-info { width: 82px; text-align: center; padding: 0 12px; height: 40.5px;}
+.time-line { display: flex; justify-content: center; align-items: baseline; gap: 6px; font-size: 5px;}
+.time { font-size: 12px; }
+.time-departure { font-weight: 700; color: #000; }
+.time-arrival { font-weight: 700; color: #555; }
+.arrival-note { font-size: 10px; color: #999; }
 
 .duration-info {
-  width: 60px;
+  width: 82px;
   text-align: center;
   padding: 0 12px;
 }
 
 .duration {
-  font-size: 14px;
-  color: #666;
+  font-size: 12px;
+  color: #000;
+  font-weight: 700;
 }
 
 .seat-info {
   display: flex;
-  flex: 1;
-  min-width: 0;
+  flex-wrap: nowrap;
 }
 
 .seat-cell {
-  flex: 1;
+  flex: none;
+  width: 66px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   text-align: center;
-  padding: 15px 4px;
+  padding: 4px 4px;
   border-left: 1px solid #f0f0f0;
   font-size: 13px;
+}
+
+.seat-cell-multi {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
 }
 
 .seat-available {
@@ -201,19 +267,20 @@
 }
 
 .action-info {
-  width: 120px;
+  width: 100px;
   text-align: center;
-  padding: 15px;
+  padding: 4px;
   border-left: 1px solid #f0f0f0;
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 2px;
 }
 
 .remarks {
   font-size: 12px;
   color: #666;
-  min-height: 16px;
+  line-height: 12px;
+  min-height: 0;
 }
 
 .book-button {
@@ -221,7 +288,8 @@
   color: white;
   border: none;
   border-radius: 4px;
-  padding: 6px 12px;
+  height: 24px;
+  padding: 0 8px;
   font-size: 12px;
   font-weight: 500;
   cursor: pointer;
@@ -298,6 +366,7 @@
     padding: 0;
     flex-direction: column;
     gap: 12px;
+    width: 40.5px;
   }
   
   .train-no {
@@ -406,4 +475,10 @@
   .train-row:hover {
     background: transparent;
   }
+}
+.train-no-text {
+  font-size: 14px;
+  font-weight: 700;
+  color: #000;
+  text-decoration: underline;
 }

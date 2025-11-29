@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import { parseCityStationInput } from '../utils/cityStationMap';
 import './SearchConditions.css';
 
@@ -35,6 +35,13 @@ const SearchConditions: React.FC<SearchConditionsProps> = ({
   returnDate = '',
   tripType = 'single'
 }) => {
+  const HOT_CITIES = [
+    '北京','上海','天津','重庆','长沙','长春','成都','福州','广州','贵阳','呼和浩特','哈尔滨','合肥','杭州','海口','济南','昆明','拉萨','兰州','南宁','南京','南昌','沈阳','石家庄','太原','乌鲁木齐','武汉','西宁','西安','银川','郑州','深圳','厦门'
+  ];
+  const TAB_LABELS = ['热门','ABCDE','FGHIJ','KLMNO','PQRST','UVWXYZ'] as const;
+  const [dropdownOpenFor, setDropdownOpenFor] = useState<'from'|'to'|null>(null);
+  const [activeTab, setActiveTab] = useState<typeof TAB_LABELS[number]>('热门');
+  const [scope, setScope] = useState<'domestic'|'international'>('domestic');
   const [conditions, setConditions] = useState<SearchConditions>({
     fromStation,
     toStation,
@@ -44,6 +51,9 @@ const SearchConditions: React.FC<SearchConditionsProps> = ({
     trainType,
     tripType
   });
+  useEffect(() => {
+    setConditions(prev => ({ ...prev, departDate }));
+  }, [departDate]);
   const [errorMessage, setErrorMessage] = useState<string>('');
   // 智能解析输入并自动设置车站筛选
   const getAutoStationFilters = useCallback(() => {
@@ -74,14 +84,6 @@ const SearchConditions: React.FC<SearchConditionsProps> = ({
     return maxDate.toISOString().split('T')[0];
   };
 
-  const handleSwapStations = () => {
-    const newConditions = {
-      ...conditions,
-      fromStation: conditions.toStation,
-      toStation: conditions.fromStation
-    };
-    setConditions(newConditions);
-  };
 
   const handleDateChange = (date: string) => {
     const newConditions = { ...conditions, departDate: date };
@@ -122,6 +124,20 @@ const SearchConditions: React.FC<SearchConditionsProps> = ({
     if (errorMessage && value.trim() && newConditions.fromStation.trim()) {
       setErrorMessage('');
     }
+  };
+
+  const openDropdown = (which: 'from'|'to') => {
+    setDropdownOpenFor(which);
+    setActiveTab('热门');
+  };
+  const closeDropdown = () => setDropdownOpenFor(null);
+  const pickCity = (which: 'from'|'to', city: string) => {
+    if (which === 'from') {
+      handleFromStationChange(city);
+    } else {
+      handleToStationChange(city);
+    }
+    closeDropdown();
   };
 
   // 点击查询才触发提交
@@ -180,16 +196,36 @@ const SearchConditions: React.FC<SearchConditionsProps> = ({
               placeholder="请选择"
               value={conditions.fromStation}
               onChange={(e) => handleFromStationChange(e.target.value)}
+              onFocus={() => openDropdown('from')}
+              onClick={() => openDropdown('from')}
             />
+            {dropdownOpenFor === 'from' && (
+              <div className="station-dropdown" role="dialog" aria-label="选择出发地">
+                <div className="dropdown-inner">
+                  <div className="scope-column">
+                    <button type="button" className={`scope-btn ${scope==='domestic'?'active':''}`} onClick={() => setScope('domestic')}>国内站点</button>
+                    <button type="button" className={`scope-btn ${scope==='international'?'active':''}`} onClick={() => setScope('international')}>国际站点</button>
+                  </div>
+                  <div className="dropdown-main">
+                    <div className="dropdown-header">拼音支持首字母输入</div>
+                    <div className="dropdown-tabs">
+                      {TAB_LABELS.map(label => (
+                        <button key={`tab-${label}`} className={`dropdown-tab ${activeTab===label?'active':''}`} onClick={() => setActiveTab(label)}>{label}</button>
+                      ))}
+                      <button type="button" className="dropdown-close" aria-label="关闭" onClick={closeDropdown}>×</button>
+                    </div>
+                    <div className="dropdown-content">
+                      <div className="city-grid">
+                        {(activeTab==='热门' ? HOT_CITIES : HOT_CITIES).map(city => (
+                          <button type="button" key={`from-dd-${city}`} className="city-item" onClick={() => pickCity('from', city)}>{city}</button>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
-
-          <button 
-            className="swap-button"
-            onClick={handleSwapStations}
-            title="交换出发地和目的地"
-          >
-            ⇄
-          </button>
 
           <div className="station-item">
             <label>目的地</label>
@@ -199,7 +235,35 @@ const SearchConditions: React.FC<SearchConditionsProps> = ({
               placeholder="请选择"
               value={conditions.toStation}
               onChange={(e) => handleToStationChange(e.target.value)}
+              onFocus={() => openDropdown('to')}
+              onClick={() => openDropdown('to')}
             />
+            {dropdownOpenFor === 'to' && (
+              <div className="station-dropdown" role="dialog" aria-label="选择目的地">
+                <div className="dropdown-inner">
+                  <div className="scope-column">
+                    <button type="button" className={`scope-btn ${scope==='domestic'?'active':''}`} onClick={() => setScope('domestic')}>国内站点</button>
+                    <button type="button" className={`scope-btn ${scope==='international'?'active':''}`} onClick={() => setScope('international')}>国际站点</button>
+                  </div>
+                  <div className="dropdown-main">
+                    <div className="dropdown-header">拼音支持首字母输入</div>
+                    <div className="dropdown-tabs">
+                      {TAB_LABELS.map(label => (
+                        <button key={`tab2-${label}`} className={`dropdown-tab ${activeTab===label?'active':''}`} onClick={() => setActiveTab(label)}>{label}</button>
+                      ))}
+                      <button type="button" className="dropdown-close" aria-label="关闭" onClick={closeDropdown}>×</button>
+                    </div>
+                    <div className="dropdown-content">
+                      <div className="city-grid">
+                        {(activeTab==='热门' ? HOT_CITIES : HOT_CITIES).map(city => (
+                          <button type="button" key={`to-dd-${city}`} className="city-item" onClick={() => pickCity('to', city)}>{city}</button>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
         </div>
 
@@ -231,7 +295,6 @@ const SearchConditions: React.FC<SearchConditionsProps> = ({
         </div>
 
         <div className="passenger-type-selector">
-          <label>乘客类型</label>
           <div className="radio-group">
             <label className="radio-item">
               <input
@@ -241,7 +304,7 @@ const SearchConditions: React.FC<SearchConditionsProps> = ({
                 checked={conditions.passengerType === 'adult'}
                 onChange={() => handlePassengerTypeChange('adult')}
               />
-              成人
+              普通
             </label>
             <label className="radio-item">
               <input

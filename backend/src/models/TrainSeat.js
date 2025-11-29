@@ -22,7 +22,7 @@ const TrainSeat = sequelize.define('TrainSeat', {
     comment: '运行日期'
   },
   seatType: {
-    type: DataTypes.ENUM('商务座', '一等座', '二等座', '硬卧', '软卧', '硬座', '无座'),
+    type: DataTypes.ENUM('商务座', '特等座', '优选一等座', '一等座', '二等座', '硬卧', '软卧', '硬座', '无座'),
     allowNull: false,
     comment: '座位类型'
   },

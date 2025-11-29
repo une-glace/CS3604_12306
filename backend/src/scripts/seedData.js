@@ -298,8 +298,8 @@ const initSeatData = async () => {
     const trains = await Train.findAll();
     const today = new Date();
     
-    // 为未来30天生成座位数据
-    for (let i = 0; i < 30; i++) {
+    // 为未来60天生成座位数据
+    for (let i = 0; i < 60; i++) {
       const date = new Date(today);
       date.setDate(today.getDate() + i);
       const dateString = date.toISOString().split('T')[0];
@@ -311,6 +311,8 @@ const initSeatData = async () => {
         if (train.trainType === 'G') {
           seatConfig = [
             { seatType: '商务座', totalSeats: 24, price: 1748 },
+            { seatType: '特等座', totalSeats: 18, price: 1600 },
+            { seatType: '优选一等座', totalSeats: 32, price: 1033 },
             { seatType: '一等座', totalSeats: 64, price: 933 },
             { seatType: '二等座', totalSeats: 200, price: 553 }
           ];
