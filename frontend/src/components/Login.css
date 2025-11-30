@@ -80,7 +80,7 @@
   flex: 1;
   max-width: 400px;
   background: #fff;
-  border-radius: 12px;
+  border-radius: 0px;
   padding: 40px;
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
 }
@@ -108,7 +108,8 @@
 }
 
 .form-group {
-  margin-bottom: 0px;
+  margin-bottom: 16px;
+  position: relative;
 }
 
 .form-group label {
@@ -121,26 +122,30 @@
 
 .form-group input[type="text"],
 .form-group input[type="password"] {
-  width: 100%;
-  height: 48px;
+  width: 320px;
+  height: 44px;
   padding: 0 16px;
-  border: 2px solid #e8e8e8;
-  border-radius: 8px;
+  border: 1px solid #e0e0e0;
+  border-radius: 0;
   font-size: 14px;
-  transition: all 0.3s;
+  transition: all 0.2s ease;
   box-sizing: border-box;
 }
 
 .form-group input[type="text"]:focus,
 .form-group input[type="password"]:focus {
   outline: none;
-  border-color: #1890ff;
-  box-shadow: 0 0 0 3px rgba(24, 144, 255, 0.1);
+  border-color: #2a78f6;
+  box-shadow: 0 0 0 2px rgba(42, 120, 246, 0.15);
 }
 
 .form-group input.error {
   border-color: #f5222d;
 }
+
+/* 移除输入框图标 */
+.form-group.user::before,
+.form-group.password::before { content: none; }
 
 .error-message {
   display: block;
@@ -170,7 +175,7 @@
   width: 120px;
   height: 48px;
   border: 2px solid #e8e8e8;
-  border-radius: 8px;
+  border-radius: 0px;
   cursor: pointer;
   transition: border-color 0.3s;
 }
@@ -183,7 +188,7 @@
   padding: 6px 12px;
   background: #f0f0f0;
   border: 1px solid #d9d9d9;
-  border-radius: 6px;
+  border-radius: 0px;
   font-size: 12px;
   cursor: pointer;
   transition: all 0.3s;
@@ -218,7 +223,7 @@
   width: 16px;
   height: 16px;
   border: 2px solid #d9d9d9;
-  border-radius: 3px;
+  border-radius: 0px;
   margin-right: 8px;
   position: relative;
   transition: all 0.3s;
@@ -242,22 +247,23 @@
 /* 登录按钮 */
 .login-button {
   width: 100%;
-  height: 48px;
-  background: linear-gradient(135deg, #1890ff 0%, #096dd9 100%);
+  height: 44px;
+  background: #ff8c00;
   color: white;
   border: none;
-  border-radius: 8px;
-  font-size: 16px;
+  border-radius: 0px;
+  font-size: 18px;
   font-weight: 600;
   cursor: pointer;
-  transition: all 0.3s;
-  margin-bottom: 24px;
+  transition: all 0.2s ease;
+  margin-bottom: 0;
+  display: block;
 }
 
 .login-button:hover:not(:disabled) {
-  background: linear-gradient(135deg, #096dd9 0%, #0050b3 100%);
+  background: #ff7a00;
   transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(24, 144, 255, 0.3);
+  box-shadow: 0 4px 12px rgba(255, 122, 0, 0.3);
 }
 
 .login-button:disabled {
@@ -270,22 +276,35 @@
 .form-links {
   display: flex;
   justify-content: center;
-  align-items: center;
+  align-items: baseline;
   flex-wrap: nowrap;
-  gap: 8px;
+  gap: 4px;
+  height: 20px;
+  font-size: 10px;
+  line-height: 20px;
+  margin-bottom: 0;
 }
-.form-links .sep { color: #ccc; margin: 0 6px; }
+.form-links .sep { color: #ccc; margin: 0 4px; display: inline-block; height: 20px; line-height: 20px; }
 
 /* 表单下方分割线与服务说明 */
-.form-extra { margin-top: 6px; }
-.form-divider { border-top: 1px solid #eee; margin: 6px 0 6px; }
-.service-notice { color: #666; font-size: 12px; line-height: 1.6; text-align: center; }
+.form-extra {
+  margin-top: 0;
+  height: 85.5px;
+  overflow: hidden;
+}
+.form-divider {
+  border-top: 2px solid #ccc;
+  margin: 0 0 12px 0;
+}
+.service-notice { color: #666; font-size: 12px; line-height: 1.8; text-align: left; }
 
 .form-links a {
   color: #1890ff;
   text-decoration: none;
-  font-size: 14px;
+  font-size: 10px;
+  line-height: 20px;
   transition: color 0.3s;
+  display: inline-block;
 }
 
 .form-links a:hover {
@@ -296,12 +315,16 @@
   background: none;
   border: none;
   color: #1890ff;
-  font-size: 14px;
+  font-size: 10px;
   cursor: pointer;
   text-decoration: underline;
   transition: color 0.3s;
   position: relative;
-  top: -15px;
+  top: 0;
+  padding: 0;
+  line-height: 20px;
+  display: inline-block;
+  vertical-align: middle;
 }
 
 .register-link:hover {
@@ -316,7 +339,7 @@
 
 .info-section {
   background: #fff;
-  border-radius: 12px;
+  border-radius: 0px;
   padding: 24px;
   margin-bottom: 24px;
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
@@ -427,7 +450,7 @@
 /* 复用 Carousel 组件，但在登录页提升高度并覆盖缩放 */
 .login-hero .hero-carousel {
   width: 100%;
-  height: 650px;
+  height: 600px;
   overflow: hidden;
 }
 .login-hero .hero-carousel-wrapper {
@@ -438,42 +461,56 @@
   transform: none; /* 覆盖首页的 scaleX(2) */
   object-position: left center;
 }
+.login-hero .hero-carousel-arrow {
+  display: none !important;
+}
 
 /* 右侧叠加登录面板 */
 .login-panel {
   position: absolute;
   right: 40px;
   top: 36px;
-  width: 360px;
+  width: 380px;
   background: #fff;
-  box-shadow: 0 6px 24px rgba(0,0,0,0.12);
-  border-radius: 8px;
-  padding: 20px 20px 16px;
+  box-shadow: none;
+  border-radius: 0;
+  padding: 0;
+  border: 1px solid #8bb4ff;
 }
 
 .login-tabs {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 12px;
-  margin-bottom: 12px;
+  gap: 24px;
+  margin-bottom: 0;
   border-bottom: 1px solid #eee;
-  padding-bottom: 8px;
+  padding-bottom: 0;
+  width: 380px;
+  height: 78px;
 }
 .login-tab {
   background: transparent;
   border: none;
-  font-size: 16px;
+  font-size: 18px;
   color: #666;
   cursor: pointer;
-  padding: 4px 8px;
+  padding: 8px 0;
 }
-.login-tab.active { color: #2a78f6; font-weight: 600; }
-.tab-sep { color: #ccc; }
+.login-tab.active { color: #2a78f6; font-weight: 600; border-bottom: 2px solid #2a78f6; }
+.tab-sep { color: #ddd; }
 
 .login-card .login-form-header { text-align: center; margin-bottom: 12px; }
 .login-card .login-form-header h2 { font-size: 18px; margin: 0 0 4px; }
 .login-card .login-form-header p { color: #888; font-size: 13px; margin: 0; }
+
+.login-card {
+  padding: 24px 24px 18px;
+}
+
+.login-card .form-group {
+  margin-bottom: 6px;
+}
 
 /* 扫码登录 */
 .qr-login { display: flex; flex-direction: column; align-items: center; text-align: center; }
@@ -482,7 +519,7 @@
   height: 216px;
   background: repeating-linear-gradient(45deg,#e9eef6 0,#e9eef6 8px,#f5f7fb 8px,#f5f7fb 16px);
   border: 1px solid #ccd6e3;
-  border-radius: 8px;
+  border-radius: 0px;
   margin: 8px 0 12px;
 }
 .qr-tip { color: #555; font-size: 14px; }

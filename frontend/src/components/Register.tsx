@@ -211,7 +211,7 @@ const Register: React.FC<RegisterProps> = () => {
     try {
       const usernamePattern = /^[a-zA-Z][a-zA-Z0-9_ ]*$/;
       if (!formData.username || formData.username.length < 6 || formData.username.length > 30 || !usernamePattern.test(formData.username)) {
-        setErrors(prev => ({ ...prev, username: '用户名需6-30位，字母开头，仅字母/数字/空格/下划线' }));
+        setErrors(prev => ({ ...prev, username: '6-30位字母、数字或“_”，字母开头' }));
         setIsLoading(false);
         return;
       }
@@ -368,12 +368,12 @@ const Register: React.FC<RegisterProps> = () => {
                         name="username"
                         value={formData.username}
                         onChange={handleInputChange}
-                        placeholder="6-30位字母、数字、空格或'_'，字母开头"
+                        placeholder="用户名设置成功后无法修改"
                         className={errors.username ? 'error' : ''}
                       />
                       {errors.username && <span className="error-message">{errors.username}</span>}
                     </div>
-                    <div className="grid-hint">6-30位字母、数字或“_”,字母开头</div>
+                    <div className="grid-hint">6-30位字母、数字或“_”，字母开头</div>
                   </div>
 
                   {/* 登录密码 */}
@@ -391,7 +391,7 @@ const Register: React.FC<RegisterProps> = () => {
                       />
                       {errors.password && <span className="error-message">{errors.password}</span>}
                     </div>
-                    <div className="grid-hint">6-20位字母、数字或符号</div>
+                    <div className="grid-hint"></div>
                   </div>
 
                   {/* 确认密码 */}
@@ -409,7 +409,7 @@ const Register: React.FC<RegisterProps> = () => {
                       />
                       {errors.confirmPassword && <span className="error-message">{errors.confirmPassword}</span>}
                     </div>
-                    <div className="grid-hint">再次输入您的登录密码</div>
+                    <div className="grid-hint"></div>
                   </div>
 
                   {/* 证件类型 */}
@@ -429,7 +429,7 @@ const Register: React.FC<RegisterProps> = () => {
                         ))}
                       </select>
                     </div>
-                    <div className="grid-hint">居民身份证</div>
+                    <div className="grid-hint"></div>
                   </div>
 
                   {/* 姓名 */}
@@ -488,7 +488,7 @@ const Register: React.FC<RegisterProps> = () => {
                         ))}
                       </select>
                     </div>
-                    <div className="grid-hint">成人</div>
+                    <div className="grid-hint"></div>
                   </div>
 
                   {/* 邮箱 */}
@@ -506,7 +506,7 @@ const Register: React.FC<RegisterProps> = () => {
                       />
                       {errors.email && <span className="error-message">{errors.email}</span>}
                     </div>
-                    <div className="grid-hint">请正确填写邮箱地址</div>
+                    <div className="grid-hint"></div>
                   </div>
 
                   {/* 手机号码 */}
