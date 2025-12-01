@@ -55,8 +55,8 @@
 
 .train-no-header { width: 90px; }
 .stations-header { width: 100px; cursor: default; flex-direction: column; align-items: center; line-height: 1.2; }
-.times-header { width: 82px; flex-direction: column; align-items: center; line-height: 1.2; }
-.duration-header { width: 82px; }
+.times-header { width: 92px; flex-direction: column; align-items: center; line-height: 1.2; }
+.duration-header { width: 72px; }
 
 .sort-icon { font-size: 12px; color: #e6f0ff; transition: color 0.2s; }
 .sort-icon.active { color: #fff; }
@@ -163,29 +163,12 @@
   min-width: 60px;
 }
 
-.train-type-g {
-  background: #0066cc;
-}
-
-.train-type-d {
-  background: #00aa44;
-}
-
-.train-type-z {
-  background: #ff6600;
-}
-
-.train-type-t {
-  background: #cc0066;
-}
-
-.train-type-k {
-  background: #666666;
-}
-
-.train-type-other {
-  background: #999999;
-}
+.train-type-g { background: transparent; }
+.train-type-d { background: transparent; }
+.train-type-z { background: transparent; }
+.train-type-t { background: transparent; }
+.train-type-k { background: transparent; }
+.train-type-other { background: transparent; }
 
 .stations-info { width: 100px; padding: 0 0px; height: 40.5px; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; font-size: 12px;}
 .station-line { display: flex; align-items: center; justify-content: center; margin: 2px 0; height: 20px;}
@@ -208,7 +191,7 @@
   color: #fff;
 }
 
-.times-info { width: 82px; text-align: center; padding: 0 12px; height: 40.5px;}
+.times-info { width: 92px; text-align: center; padding: 0 12px; height: 40.5px;}
 .time-line { display: flex; justify-content: center; align-items: baseline; gap: 6px; font-size: 5px;}
 .time { font-size: 12px; }
 .time-departure { font-weight: 700; color: #000; }
@@ -216,7 +199,7 @@
 .arrival-note { font-size: 10px; color: #999; }
 
 .duration-info {
-  width: 82px;
+  width: 72px;
   text-align: center;
   padding: 0 12px;
 }

@@ -273,6 +273,12 @@
   font-size: 14px;
 }
 
+.verification-group {
+  width: 100%;
+  max-width: 700px;
+  margin: 0 auto;
+}
+
 .verification-group .verification-input {
   display: flex;
   gap: 12px;
