@@ -23,16 +23,16 @@
         <div class='clearfix'>
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">47.1% </span>
+                <span class="strong">35.53% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>57/121</span>
+                <span class='fraction'>43/121</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">54.54% </span>
+                <span class="strong">50% </span>
                 <span class="quiet">Branches</span>
-                <span class='fraction'>6/11</span>
+                <span class='fraction'>5/10</span>
             </div>
         
             
@@ -44,9 +44,9 @@
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">47.1% </span>
+                <span class="strong">35.53% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>57/121</span>
+                <span class='fraction'>43/121</span>
             </div>
         
             
@@ -263,28 +263,28 @@
 <span class="cline-any cline-yes">26x</span>
 <span class="cline-any cline-yes">11x</span>
 <span class="cline-any cline-yes">11x</span>
-<span class="cline-any cline-yes">11x</span>
-<span class="cline-any cline-yes">11x</span>
-<span class="cline-any cline-yes">11x</span>
-<span class="cline-any cline-yes">11x</span>
-<span class="cline-any cline-yes">11x</span>
-<span class="cline-any cline-yes">11x</span>
-<span class="cline-any cline-yes">11x</span>
-<span class="cline-any cline-yes">11x</span>
-<span class="cline-any cline-yes">11x</span>
-<span class="cline-any cline-yes">11x</span>
-<span class="cline-any cline-yes">11x</span>
-<span class="cline-any cline-yes">11x</span>
-<span class="cline-any cline-yes">11x</span>
-<span class="cline-any cline-yes">11x</span>
-<span class="cline-any cline-yes">11x</span>
-<span class="cline-any cline-yes">11x</span>
-<span class="cline-any cline-yes">11x</span>
-<span class="cline-any cline-yes">11x</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">11x</span>
+<span class="cline-any cline-yes">11x</span>
+<span class="cline-any cline-yes">11x</span>
+<span class="cline-any cline-yes">11x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
@@ -416,36 +416,36 @@ export const AuthProvider: React.FC&lt;AuthProviderProps&gt; = ({ children }) =&
   // 刷新用户信息
   const refreshUser = async () =&gt; {
     if (!isAuthenticated()) {
-      if (import.meta.env.VITE_E2E === 'true' || import.meta.env.DEV) {
-        const overrides = (() =&gt; { try { return JSON.parse(localStorage.getItem('e2eUserPatch') || '{}'); <span class="branch-0 cbranch-no" title="branch not covered" >} catch { return {}; } }</span>)();
-        const now = new Date().toISOString();
-        setUser({
-          id: 0,
-          username: 'e2e-user',
-          realName: '测试用户',
-          idType: '1',
-          idNumber: '11010519491231002X',
-          email: overrides.email ?? 'e2e@example.com',
-          phoneNumber: overrides.phoneNumber ?? '13812341234',
-          countryCode: overrides.countryCode ?? '+86',
-          passengerType: '成人',
-          status: 'active',
-          createdAt: now
-        });
-        setIsLoading(false);
-        return;
-<span class="branch-0 cbranch-no" title="branch not covered" >      }</span>
-<span class="cstat-no" title="statement not covered" >      setUser(null);</span>
-<span class="cstat-no" title="statement not covered" >      setIsLoading(false);</span>
-<span class="cstat-no" title="statement not covered" >      return;</span>
-<span class="cstat-no" title="statement not covered" >    }</span>
+      if (import.meta.env.VITE_E2E === 'true') <span class="branch-0 cbranch-no" title="branch not covered" >{</span>
+<span class="cstat-no" title="statement not covered" >        const overrides = (() =&gt; { try { return JSON.parse(localStorage.getItem('e2eUserPatch') || '{}'); } catch { return {}; } })();</span>
+<span class="cstat-no" title="statement not covered" >        const now = new Date().toISOString();</span>
+<span class="cstat-no" title="statement not covered" >        setUser({</span>
+<span class="cstat-no" title="statement not covered" >          id: 0,</span>
+<span class="cstat-no" title="statement not covered" >          username: 'e2e-user',</span>
+<span class="cstat-no" title="statement not covered" >          realName: '测试用户',</span>
+<span class="cstat-no" title="statement not covered" >          idType: '1',</span>
+<span class="cstat-no" title="statement not covered" >          idNumber: '11010519491231002X',</span>
+<span class="cstat-no" title="statement not covered" >          email: overrides.email ?? 'e2e@example.com',</span>
+<span class="cstat-no" title="statement not covered" >          phoneNumber: overrides.phoneNumber ?? '13812341234',</span>
+<span class="cstat-no" title="statement not covered" >          countryCode: overrides.countryCode ?? '+86',</span>
+<span class="cstat-no" title="statement not covered" >          passengerType: '成人',</span>
+<span class="cstat-no" title="statement not covered" >          status: 'active',</span>
+<span class="cstat-no" title="statement not covered" >          createdAt: now</span>
+<span class="cstat-no" title="statement not covered" >        });</span>
+<span class="cstat-no" title="statement not covered" >        setIsLoading(false);</span>
+<span class="cstat-no" title="statement not covered" >        return;</span>
+<span class="cstat-no" title="statement not covered" >      }</span>
+      setUser(null);
+      setIsLoading(false);
+      return;
+<span class="branch-0 cbranch-no" title="branch not covered" >    }</span>
 &nbsp;
 <span class="cstat-no" title="statement not covered" >      try {</span>
 <span class="cstat-no" title="statement not covered" >        const response = await getCurrentUser();</span>
         if (response.success &amp;&amp; response.data) <span class="branch-0 cbranch-no" title="branch not covered" >{</span>
 <span class="cstat-no" title="statement not covered" >          setUser(response.data.user);</span>
 <span class="cstat-no" title="statement not covered" >        } else {</span>
-<span class="cstat-no" title="statement not covered" >        if (import.meta.env.VITE_E2E === 'true' || import.meta.env.DEV) {</span>
+<span class="cstat-no" title="statement not covered" >        if (import.meta.env.VITE_E2E === 'true') {</span>
 <span class="cstat-no" title="statement not covered" >          const overrides = (() =&gt; { try { return JSON.parse(localStorage.getItem('e2eUserPatch') || '{}'); } catch { return {}; } })();</span>
 <span class="cstat-no" title="statement not covered" >          const now = new Date().toISOString();</span>
 <span class="cstat-no" title="statement not covered" >          setUser({</span>
@@ -467,7 +467,7 @@ export const AuthProvider: React.FC&lt;AuthProviderProps&gt; = ({ children }) =&
 <span class="cstat-no" title="statement not covered" >      }</span>
 <span class="branch-0 cbranch-no" title="branch not covered" >    } catch (error) {</span>
 <span class="cstat-no" title="statement not covered" >      console.error('获取用户信息失败:', error);</span>
-<span class="cstat-no" title="statement not covered" >      if (import.meta.env.VITE_E2E === 'true' || import.meta.env.DEV) {</span>
+<span class="cstat-no" title="statement not covered" >      if (import.meta.env.VITE_E2E === 'true') {</span>
 <span class="cstat-no" title="statement not covered" >        const overrides = (() =&gt; { try { return JSON.parse(localStorage.getItem('e2eUserPatch') || '{}'); } catch { return {}; } })();</span>
 <span class="cstat-no" title="statement not covered" >        const now = new Date().toISOString();</span>
 <span class="cstat-no" title="statement not covered" >        setUser({</span>
@@ -532,7 +532,7 @@ export const useAuth = (): AuthContextType =&gt; {
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2025-12-01T05:18:12.278Z
+                at 2025-12-01T08:18:24.219Z
             </div>
         <script src="../../../prettify.js"></script>
         <script>

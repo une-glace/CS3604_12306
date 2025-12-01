@@ -27,6 +27,6 @@ describe('Login component', () => {
     const alertMock = vi.spyOn(window, 'alert').mockImplementation(() => {});
     await user.click(screen.getByRole('button', { name: '立即登录' }));
     alertMock.mockRestore();
-    expect(screen.getByTestId('profile')).toBeInTheDocument();
+    expect(await screen.findByTestId('profile')).toBeInTheDocument();
   });
 });
