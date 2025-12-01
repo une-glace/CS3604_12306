@@ -6,159 +6,39 @@ Run npm run test:e2e --prefix frontend
 > playwright test
 
 
-Running 26 tests using 2 workers
-··F··F·········F··········
+Running 26 tests using 1 worker
+·······················F··
 
-  1) [chromium] › tests/e2e/filters.spec.ts:18:3 › 车次筛选与条件修改 › 仅显示 D-动车 ────────────────────────────
+  1) [slow-chromium] › tests/e2e/passengers.spec.ts:10:3 › 常用乘车人管理 › 添加两名乘车人并删除其中一名 ────────────────
 
-    TimeoutError: locator.click: Timeout 15000ms exceeded.
-    Call log:
-      - waiting for getByRole('button', { name: '查询', exact: true })
-        - locator resolved to <button class="search-button">查询</button>
-      - attempting click action
-        2 × waiting for element to be visible, enabled and stable
-          - element is visible, enabled and stable
-          - scrolling into view if needed
-          - done scrolling
-          - <div class="col-title">更多</div> from <nav class="navbar">…</nav> subtree intercepts pointer events
-        - retrying click action
-        - waiting 20ms
-        2 × waiting for element to be visible, enabled and stable
-          - element is visible, enabled and stable
-          - scrolling into view if needed
-          - done scrolling
-          - <div class="col-title">更多</div> from <nav class="navbar">…</nav> subtree intercepts pointer events
-        - retrying click action
-          - waiting 100ms
-        29 × waiting for element to be visible, enabled and stable
-           - element is visible, enabled and stable
-           - scrolling into view if needed
-           - done scrolling
-           - <div class="col-title">更多</div> from <nav class="navbar">…</nav> subtree intercepts pointer events
-         - retrying click action
-           - waiting 500ms
+    Error: expect(received).toBeGreaterThan(expected)
 
+    Expected: > 25
+    Received:   25
 
-      11 |     await page.fill('.station-selector .station-item:last-child .station-input', '上海虹桥');
-      12 |     await page.fill('#departure-date', '2025-12-15');
-    > 13 |     await page.getByRole('button', { name: '查询', exact: true }).click();
-         |                                                                 ^
-      14 |     await expect(page.locator('.result-count')).toBeVisible({ timeout: 20000 });
-      15 |     await page.locator('.loading-state').waitFor({ state: 'detached', timeout: 20000 }).catch(() => {});
-      16 |   });
-        at /home/runner/work/CS3604_12306/CS3604_12306/frontend/tests/e2e/filters.spec.ts:13:65
+    Call Log:
+    - Timeout 20000ms exceeded while waiting on the predicate
+
+      55 |       const afterRows2 = await page.locator('.passenger-table .table-row').count();
+      56 |       expect(afterRows2).toBeGreaterThan(beforeRows2);
+    > 57 |     }).toPass({ timeout: 20000 });
+         |        ^
+      58 |
+      59 |     // 删除最新添加的乘车人（列表末尾为最新）
+      60 |     const rowsBeforeDelete = await page.locator('.passenger-table .table-row').count();
+        at /home/runner/work/CS3604_12306/CS3604_12306/frontend/tests/e2e/passengers.spec.ts:57:8
 
     attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
-    test-results/filters-车次筛选与条件修改-仅显示-D-动车-chromium/test-failed-1.png
+    test-results/passengers-常用乘车人管理-添加两名乘车人并删除其中一名-slow-chromium/test-failed-1.png
     ────────────────────────────────────────────────────────────────────────────────────────────────
 
     attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
-    test-results/filters-车次筛选与条件修改-仅显示-D-动车-chromium/video.webm
+    test-results/passengers-常用乘车人管理-添加两名乘车人并删除其中一名-slow-chromium/video.webm
     ────────────────────────────────────────────────────────────────────────────────────────────────
 
-    Error Context: test-results/filters-车次筛选与条件修改-仅显示-D-动车-chromium/error-context.md
+    Error Context: test-results/passengers-常用乘车人管理-添加两名乘车人并删除其中一名-slow-chromium/error-context.md
 
-  2) [chromium] › tests/e2e/filters.spec.ts:40:3 › 车次筛选与条件修改 › 修改查询为南京→上海并刷新列表 ─────────────────────
-
-    TimeoutError: locator.click: Timeout 15000ms exceeded.
-    Call log:
-      - waiting for getByRole('button', { name: '查询', exact: true })
-        - locator resolved to <button class="search-button">查询</button>
-      - attempting click action
-        2 × waiting for element to be visible, enabled and stable
-          - element is visible, enabled and stable
-          - scrolling into view if needed
-          - done scrolling
-          - <div class="col-title">更多</div> from <nav class="navbar">…</nav> subtree intercepts pointer events
-        - retrying click action
-        - waiting 20ms
-        2 × waiting for element to be visible, enabled and stable
-          - element is visible, enabled and stable
-          - scrolling into view if needed
-          - done scrolling
-          - <div class="col-title">更多</div> from <nav class="navbar">…</nav> subtree intercepts pointer events
-        - retrying click action
-          - waiting 100ms
-        29 × waiting for element to be visible, enabled and stable
-           - element is visible, enabled and stable
-           - scrolling into view if needed
-           - done scrolling
-           - <div class="col-title">更多</div> from <nav class="navbar">…</nav> subtree intercepts pointer events
-         - retrying click action
-           - waiting 500ms
-
-
-      11 |     await page.fill('.station-selector .station-item:last-child .station-input', '上海虹桥');
-      12 |     await page.fill('#departure-date', '2025-12-15');
-    > 13 |     await page.getByRole('button', { name: '查询', exact: true }).click();
-         |                                                                 ^
-      14 |     await expect(page.locator('.result-count')).toBeVisible({ timeout: 20000 });
-      15 |     await page.locator('.loading-state').waitFor({ state: 'detached', timeout: 20000 }).catch(() => {});
-      16 |   });
-        at /home/runner/work/CS3604_12306/CS3604_12306/frontend/tests/e2e/filters.spec.ts:13:65
-
-    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
-    test-results/filters-车次筛选与条件修改-修改查询为南京→上海并刷新列表-chromium/test-failed-1.png
-    ────────────────────────────────────────────────────────────────────────────────────────────────
-
-    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
-    test-results/filters-车次筛选与条件修改-修改查询为南京→上海并刷新列表-chromium/video.webm
-    ────────────────────────────────────────────────────────────────────────────────────────────────
-
-    Error Context: test-results/filters-车次筛选与条件修改-修改查询为南京→上海并刷新列表-chromium/error-context.md
-
-  3) [slow-chromium] › tests/e2e/filters.spec.ts:18:3 › 车次筛选与条件修改 › 仅显示 D-动车 ───────────────────────
-
-    TimeoutError: locator.click: Timeout 15000ms exceeded.
-    Call log:
-      - waiting for getByRole('button', { name: '查询', exact: true })
-        - locator resolved to <button class="search-button">查询</button>
-      - attempting click action
-        2 × waiting for element to be visible, enabled and stable
-          - element is visible, enabled and stable
-          - scrolling into view if needed
-          - done scrolling
-          - <div class="col-title">更多</div> from <nav class="navbar">…</nav> subtree intercepts pointer events
-        - retrying click action
-        - waiting 20ms
-        2 × waiting for element to be visible, enabled and stable
-          - element is visible, enabled and stable
-          - scrolling into view if needed
-          - done scrolling
-          - <div class="col-title">更多</div> from <nav class="navbar">…</nav> subtree intercepts pointer events
-        - retrying click action
-          - waiting 100ms
-        29 × waiting for element to be visible, enabled and stable
-           - element is visible, enabled and stable
-           - scrolling into view if needed
-           - done scrolling
-           - <div class="col-title">更多</div> from <nav class="navbar">…</nav> subtree intercepts pointer events
-         - retrying click action
-           - waiting 500ms
-
-
-      11 |     await page.fill('.station-selector .station-item:last-child .station-input', '上海虹桥');
-      12 |     await page.fill('#departure-date', '2025-12-15');
-    > 13 |     await page.getByRole('button', { name: '查询', exact: true }).click();
-         |                                                                 ^
-      14 |     await expect(page.locator('.result-count')).toBeVisible({ timeout: 20000 });
-      15 |     await page.locator('.loading-state').waitFor({ state: 'detached', timeout: 20000 }).catch(() => {});
-      16 |   });
-        at /home/runner/work/CS3604_12306/CS3604_12306/frontend/tests/e2e/filters.spec.ts:13:65
-
-    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
-    test-results/filters-车次筛选与条件修改-仅显示-D-动车-slow-chromium/test-failed-1.png
-    ────────────────────────────────────────────────────────────────────────────────────────────────
-
-    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
-    test-results/filters-车次筛选与条件修改-仅显示-D-动车-slow-chromium/video.webm
-    ────────────────────────────────────────────────────────────────────────────────────────────────
-
-    Error Context: test-results/filters-车次筛选与条件修改-仅显示-D-动车-slow-chromium/error-context.md
-
-  3 failed
-    [chromium] › tests/e2e/filters.spec.ts:18:3 › 车次筛选与条件修改 › 仅显示 D-动车 ─────────────────────────────
-    [chromium] › tests/e2e/filters.spec.ts:40:3 › 车次筛选与条件修改 › 修改查询为南京→上海并刷新列表 ──────────────────────
-    [slow-chromium] › tests/e2e/filters.spec.ts:18:3 › 车次筛选与条件修改 › 仅显示 D-动车 ────────────────────────
-  23 passed (1.7m)
+  1 failed
+    [slow-chromium] › tests/e2e/passengers.spec.ts:10:3 › 常用乘车人管理 › 添加两名乘车人并删除其中一名 ─────────────────
+  25 passed (2.2m)
 Error: Process completed with exit code 1.
