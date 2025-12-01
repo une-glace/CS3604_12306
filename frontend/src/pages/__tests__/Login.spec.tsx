@@ -22,7 +22,7 @@ describe('Login component', () => {
         </Routes>
       </MemoryRouter>
     );
-    await user.type(screen.getByPlaceholderText('请输入用户名或邮箱'), 'newuser');
+    await user.type(screen.getByPlaceholderText('用户名/邮箱/手机号'), 'newuser');
     await user.type(screen.getByPlaceholderText('请输入密码'), 'mypassword');
     const alertMock = vi.spyOn(window, 'alert').mockImplementation(() => {});
     await user.click(screen.getByRole('button', { name: '立即登录' }));

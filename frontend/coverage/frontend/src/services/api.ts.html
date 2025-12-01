@@ -23,9 +23,9 @@
         <div class='clearfix'>
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">31.37% </span>
+                <span class="strong">30.18% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>16/51</span>
+                <span class='fraction'>16/53</span>
             </div>
         
             
@@ -44,9 +44,9 @@
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">31.37% </span>
+                <span class="strong">30.18% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>16/51</span>
+                <span class='fraction'>16/53</span>
             </div>
         
             
@@ -135,7 +135,10 @@
 <a name='L70'></a><a href='#L70'>70</a>
 <a name='L71'></a><a href='#L71'>71</a>
 <a name='L72'></a><a href='#L72'>72</a>
-<a name='L73'></a><a href='#L73'>73</a></td><td class="line-coverage quiet"><span class="cline-any cline-yes">1x</span>
+<a name='L73'></a><a href='#L73'>73</a>
+<a name='L74'></a><a href='#L74'>74</a>
+<a name='L75'></a><a href='#L75'>75</a>
+<a name='L76'></a><a href='#L76'>76</a></td><td class="line-coverage quiet"><span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">1x</span>
@@ -173,21 +176,6 @@
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -198,6 +186,18 @@
 <span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">1x</span>
@@ -207,7 +207,13 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">const API_BASE_URL = 'http://localhost:3000/api/v1';
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">const API_BASE_URL = 'http://127.0.0.1:3000/api/v1';
 &nbsp;
 // API请求配置
 const apiConfig = {
@@ -241,7 +247,9 @@ const request = <span class="fstat-no" title="function not covered" >async (url:
 &nbsp;
 <span class="cstat-no" title="statement not covered" >    return data;</span>
 <span class="cstat-no" title="statement not covered" >  } catch (error) {</span>
-<span class="cstat-no" title="statement not covered" >    console.error('API请求错误:', error);</span>
+<span class="cstat-no" title="statement not covered" >    const msg = String((error as Error)?.message || '');</span>
+<span class="cstat-no" title="statement not covered" >    const isNotFound = msg.includes('订单不存在') || msg.includes('status: 404');</span>
+<span class="cstat-no" title="statement not covered" >    (isNotFound ? console.warn : console.error)('API请求错误:', error);</span>
 <span class="cstat-no" title="statement not covered" >    throw error;</span>
 <span class="cstat-no" title="statement not covered" >  }</span>
 <span class="cstat-no" title="statement not covered" >};</span>
@@ -250,14 +258,14 @@ const request = <span class="fstat-no" title="function not covered" >async (url:
 export const get = <span class="fstat-no" title="function not covered" >(url: string) =&gt; request(url, { method: 'GET' });</span>
 &nbsp;
 // POST请求
-export const post = <span class="fstat-no" title="function not covered" >(url: string, data?: any) =&gt;</span>
+export const post = <span class="fstat-no" title="function not covered" >(url: string, data?: Record&lt;string, unknown&gt;) =&gt;</span>
 <span class="cstat-no" title="statement not covered" >  request(url, {</span>
 <span class="cstat-no" title="statement not covered" >    method: 'POST',</span>
 <span class="cstat-no" title="statement not covered" >    body: data ? JSON.stringify(data) : undefined,</span>
 <span class="cstat-no" title="statement not covered" >  });</span>
 &nbsp;
 // PUT请求
-export const put = <span class="fstat-no" title="function not covered" >(url: string, data?: any) =&gt;</span>
+export const put = <span class="fstat-no" title="function not covered" >(url: string, data?: Record&lt;string, unknown&gt;) =&gt;</span>
 <span class="cstat-no" title="statement not covered" >  request(url, {</span>
 <span class="cstat-no" title="statement not covered" >    method: 'PUT',</span>
 <span class="cstat-no" title="statement not covered" >    body: data ? JSON.stringify(data) : undefined,</span>
@@ -279,14 +287,15 @@ export const clearAuthToken = <span class="fstat-no" title="function not covered
 // 获取认证token
 export const getAuthToken = <span class="fstat-no" title="function not covered" >() =&gt; {</span>
 <span class="cstat-no" title="statement not covered" >  return localStorage.getItem('authToken');</span>
-<span class="cstat-no" title="statement not covered" >};</span></pre></td></tr></table></pre>
+<span class="cstat-no" title="statement not covered" >};</span>
+&nbsp;</pre></td></tr></table></pre>
 
                 <div class='push'></div><!-- for sticky footer -->
             </div><!-- /wrapper -->
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2025-11-21T15:19:20.308Z
+                at 2025-12-01T05:18:12.278Z
             </div>
         <script src="../../../prettify.js"></script>
         <script>

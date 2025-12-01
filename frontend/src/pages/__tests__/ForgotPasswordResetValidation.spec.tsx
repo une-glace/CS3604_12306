@@ -3,6 +3,7 @@ import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MemoryRouter, Routes, Route } from 'react-router-dom';
 import ForgotPasswordResetPage from '../ForgotPasswordResetPage';
+import { AuthProvider } from '../../contexts/AuthContext';
 
 describe('忘记密码-第三步交互校验', () => {
   test('2.1.7 非法密码显示错误且完成按钮不可点击', async () => {
@@ -10,7 +11,7 @@ describe('忘记密码-第三步交互校验', () => {
     render(
       <MemoryRouter initialEntries={["/forgot-password/reset"]}>
         <Routes>
-          <Route path="/forgot-password/reset" element={<ForgotPasswordResetPage />} />
+          <Route path="/forgot-password/reset" element={<AuthProvider><ForgotPasswordResetPage /></AuthProvider>} />
         </Routes>
       </MemoryRouter>
     );
@@ -25,7 +26,7 @@ describe('忘记密码-第三步交互校验', () => {
     render(
       <MemoryRouter initialEntries={["/forgot-password/reset"]}>
         <Routes>
-          <Route path="/forgot-password/reset" element={<ForgotPasswordResetPage />} />
+          <Route path="/forgot-password/reset" element={<AuthProvider><ForgotPasswordResetPage /></AuthProvider>} />
         </Routes>
       </MemoryRouter>
     );
@@ -40,7 +41,7 @@ describe('忘记密码-第三步交互校验', () => {
     render(
       <MemoryRouter initialEntries={["/forgot-password/reset"]}>
         <Routes>
-          <Route path="/forgot-password/reset" element={<ForgotPasswordResetPage />} />
+          <Route path="/forgot-password/reset" element={<AuthProvider><ForgotPasswordResetPage /></AuthProvider>} />
         </Routes>
       </MemoryRouter>
     );
@@ -53,7 +54,7 @@ describe('忘记密码-第三步交互校验', () => {
     render(
       <MemoryRouter initialEntries={["/forgot-password/reset"]}>
         <Routes>
-          <Route path="/forgot-password/reset" element={<ForgotPasswordResetPage />} />
+          <Route path="/forgot-password/reset" element={<AuthProvider><ForgotPasswordResetPage /></AuthProvider>} />
         </Routes>
       </MemoryRouter>
     );
@@ -66,7 +67,7 @@ describe('忘记密码-第三步交互校验', () => {
     render(
       <MemoryRouter initialEntries={["/forgot-password/reset"]}>
         <Routes>
-          <Route path="/forgot-password/reset" element={<ForgotPasswordResetPage />} />
+          <Route path="/forgot-password/reset" element={<AuthProvider><ForgotPasswordResetPage /></AuthProvider>} />
           <Route path="/forgot-password/done" element={<div data-testid="done" />} />
         </Routes>
       </MemoryRouter>
