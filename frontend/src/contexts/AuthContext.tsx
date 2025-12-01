@@ -43,7 +43,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   // 刷新用户信息
   const refreshUser = async () => {
     if (!isAuthenticated()) {
-      if (import.meta.env.VITE_E2E === 'true' || import.meta.env.DEV) {
+      if (import.meta.env.VITE_E2E === 'true') {
         const overrides = (() => { try { return JSON.parse(localStorage.getItem('e2eUserPatch') || '{}'); } catch { return {}; } })();
         const now = new Date().toISOString();
         setUser({
@@ -72,7 +72,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         if (response.success && response.data) {
           setUser(response.data.user);
         } else {
-        if (import.meta.env.VITE_E2E === 'true' || import.meta.env.DEV) {
+        if (import.meta.env.VITE_E2E === 'true') {
           const overrides = (() => { try { return JSON.parse(localStorage.getItem('e2eUserPatch') || '{}'); } catch { return {}; } })();
           const now = new Date().toISOString();
           setUser({
@@ -94,7 +94,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       }
     } catch (error) {
       console.error('获取用户信息失败:', error);
-      if (import.meta.env.VITE_E2E === 'true' || import.meta.env.DEV) {
+      if (import.meta.env.VITE_E2E === 'true') {
         const overrides = (() => { try { return JSON.parse(localStorage.getItem('e2eUserPatch') || '{}'); } catch { return {}; } })();
         const now = new Date().toISOString();
         setUser({
