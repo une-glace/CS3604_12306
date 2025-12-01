@@ -9,11 +9,6 @@ export async function ensureLogin(page: Page, username = 'newuser', password = '
       const j = await resp.json();
       return j.data?.token || null;
     }
-    const alt = await page.request.post('http://127.0.0.1:3000/api/v1/auth/login', { data: { username, password: 'my_password1' } });
-    if (alt.status() === 200) {
-      const aj = await alt.json();
-      return aj.data?.token || null;
-    }
     const send = await page.request.post('http://127.0.0.1:3000/api/v1/auth/send-code', { data: { countryCode: '+86', phoneNumber: '13812341234' } });
     const code = send.status() === 200 ? (await send.json()).code : '000000';
     await page.request.post('http://127.0.0.1:3000/api/v1/auth/verify-code', { data: { countryCode: '+86', phoneNumber: '13812341234', code } });
@@ -28,11 +23,6 @@ export async function ensureLogin(page: Page, username = 'newuser', password = '
     if (resp2.status() === 200) {
       const j2 = await resp2.json();
       return j2.data?.token || null;
-    }
-    const resp3 = await page.request.post('http://127.0.0.1:3000/api/v1/auth/login', { data: { username, password: 'my_password1' } });
-    if (resp3.status() === 200) {
-      const j3 = await resp3.json();
-      return j3.data?.token || null;
     }
     return null;
   };
