@@ -3,6 +3,8 @@ import { AuthProvider } from './contexts/AuthContext'
 import ViewportMeta from './components/ViewportMeta'
 import './App.css'
 import HomePage from './pages/HomePage'
+import CateringIndexPage from './pages/CateringIndexPage'
+import CateringListPage from './pages/CateringListPage'
 import TrainListPage from './pages/TrainListPage'
 import OrderPage from './pages/OrderPage'
 import ProfilePage from './pages/ProfilePage'
@@ -19,6 +21,8 @@ function App() {
           <Routes>
             <Route path="/" element={<HomePage />} />
             <Route path="/train-list" element={<TrainListPage />} />
+            <Route path="/catering" element={<CateringIndexPage />} />
+            <Route path="/catering/list" element={<CateringListPage />} />
             <Route path="/order" element={<OrderPage />} />
             <Route path="/order-detail/:orderId" element={<OrderDetailPage />} />
             <Route path="/profile" element={<ProfilePage />} />

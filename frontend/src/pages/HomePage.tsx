@@ -121,12 +121,18 @@ const HomePage: React.FC = () => {
         <div className="nav-container">
           <ul className="nav-links">
             <li><a href="/" className="active">首页</a></li>
-            {/* 保持原“车票查询/车票预订”跳转关系，改为“车票” */}
             <li><a href="/train-list">车票</a></li>
             <li><a href="#">团购服务</a></li>
             <li><a href="#">会员服务</a></li>
             <li><a href="#">站车服务</a></li>
-            <li><a href="#">商旅服务</a></li>
+            <li className="has-dropdown">
+              <a href="#">商旅服务</a>
+              <div className="dropdown" role="menu" aria-label="商旅服务">
+                <a className="dropdown-item" href="/catering">餐饮·特产</a>
+                <a className="dropdown-item" href="#">保险</a>
+                <a className="dropdown-item" href="#">雪具快运</a>
+              </div>
+            </li>
             <li><a href="#">出行指南</a></li>
             <li><a href="#">信息查询</a></li>
           </ul>
