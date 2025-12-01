@@ -1090,6 +1090,7 @@ const ProfilePage: React.FC = () => {
           )}
           {activeSection === 'personal-info' && (
             <div className="content-section person-info">
+              <h2>个人信息</h2>
 
               {/* 基本信息 */}
               <section className="info-section">
@@ -1223,7 +1224,7 @@ const ProfilePage: React.FC = () => {
 
           {activeSection === 'passengers' && (
             <div className="content-section">
-
+              <h2>乘车人管理</h2>
               <div className="passengers-section">
                 {/* 搜索工具栏 */}
                 <div className="passenger-tools">
@@ -1387,7 +1388,7 @@ const ProfilePage: React.FC = () => {
                   <button className="search-btn" onClick={() => setKeyword(keywordInput.trim())}>查询</button>
                 </div>
 
-                <div className="orders-table">
+                <div className="orders-list">
                   {isLoadingOrders ? (
                     <div className="loading-state">
                       <p>加载中...</p>
@@ -1402,7 +1403,7 @@ const ProfilePage: React.FC = () => {
                         <div>车票状态</div>
                       </div>
                       {filteredOrders.map(order => (
-                        <div key={order.id} className="orders-table-item">
+                        <div key={order.id} className="order-card">
                           <div className="order-meta">
                             <button className="toggle-btn" aria-expanded={!collapsedMap[order.id]} onClick={() => toggleOrderCollapse(order.id)}>{collapsedMap[order.id] ? '▸' : '▾'}</button>
                             <span>订票日期：{order.bookDate || order.date}</span><span className="meta-sep">订单号：{order.orderNumber}</span>
@@ -1432,7 +1433,7 @@ const ProfilePage: React.FC = () => {
                                 <button className="link-btn small" onClick={() => handleRefund(order.id)}>退票</button>
                               )}
                               {order.status === 'unpaid' && (
-                                <button className="link-btn small" onClick={() => handlePayOpen(order)}>去支付</button>
+                                <button className="link-btn small pay-btn" onClick={() => handlePayOpen(order)}>去支付</button>
                               )}
                             </div>
                           </div>

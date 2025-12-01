@@ -1,4 +1,5 @@
 import React from 'react';
+import { useLocation } from 'react-router-dom';
 
 interface NavbarProps {
   active?: 'home' | 'tickets';
@@ -7,6 +8,7 @@ interface NavbarProps {
 const Navbar: React.FC<NavbarProps> = ({ active }) => {
   const [isTicketOpen, setIsTicketOpen] = React.useState(false);
   const ticketTimerRef = React.useRef<number | null>(null);
+  const location = useLocation();
 
   const handleTicketEnter = () => {
     if (ticketTimerRef.current) {
@@ -26,6 +28,10 @@ const Navbar: React.FC<NavbarProps> = ({ active }) => {
     }, 180);
   };
 
+  React.useEffect(() => {
+    setIsTicketOpen(false);
+  }, [location]);
+
   return (
     <nav className="navbar">
       <div className="nav-container">
@@ -37,7 +43,7 @@ const Navbar: React.FC<NavbarProps> = ({ active }) => {
               <div className="ticket-grid">
                 <div className="ticket-col">
                   <div className="col-title">购买</div>
-                  <a href="/train-list" className="ticket-item">单程</a>
+                  <a href="/train-list?type=single" className="ticket-item">单程</a>
                   <a href="#" className="ticket-item">往返</a>
                   <a href="#" className="ticket-item">中转换乘</a>
                   <a href="#" className="ticket-item">计次•定期票</a>
@@ -69,4 +75,3 @@ const Navbar: React.FC<NavbarProps> = ({ active }) => {
 };
 
 export default Navbar;
-

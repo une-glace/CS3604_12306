@@ -260,11 +260,6 @@ const TrainListPage: React.FC = () => {
 
   // 处理车次选择
   const handleTrainSelect = (train: TrainInfo) => {
-    if (!isLoggedIn) {
-      setSelectedTrain(train);
-      setShowLoginModal(true);
-      return;
-    }
     navigateToOrder(train);
   };
 

@@ -309,10 +309,9 @@ const TrainList: React.FC<TrainListProps> = ({ trains, onTrainSelect }) => {
             <div className="action-info">
               <button 
                 className={`book-button ${train.canBook ? 'available' : 'disabled'}`}
-                disabled={!train.canBook}
-                onClick={() => train.canBook && onTrainSelect?.(train)}
+                onClick={() => onTrainSelect?.(train)}
               >
-                {train.canBook ? '预订' : '不可预订'}
+                预订
               </button>
             </div>
           </div>
