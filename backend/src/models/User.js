@@ -13,7 +13,7 @@ const User = sequelize.define('User', {
     unique: true,
     validate: {
       len: [6, 30],
-      is: /^[a-zA-Z][a-zA-Z0-9_ ]*$/
+      is: /^[a-zA-Z][a-zA-Z0-9_]*$/
     }
   },
   password: {

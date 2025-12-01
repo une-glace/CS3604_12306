@@ -141,3 +141,14 @@ export const isAuthenticated = (): boolean => {
   const token = localStorage.getItem('authToken');
   return !!token;
 };
+
+// 检查用户名是否可用
+export const checkUsernameAvailability = async (username: string): Promise<ApiResponse<{ available: boolean }>> => {
+  try {
+    const response = await get(`/auth/check-username?username=${encodeURIComponent(username)}`);
+    return response;
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : '检查用户名失败';
+    throw new Error(message);
+  }
+};

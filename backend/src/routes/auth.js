@@ -1,5 +1,5 @@
 const express = require('express');
-const { register, login, getCurrentUser, updateProfile, sendVerificationCode, verifyVerificationCode, forgotValidate, resetPassword } = require('../controllers/authController');
+const { register, login, getCurrentUser, updateProfile, sendVerificationCode, verifyVerificationCode, forgotValidate, resetPassword, checkUsername } = require('../controllers/authController');
 const { authenticateToken } = require('../utils/auth');
 
 const router = express.Router();
@@ -12,6 +12,9 @@ router.post('/login', login);
 
 // 获取当前用户信息（需要认证）
 router.get('/me', authenticateToken, getCurrentUser);
+
+// 检查用户名是否可用
+router.get('/check-username', checkUsername);
 
 // 更新个人信息（需要认证）
 router.put('/profile', authenticateToken, updateProfile);

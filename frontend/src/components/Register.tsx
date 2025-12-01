@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { registerUser, sendPhoneCode, verifyPhoneCode, loginUser } from '../services/auth';
+import { registerUser, sendPhoneCode, verifyPhoneCode, loginUser, checkUsernameAvailability } from '../services/auth';
 import { useAuth } from '../contexts/AuthContext';
 import './Register.css';
 import '../pages/HomePage.css';
@@ -50,6 +50,10 @@ const Register: React.FC<RegisterProps> = () => {
   const [verificationCodeSent, setVerificationCodeSent] = useState(false);
   const [countdown, setCountdown] = useState(0);
   const [isVerified, setIsVerified] = useState(false);
+  const [isUsernameAvailable, setIsUsernameAvailable] = useState<boolean | null>(null);
+  const [isPasswordValid, setIsPasswordValid] = useState<boolean | null>(null);
+  const [isConfirmValid, setIsConfirmValid] = useState<boolean | null>(null);
+  const [passwordStrength, setPasswordStrength] = useState<number>(0);
 
   // 证件类型选项
   const idTypeOptions = [
@@ -67,20 +71,40 @@ const Register: React.FC<RegisterProps> = () => {
   // 验证规则
 
   const validatePhoneNumber = (phone: string): boolean => {
-    const digitsOnly = /^\d{4,15}$/;
-    const cnLocal = /^1[3-9]\d{9}$/;
-    return digitsOnly.test(phone) || cnLocal.test(phone);
+    const cnLocal = /^\d{11}$/;
+    return cnLocal.test(phone);
   };
 
   // 处理输入变化
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value, type } = e.target;
     const checked = (e.target as HTMLInputElement).checked;
-    
+    let nextValue: any = type === 'checkbox' ? checked : value;
+    if (name === 'phoneNumber') {
+      nextValue = String(nextValue).replace(/\D/g, '').slice(0, 11);
+    }
+    if (name === 'idNumber' && formData.idType === '1') {
+      nextValue = String(nextValue).slice(0, 18);
+    }
     setFormData(prev => ({
       ...prev,
-      [name]: type === 'checkbox' ? checked : value
+      [name]: nextValue
     }));
+
+    if (name === 'username') {
+      setIsUsernameAvailable(null);
+    }
+    if (name === 'password') {
+      setIsPasswordValid(null);
+      setPasswordStrength(0);
+    }
+    if (name === 'confirmPassword') {
+      setIsConfirmValid(null);
+    }
+
+    if (name === 'idNumber' && formData.idType === '1' && value.length > 18) {
+      setFormData(prev => ({ ...prev, idNumber: value.slice(0, 18) }));
+    }
 
     // 清除对应字段的错误信息
     if (errors[name as keyof RegisterFormData]) {
@@ -91,10 +115,171 @@ const Register: React.FC<RegisterProps> = () => {
     }
   };
 
+  const handleUsernameBlur = async () => {
+    const u = (formData.username || '').trim();
+    if (!u) {
+      setErrors(prev => ({ ...prev, username: '' }));
+      setIsUsernameAvailable(null);
+      return;
+    }
+    if (u.length < 6) {
+      setErrors(prev => ({ ...prev, username: '用户名长度不能少于6个字符！' }));
+      setIsUsernameAvailable(null);
+      return;
+    }
+    if (u.length > 30) {
+      setErrors(prev => ({ ...prev, username: '用户名长度不能超过30个字符！' }));
+      setIsUsernameAvailable(null);
+      return;
+    }
+    const pattern = /^[A-Za-z][A-Za-z0-9_]*$/;
+    if (!pattern.test(u)) {
+      setErrors(prev => ({ ...prev, username: '用户名只能由字母、数字和_组成，须以字母开头！' }));
+      setIsUsernameAvailable(null);
+      return;
+    }
+    try {
+      const resp = await checkUsernameAvailability(u);
+      if (resp.success && resp.data) {
+        if (resp.data.available) {
+          setErrors(prev => ({ ...prev, username: '' }));
+          setIsUsernameAvailable(true);
+        } else {
+          setErrors(prev => ({ ...prev, username: '该用户名已经占用，请重新选择用户名！' }));
+          setIsUsernameAvailable(false);
+        }
+      } else {
+        setIsUsernameAvailable(null);
+      }
+    } catch {
+      setIsUsernameAvailable(null);
+    }
+  };
+
+  const computeNameDisplayLength = (s: string): number => {
+    let len = 0;
+    for (const ch of s) {
+      if (/^[\u4e00-\u9fa5]$/.test(ch)) {
+        len += 2;
+      } else {
+        len += 1;
+      }
+    }
+    return len;
+  };
+
+  const handleRealNameBlur = () => {
+    const name = (formData.realName || '').trim();
+    if (!name) {
+      setErrors(prev => ({ ...prev, realName: '请输入姓名！' }));
+      return;
+    }
+    const allowed = /^[A-Za-z\u4e00-\u9fa5\. ]+$/;
+    if (!allowed.test(name)) {
+      setErrors(prev => ({ ...prev, realName: '请输入姓名！' }));
+      return;
+    }
+    const dlen = computeNameDisplayLength(name);
+    if (dlen < 3 || dlen > 30) {
+      setErrors(prev => ({ ...prev, realName: '允许输入的字符串在3-30个字符之间！' }));
+      return;
+    }
+    setErrors(prev => ({ ...prev, realName: '' }));
+  };
+
+  const handlePhoneNumberBlur = () => {
+    const num = (formData.phoneNumber || '').trim();
+    if (!/^\d{11}$/.test(num)) {
+      setErrors(prev => ({ ...prev, phoneNumber: '您输入的手机号码不是有效的格式！' }));
+      return;
+    }
+    setErrors(prev => ({ ...prev, phoneNumber: '' }));
+  };
+
+  const handleIdNumberBlur = () => {
+    let id = (formData.idNumber || '').trim();
+    if (formData.idType === '1' && id.length > 18) {
+      id = id.slice(0, 18);
+      setFormData(prev => ({ ...prev, idNumber: id }));
+    }
+    const allowed = /^[A-Za-z0-9]+$/;
+    if (id && !allowed.test(id)) {
+      setErrors(prev => ({ ...prev, idNumber: '输入的证件编号中包含中文信息或特殊字符！' }));
+      return;
+    }
+    if (formData.idType === '1') {
+      if (!id || id.length !== 18) {
+        setErrors(prev => ({ ...prev, idNumber: '请正确输入18位证件号码！' }));
+        return;
+      }
+      const pattern = /^\d{17}[0-9Xx]$/;
+      if (!pattern.test(id)) {
+        setErrors(prev => ({ ...prev, idNumber: '请正确输入18位证件号码！' }));
+        return;
+      }
+      // 放宽校验：不做校验码计算，只检查长度与字符范围
+    }
+    setErrors(prev => ({ ...prev, idNumber: '' }));
+  };
+
+  const computePasswordStrength = (pwd: string): number => {
+    if (!pwd) return 0;
+    if (pwd.length < 6) return 1;
+    if (!/^[_A-Za-z0-9]+$/.test(pwd)) return 1;
+    let types = 0;
+    if (/[A-Za-z]/.test(pwd)) types++;
+    if (/\d/.test(pwd)) types++;
+    if (/_/.test(pwd)) types++;
+    if (types <= 1) return 1;
+    if (types === 2) return 2;
+    return 3;
+  };
+
+  const handlePasswordBlur = () => {
+    const pwd = formData.password || '';
+    const strength = computePasswordStrength(pwd);
+    setPasswordStrength(strength);
+    if (pwd.length < 6) {
+      setErrors(prev => ({ ...prev, password: '密码长度不能少于6个字符！' }));
+      setIsPasswordValid(null);
+      return;
+    }
+    if (!/^[_A-Za-z0-9]+$/.test(pwd)) {
+      setErrors(prev => ({ ...prev, password: '格式错误，必须且只能包含字母、数字和下划线中的两种或两种以上！' }));
+      setIsPasswordValid(null);
+      return;
+    }
+    const types = (/[A-Za-z]/.test(pwd) ? 1 : 0) + (/\d/.test(pwd) ? 1 : 0) + (/_/.test(pwd) ? 1 : 0);
+    if (types <= 1) {
+      setErrors(prev => ({ ...prev, password: '格式错误，必须且只能包含字母、数字和下划线中的两种或两种以上！' }));
+      setIsPasswordValid(null);
+      return;
+    }
+    setErrors(prev => ({ ...prev, password: '' }));
+    setIsPasswordValid(true);
+  };
+
+  const handleConfirmBlur = () => {
+    const pwd = formData.password || '';
+    const cpwd = formData.confirmPassword || '';
+    if (!cpwd) {
+      setErrors(prev => ({ ...prev, confirmPassword: '请再次输入登录密码' }));
+      setIsConfirmValid(null);
+      return;
+    }
+    if (pwd !== cpwd) {
+      setErrors(prev => ({ ...prev, confirmPassword: '确认密码与密码不同！' }));
+      setIsConfirmValid(null);
+      return;
+    }
+    setErrors(prev => ({ ...prev, confirmPassword: '' }));
+    setIsConfirmValid(true);
+  };
+
   // 发送手机验证码
   const sendVerificationCode = async () => {
     if (!validatePhoneNumber(formData.phoneNumber)) {
-      setErrors(prev => ({ ...prev, phoneNumber: '请输入正确的手机号码' }));
+      setErrors(prev => ({ ...prev, phoneNumber: '您输入的手机号码不是有效的格式！', phoneVerificationCode: '您输入的手机号码不是有效的格式！' }));
       return;
     }
 
@@ -102,7 +287,7 @@ const Register: React.FC<RegisterProps> = () => {
     try {
       const resp = await sendPhoneCode({ countryCode: formData.countryCode, phoneNumber: formData.phoneNumber });
       if (!resp.success) {
-        setErrors(prev => ({ ...prev, phoneNumber: resp.message || '发送验证码失败' }));
+        setErrors(prev => ({ ...prev, phoneNumber: resp.message || '发送验证码失败', phoneVerificationCode: resp.message || '发送验证码失败' }));
         return;
       }
       setVerificationCodeSent(true);
@@ -122,6 +307,8 @@ const Register: React.FC<RegisterProps> = () => {
       
     } catch (error) {
       console.error('发送验证码失败:', error);
+      const msg = error instanceof Error ? error.message : '';
+      setErrors(prev => ({ ...prev, phoneVerificationCode: msg || '发送验证码失败，请检查网络或后端服务是否启动' }));
     } finally {
       setIsLoading(false);
     }
@@ -160,13 +347,37 @@ const Register: React.FC<RegisterProps> = () => {
     if (currentStep === 1) {
       const pwd = formData.password || '';
       const cpwd = formData.confirmPassword || '';
-      if (!pwd || pwd.length < 6 || pwd.length > 20) {
-        newErrors.password = '密码需6-20位';
+      const name = (formData.realName || '').trim();
+      const allowed = /^[A-Za-z\u4e00-\u9fa5\. ]+$/;
+      const nlen = computeNameDisplayLength(name);
+      if (!name || !allowed.test(name)) {
+        newErrors.realName = '请输入姓名！';
+      } else if (nlen < 3 || nlen > 30) {
+        newErrors.realName = '允许输入的字符串在3-30个字符之间！';
+      }
+      const pwdStrength = computePasswordStrength(pwd);
+      if (pwdStrength <= 1) {
+        const onlyOneType = ((/[A-Za-z]/.test(pwd) ? 1 : 0) + (/\d/.test(pwd) ? 1 : 0) + (/_/.test(pwd) ? 1 : 0)) <= 1;
+        newErrors.password = onlyOneType ? '格式错误，必须且只能包含字母、数字和下划线中的两种或两种以上！' : '密码长度不能少于6个字符！';
       }
       if (!cpwd) {
         newErrors.confirmPassword = '请再次输入登录密码';
       } else if (pwd !== cpwd) {
         newErrors.confirmPassword = '确认密码与密码不同！';
+      }
+      const id = (formData.idNumber || '').trim();
+      const allowedId = /^[A-Za-z0-9]+$/;
+      if (id && !allowedId.test(id)) {
+        newErrors.idNumber = '输入的证件编号中包含中文信息或特殊字符！';
+      } else if (formData.idType === '1') {
+        if (!id || id.length !== 18) {
+          newErrors.idNumber = '请正确输入18位证件号码！';
+        } else {
+          const pattern = /^\d{17}[0-9Xx]$/;
+          if (!pattern.test(id)) {
+            newErrors.idNumber = '请正确输入18位证件号码！';
+          }
+        }
       }
       if (!formData.agreementAccepted) {
         newErrors.agreementAccepted = '请确定服务条款!';
@@ -209,9 +420,19 @@ const Register: React.FC<RegisterProps> = () => {
 
     setIsLoading(true);
     try {
-      const usernamePattern = /^[a-zA-Z][a-zA-Z0-9_ ]*$/;
-      if (!formData.username || formData.username.length < 6 || formData.username.length > 30 || !usernamePattern.test(formData.username)) {
-        setErrors(prev => ({ ...prev, username: '用户名需6-30位，字母开头，仅字母/数字/空格/下划线' }));
+      const usernamePattern = /^[a-zA-Z][a-zA-Z0-9_]*$/;
+      if (!formData.username || formData.username.length < 6) {
+        setErrors(prev => ({ ...prev, username: '用户名长度不能少于6个字符！' }));
+        setIsLoading(false);
+        return;
+      }
+      if (formData.username.length > 30) {
+        setErrors(prev => ({ ...prev, username: '用户名长度不能超过30个字符！' }));
+        setIsLoading(false);
+        return;
+      }
+      if (!usernamePattern.test(formData.username)) {
+        setErrors(prev => ({ ...prev, username: '用户名只能由字母、数字和_组成，须以字母开头！' }));
         setIsLoading(false);
         return;
       }
@@ -364,12 +585,14 @@ const Register: React.FC<RegisterProps> = () => {
                         name="username"
                         value={formData.username}
                         onChange={handleInputChange}
-                        placeholder="6-30位字母、数字、空格或'_'，字母开头"
+                        onBlur={handleUsernameBlur}
+                        placeholder="6-30位字母、数字和_，字母开头"
                         className={errors.username ? 'error' : ''}
                       />
+                      {isUsernameAvailable && !errors.username ? <span className="valid-icon">✓</span> : null}
                       {errors.username && <span className="error-message">{errors.username}</span>}
                     </div>
-                    <div className="grid-hint">6-30位字母、数字或“_”,字母开头</div>
+                    <div className="grid-hint">6-30位字母、数字和_，字母开头</div>
                   </div>
 
                   {/* 登录密码 */}
@@ -382,12 +605,21 @@ const Register: React.FC<RegisterProps> = () => {
                         name="password"
                         value={formData.password}
                         onChange={handleInputChange}
-                        placeholder="6-20位字母、数字或符号"
+                        onBlur={handlePasswordBlur}
+                        placeholder="长度≥6，仅字母、数字和下划线，至少包含两类"
                         className={errors.password ? 'error' : ''}
                       />
+                      {isPasswordValid && !errors.password ? <span className="valid-icon">✓</span> : null}
+                      {passwordStrength > 0 && (
+                        <div className="strength-indicator">
+                          <span className={`strength-bar ${passwordStrength >= 1 ? 'active weak' : ''}`} />
+                          <span className={`strength-bar ${passwordStrength >= 2 ? 'active medium' : ''}`} />
+                          <span className={`strength-bar ${passwordStrength >= 3 ? 'active strong' : ''}`} />
+                        </div>
+                      )}
                       {errors.password && <span className="error-message">{errors.password}</span>}
                     </div>
-                    <div className="grid-hint">6-20位字母、数字或符号</div>
+                    <div className="grid-hint">长度≥6，仅字母、数字和下划线，至少包含两类</div>
                   </div>
 
                   {/* 确认密码 */}
@@ -400,9 +632,11 @@ const Register: React.FC<RegisterProps> = () => {
                         name="confirmPassword"
                         value={formData.confirmPassword}
                         onChange={handleInputChange}
+                        onBlur={handleConfirmBlur}
                         placeholder="再次输入您的登录密码"
                         className={errors.confirmPassword ? 'error' : ''}
                       />
+                      {isConfirmValid && !errors.confirmPassword ? <span className="valid-icon">✓</span> : null}
                       {errors.confirmPassword && <span className="error-message">{errors.confirmPassword}</span>}
                     </div>
                     <div className="grid-hint">再次输入您的登录密码</div>
@@ -438,6 +672,7 @@ const Register: React.FC<RegisterProps> = () => {
                         name="realName"
                         value={formData.realName}
                         onChange={handleInputChange}
+                        onBlur={handleRealNameBlur}
                         placeholder="请输入姓名"
                         className={errors.realName ? 'error' : ''}
                       />
@@ -459,6 +694,7 @@ const Register: React.FC<RegisterProps> = () => {
                         name="idNumber"
                         value={formData.idNumber}
                         onChange={handleInputChange}
+                        onBlur={handleIdNumberBlur}
                         placeholder="请输入您的证件号码"
                         className={errors.idNumber ? 'error' : ''}
                       />
@@ -536,6 +772,7 @@ const Register: React.FC<RegisterProps> = () => {
                           name="phoneNumber"
                           value={formData.phoneNumber}
                           onChange={handleInputChange}
+                          onBlur={handlePhoneNumberBlur}
                           placeholder="手机号码"
                           className={errors.phoneNumber ? 'error' : ''}
                         />
@@ -573,9 +810,11 @@ const Register: React.FC<RegisterProps> = () => {
               <div className="step-content">
                 <h3>手机验证</h3>
                 
-                <div className="verification-info">
-                  <p>验证码已发送至手机号：{`${formData.countryCode} ${formData.phoneNumber}`}</p>
-                </div>
+                {verificationCodeSent && (
+                  <div className="verification-info">
+                    <p>验证码已发送至手机号：{`${formData.countryCode} ${formData.phoneNumber}`}</p>
+                  </div>
+                )}
 
                 <div className="form-group verification-group">
                   <label htmlFor="phoneVerificationCode">手机验证码 *</label>
