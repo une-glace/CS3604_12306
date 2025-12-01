@@ -3,46 +3,38 @@ import { test, expect } from '@playwright/test';
 
 test.describe('常用乘车人-查看', () => {
   test('鉴于用户已登录；当进入乘车人管理；那么默认乘客显示在列表中；并且至少一条记录', async ({ page }) => {
-    const login1 = await page.request.post('http://127.0.0.1:3000/api/v1/auth/login', { data: { username: 'newuser', password: 'mypassword' } });
+    const login = await page.request.post('http://127.0.0.1:3000/api/v1/auth/login', {
+      data: { username: 'newuser', password: 'mypassword' }
+    });
     let token: string | null = null;
-    if (login1.status() === 200) {
-      const lj = await login1.json();
+    if (login.status() === 200) {
+      const lj = await login.json();
       token = lj.data?.token || null;
     } else {
-      const login2 = await page.request.post('http://127.0.0.1:3000/api/v1/auth/login', { data: { username: 'newuser', password: 'my_password1' } });
-      if (login2.status() === 200) {
-        const l2j = await login2.json();
-        token = l2j.data?.token || null;
+      const reg = await page.request.post('http://127.0.0.1:3000/api/v1/auth/register', {
+        data: {
+          username: 'newuser',
+          password: 'mypassword',
+          confirmPassword: 'mypassword',
+          realName: '测试用户',
+          idType: '1',
+          idNumber: '11010519491231002X',
+          phoneNumber: '13812341234',
+          email: 'newuser@example.com',
+          passengerType: '成人',
+          countryCode: '+86'
+        }
+      });
+      if (reg.status() === 201) {
+        const rj = await reg.json();
+        token = rj.data?.token || null;
       } else {
-        const reg = await page.request.post('http://127.0.0.1:3000/api/v1/auth/register', {
-          data: {
-            username: 'newuser',
-            password: 'my_password1',
-            confirmPassword: 'my_password1',
-            realName: '测试用户',
-            idType: '1',
-            idNumber: '11010519491231002X',
-            phoneNumber: '13812341234',
-            email: 'newuser@example.com',
-            passengerType: '成人',
-            countryCode: '+86'
-          }
+        const relog = await page.request.post('http://127.0.0.1:3000/api/v1/auth/login', {
+          data: { username: 'newuser', password: 'mypassword' }
         });
-        if (reg.status() === 201 || reg.status() === 200) {
-          const rj = await reg.json();
-          token = rj.data?.token || null;
-        } else {
-          const relog1 = await page.request.post('http://127.0.0.1:3000/api/v1/auth/login', { data: { username: 'newuser', password: 'mypassword' } });
-          if (relog1.status() === 200) {
-            const r1j = await relog1.json();
-            token = r1j.data?.token || null;
-          } else {
-            const relog2 = await page.request.post('http://127.0.0.1:3000/api/v1/auth/login', { data: { username: 'newuser', password: 'my_password1' } });
-            if (relog2.status() === 200) {
-              const r2j = await relog2.json();
-              token = r2j.data?.token || null;
-            }
-          }
+        if (relog.status() === 200) {
+          const rlj = await relog.json();
+          token = rlj.data?.token || null;
         }
       }
     }
