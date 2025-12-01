@@ -349,6 +349,9 @@
 .notice-card p {
   margin: 8px 0;
 }
+.notice-card p:nth-child(2) {
+  color: #ff0000;
+}
 
 .action-link {
   color: #0066cc;
@@ -819,16 +822,23 @@
 
 /* 订单管理 */
 .orders-section {
-  padding: 30px;
+  padding: 0 12px;
 }
 
-.order-filters {
-  display: flex;
-  gap: 15px;
-  margin-bottom: 20px;
-  padding-bottom: 20px;
-  border-bottom: 1px solid #f0f0f0;
-}
+/* 订单页签（三栏） */
+.order-tabs { display: flex; gap: 0; margin-bottom: 0; border: 1px solid #d9d9d9; border-radius: 0; overflow: hidden; font-size: 16px; min-height: 40px; align-items: stretch; width: 100%;}
+.tab-btn { flex: 1; padding: 8px 16px; background: #fff; border: none; color: #333; font-size: 16px; margin: 0; min-height: 40px; max-width: 130px;}
+.tab-btn + .tab-btn { border-left: 1px solid #d9d9d9; }
+.tab-btn.active { background: #f0f7ff; color: #427aea; font-weight: 700; }
+.tab-btn:hover { background: #fff; color: #333; }
+
+.order-filters { display: flex; gap: 12px; align-items: center; margin-bottom: 16px; padding-bottom: 12px; border-bottom: 1px solid #f0f0f0; }
+.order-filters.advanced .date-mode { min-width: 160px; }
+.order-filters.advanced { margin-top: 8px; margin-left: 12px; }
+.order-filters.advanced input, .order-filters.advanced select { border-radius: 0; }
+.order-filters.advanced .search-btn { border-radius: 0; }
+.order-filters .date-sep { color: #999; }
+.order-filters .search-input-wrap.small { width: 220px; }
 
 .filter-select, .date-filter {
   padding: 8px 12px;
@@ -844,10 +854,32 @@
   box-shadow: 0 0 0 2px rgba(226, 66, 43, 0.2);
 }
 
-.orders-list {
-  display: grid;
-  gap: 20px;
-}
+.orders-table { display: grid; gap: 12px; margin-top: 8px; width: 100%; min-width: 0; }
+.orders-table-header, .orders-table-row { display: grid; grid-template-columns: 1fr 1fr 1fr 120px 120px; align-items: center; }
+.orders-table-header { background: #f8f8f8; color: #555; height: 40px; padding: 0 12px; font-size: 15px; border: 1px solid #f0f0f0; border-radius: 0; align-items: center; box-sizing: border-box; width: 100%; }
+.orders-table-item { border: 1px solid #e6f0fc; border-radius: 6px; background: #fff; }
+.order-meta { background: #e6f4ff; color: #666; font-size: 14px; padding: 0 12px; height: 40px; border-bottom: 1px solid #f0f0f0; display: flex; align-items: center; gap: 12px; box-sizing: border-box; width: 100%; }
+.toggle-btn { width: 20px; height: 20px; border: 1px solid #dcdcdc; border-radius: 4px; background: #fff; color: #666; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; padding: 0; }
+.order-meta .meta-sep { margin-left: 12px; }
+.orders-table-row { height: auto; padding: 8px 12px; font-size: 14px; }
+.train-col .train-route { font-weight: 600; color: #333; font-size: 16px;}
+.train-col .train-no { color: #4a90e2; font-weight: 600; margin-left: 6px; }
+.train-col .train-time { color: #666; font-size: 12px; }
+.passenger-col .passenger-name { font-weight: 500; color: #333; font-size: 14px; display: inline-block; }
+.passenger-col .id-type { color: #666; font-size: 12px; }
+.link-btn.small { border: none; background: none; color: #1677ff; cursor: pointer; font-size: 12px; padding: 0; margin-left: 8px; }
+.seat-col div:first-child { font-weight: 500; font-size: 14px; align-items: center;}
+.price-col .price-val { color: #de8920; font-weight: 400; }
+.status-col { display: flex; align-items: center; gap: 8px; }
+.ticket-status.paid { color: #2f8f3b; }
+.ticket-status.unpaid { color: #fa8c16; }
+.ticket-status.completed { color: #1677ff; }
+.order-ops { display: flex; gap: 8px; padding: 8px 12px; border-top: 1px solid #f0f0f0; background: #fff; justify-content: flex-end; }
+.ops-btn { border: 1px solid #d9d9d9; background: #fff; color: #000; border-radius: 4px; padding: 4px 10px; cursor: pointer; }
+.order-ops .detail-btn { background: #fa8c16; color: #fff; border: 1px solid #fa8c16; border-radius: 4px; padding: 6px 14px; }
+.order-ops .detail-btn:hover { background: #ff9f40; border-color: #ff9f40; }
+.order-ops .ops-btn:hover:not(:disabled) { background: #f5f5f5; }
+.order-ops .ops-btn:disabled { color: #666; border-color: #e5e5e5; cursor: not-allowed; opacity: 0.6; }
 
 .order-card {
   border: 1px solid #f0f0f0;
@@ -933,9 +965,8 @@
 
 .detail-btn, .refund-btn {
   padding: 6px 16px;
-  border: 1px solid #ddd;
   border-radius: 4px;
-  background: #fff;
+  background: #e67f11;
   font-size: 12px;
   cursor: pointer;
   transition: all 0.3s ease;

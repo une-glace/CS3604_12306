@@ -13,6 +13,7 @@ import ForgotPasswordVerifyPage from './pages/ForgotPasswordVerifyPage'
 import ForgotPasswordResetPage from './pages/ForgotPasswordResetPage'
 import ForgotPasswordDonePage from './pages/ForgotPasswordDonePage'
 import Register from './components/Register'
+import PayOrderPage from './pages/PayOrderPage'
 
 function App() {
   return (
@@ -24,6 +25,7 @@ function App() {
             <Route path="/" element={<HomePage />} />
             <Route path="/train-list" element={<TrainListPage />} />
             <Route path="/order" element={<OrderPage />} />
+            <Route path="/pay-order" element={<PayOrderPage />} />
             <Route path="/order-detail/:orderId" element={<OrderDetailPage />} />
             <Route path="/profile" element={<ProfilePage />} />
             <Route path="/forgot-password" element={<ForgotPasswordPage />} />

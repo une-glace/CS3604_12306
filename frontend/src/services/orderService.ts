@@ -44,7 +44,7 @@ export interface Order {
 }
 
 // 创建订单
-export const createOrder = async (orderData: OrderData): Promise<{ success: boolean; message: string; data: { id: string; orderId: string; order: any } }> => {
+export const createOrder = async (orderData: OrderData): Promise<{ success: boolean; message: string; data: { id: string; orderId: string; order: unknown } }> => {
   try {
     const response = await post('/orders', {
       trainInfo: orderData.trainInfo,
@@ -99,9 +99,12 @@ export const getUserOrders = async (page = 1, limit = 10, status?: string): Prom
 export const getOrderDetail = async (orderId: string): Promise<Order> => {
   try {
     const response = await get(`/orders/${orderId}`);
-    return response.data;
-  } catch (error) {
-    console.error('获取订单详情失败:', error);
+    const data = (response && response.data && (response.data.order || response.data)) || response;
+    return data as unknown as Order;
+  } catch (error: unknown) {
+    const msg = String((error as Error)?.message || '');
+    const isNotFound = msg.includes('订单不存在') || msg.includes('status: 404');
+    (isNotFound ? console.warn : console.error)('获取订单详情失败:', error);
     throw error;
   }
 };

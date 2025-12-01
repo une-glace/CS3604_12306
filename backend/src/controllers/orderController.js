@@ -475,11 +475,19 @@ const allocateSeatsForGroup = async (trainNumber, date, seatType, count, prefere
 const getOrderDetail = async (req, res) => {
   try {
     const { orderId } = req.params;
+    const isNumeric = /^[0-9]+$/.test(String(orderId));
 
     const order = await Order.findOne({
       where: {
-        orderId,
-        userId: req.user.id
+        userId: req.user.id,
+        [Op.or]: isNumeric
+          ? [
+              { id: parseInt(String(orderId), 10) },
+              { orderId: String(orderId) }
+            ]
+          : [
+              { orderId: String(orderId) }
+            ]
       },
       include: [{
         model: OrderPassenger,
@@ -523,20 +531,25 @@ const cancelOrder = async (req, res) => {
       userInfo: req.user
     });
 
-    // 尝试通过数据库ID或订单号查找订单
-    const order = await Order.findOne({
-      where: {
-        [Op.or]: [
-          { id: orderId, userId: req.user.id },
-          { orderId: orderId, userId: req.user.id }
-        ]
-      },
-      include: [{
-        model: OrderPassenger,
-        as: 'passengers'
-      }],
-      transaction
-    });
+  const isNumeric = /^[0-9]+$/.test(String(orderId));
+  const order = await Order.findOne({
+    where: {
+      userId: req.user.id,
+      [Op.or]: isNumeric
+        ? [
+            { id: parseInt(String(orderId), 10) },
+            { orderId: String(orderId) }
+          ]
+        : [
+            { orderId: String(orderId) }
+          ]
+    },
+    include: [{
+      model: OrderPassenger,
+      as: 'passengers'
+    }],
+    transaction
+  });
     
     console.log('查找到的订单:', order ? {
       id: order.id,
@@ -618,14 +631,21 @@ const updateOrderStatus = async (req, res) => {
     const { orderId } = req.params;
     const { status, paymentMethod, paymentTime } = req.body;
 
-    // 查找订单
-    const order = await Order.findOne({
-      where: {
-        id: orderId,
-        userId: req.user.id
-      },
-      transaction
-    });
+  const isNumeric = /^[0-9]+$/.test(String(orderId));
+  const order = await Order.findOne({
+    where: {
+      userId: req.user.id,
+      [Op.or]: isNumeric
+        ? [
+            { id: parseInt(String(orderId), 10) },
+            { orderId: String(orderId) }
+          ]
+        : [
+            { orderId: String(orderId) }
+          ]
+    },
+    transaction
+  });
 
     if (!order) {
       await transaction.rollback();

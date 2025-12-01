@@ -5,6 +5,7 @@ import { useAuth } from '../contexts/AuthContext';
 import './Register.css';
 import '../pages/HomePage.css';
 import Footer from './Footer';
+import Navbar from './Navbar';
 
 interface RegisterFormData {
   username: string;
@@ -334,21 +335,7 @@ const Register: React.FC<RegisterProps> = () => {
         </div>
       </header>
 
-      {/* 导航栏：与首页一致 */}
-      <nav className="navbar">
-        <div className="nav-container">
-          <ul className="nav-links">
-            <li><a href="/" className="active">首页</a></li>
-            <li><a href="/train-list">车票</a></li>
-            <li><a href="#">团购服务</a></li>
-            <li><a href="#">会员服务</a></li>
-            <li><a href="#">站车服务</a></li>
-            <li><a href="#">商旅服务</a></li>
-            <li><a href="#">出行指南</a></li>
-            <li><a href="#">信息查询</a></li>
-          </ul>
-        </div>
-      </nav>
+      <Navbar active="home" />
 
       <div className="register-main">
         <div className="register-form-container">

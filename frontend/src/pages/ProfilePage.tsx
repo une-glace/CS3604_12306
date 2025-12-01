@@ -6,6 +6,7 @@ import { getPassengers as apiGetPassengers, addPassenger as apiAddPassenger, upd
 import PaymentModal from '../components/PaymentModal';
 import './ProfilePage.css';
 import './HomePage.css';
+import Navbar from '../components/Navbar';
 
 interface Passenger {
   id: string;
@@ -26,9 +27,11 @@ interface Order {
   departureTime: string;
   arrivalTime: string;
   date: string;
+  bookDate?: string;
+  tripDate?: string;
   passenger: string;
   seat: string;
-  passengers?: Array<{ name: string; seatNumber?: string; seatType?: string }>;
+  passengers?: Array<{ name: string; seatNumber?: string; seatType?: string; carriage?: string | number }>;
   price: number;
   status: 'paid' | 'unpaid' | 'cancelled' | 'refunded' | 'completed';
 }
@@ -40,8 +43,12 @@ const ProfilePage: React.FC = () => {
   const [activeSection, setActiveSection] = useState('center-home');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingPassenger, setEditingPassenger] = useState<Passenger | null>(null);
-  const [orderFilter, setOrderFilter] = useState('all');
-  const [dateFilter, setDateFilter] = useState('');
+  const [orderFilter, setOrderFilter] = useState('unpaid');
+  const [dateStart, setDateStart] = useState('');
+  const [dateEnd, setDateEnd] = useState('');
+  const [dateMode, setDateMode] = useState<'book' | 'trip'>('book');
+  const [keywordInput, setKeywordInput] = useState('');
+  const [keyword, setKeyword] = useState('');
   // 搜索与批量选择
   const [searchInput, setSearchInput] = useState('');
   const [searchName, setSearchName] = useState('');
@@ -59,6 +66,7 @@ const ProfilePage: React.FC = () => {
     total: 0,
     totalPages: 0
   });
+  const [collapsedMap, setCollapsedMap] = useState<Record<string, boolean>>({});
   const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
   const [paymentOrderData, setPaymentOrderData] = useState<{ orderId: string; totalPrice: number; trainNumber: string; fromStation: string; toStation: string; departureDate: string; passengerCount: number } | null>(null);
   const [paymentOrderBackendId, setPaymentOrderBackendId] = useState<string | null>(null);
@@ -323,7 +331,7 @@ const ProfilePage: React.FC = () => {
   };
 
   // 获取订单列表
-  const fetchOrders = async (page = 1, status = orderFilter) => {
+  async function fetchOrders(page = 1, status = orderFilter) {
     try {
       setIsLoadingOrders(true);
       
@@ -342,15 +350,18 @@ const ProfilePage: React.FC = () => {
            departureTime: order.departureTime,
            arrivalTime: order.arrivalTime,
            date: order.departureDate || order.date,
+           bookDate: order.orderDate || order.bookDate || (order.createdAt ? String(order.createdAt).slice(0,10) : undefined),
+           tripDate: order.departureDate || order.date,
            passenger: order.passengers?.[0]?.passengerName || order.passenger || '未知',
            seat: order.passengers?.[0]?.seatNumber || order.seat || '待分配',
-           passengers: Array.isArray(order.passengers)
-             ? order.passengers.map((p: any) => ({
-                 name: p.passengerName || p.name || '未知',
-                 seatNumber: p.seatNumber,
-                 seatType: p.seatType,
-               }))
-             : undefined,
+            passengers: Array.isArray(order.passengers)
+              ? order.passengers.map((p: any) => ({
+                  name: p.passengerName || p.name || '未知',
+                  seatNumber: p.seatNumber,
+                  seatType: p.seatType,
+                  carriage: p.carriage,
+                }))
+              : undefined,
            price: order.totalPrice || order.price,
           status: (
             order.status === 'unpaid' ? 'unpaid' :
@@ -368,6 +379,83 @@ const ProfilePage: React.FC = () => {
           total: data.pagination?.total || formattedOrders.length,
           totalPages: Math.ceil((data.pagination?.total || formattedOrders.length) / (data.pagination?.limit || orderPagination.limit))
         });
+
+        try {
+          const { getOrderDetail } = await import('../services/orderService');
+          const enriched = await Promise.all(formattedOrders.map(async (o: Order) => {
+            const hasSeat = (o.passengers && o.passengers[0]?.seatNumber) || (o.seat && o.seat !== '待分配');
+            if (hasSeat) return o;
+            try {
+              const localById = localStorage.getItem(`orderSeatAssignments:${o.id}`);
+              const localByNum = localStorage.getItem(`orderSeatAssignments:${o.orderNumber}`);
+              let local = localById || localByNum;
+              if (!local) {
+                // 兜底：扫描所有本地键，按同订单号匹配
+                for (let i = 0; i < localStorage.length; i++) {
+                  const k = localStorage.key(i) || '';
+                  if (k.startsWith('orderSeatAssignments:')) {
+                    const v = localStorage.getItem(k);
+                    if (v) {
+                      try {
+                        const parsed = JSON.parse(v);
+                        if (parsed && parsed.orderNumber && String(parsed.orderNumber) === String(o.orderNumber)) { local = v; break; }
+                      } catch {}
+                    }
+                  }
+                }
+              }
+              if (local) {
+                const parsed = JSON.parse(local) as { passengers?: Array<{ name: string; seatNumber?: string; carriage?: string | number; seatType?: string }> };
+                const lp = Array.isArray(parsed.passengers) ? parsed.passengers : [];
+                if (lp.length > 0) {
+                  const p0 = lp[0];
+                  const pad2 = (val: string | number) => String(val).padStart(2, '0');
+                  const cleanSeat = (s: string) => String(s).replace(/号$/u, '');
+                  const seatText = (p0.carriage && p0.seatNumber) ? `${pad2(p0.carriage)}车${cleanSeat(p0.seatNumber)}` : (o.seat || '待分配');
+                  return { ...o, seat: seatText, passengers: lp };
+                }
+              }
+            } catch {}
+            try {
+              let detail: any;
+              try {
+                if (o.id) detail = await getOrderDetail(String(o.id));
+              } catch {}
+              if (!detail) {
+                try { detail = await getOrderDetail(String(o.orderNumber)); } catch {}
+              }
+              const passengers = (detail as any)?.passengers || (detail as any)?.data?.order?.passengers || [];
+              if (Array.isArray(passengers) && passengers.length > 0) {
+                const p0 = passengers[0];
+                const carriage = p0.carriage;
+                const seatNumber = p0.seatNumber;
+                const pad2 = (val: string | number) => String(val).padStart(2, '0');
+                const cleanSeat = (s: string) => String(s).replace(/号$/u, '');
+                const seatText = (carriage && seatNumber) ? `${pad2(carriage)}车${cleanSeat(seatNumber)}` : (o.seat || '待分配');
+                return {
+                  ...o,
+                  seat: seatText,
+                  passengers: [{ name: p0.passengerName || p0.name || '未知', seatNumber, seatType: p0.seatType, carriage }]
+                };
+              }
+              // 乘客列表不可用时，尝试从详情中的 seat 文本解析
+              const rawSeat = (detail as any)?.seat || (detail as any)?.data?.order?.seat;
+              if (typeof rawSeat === 'string' && rawSeat && rawSeat !== '待分配') {
+                const m = rawSeat.match(/^(\d{1,2})车(\S+)$/);
+                if (m) {
+                  const carriage = m[1];
+                  const seatNumber = m[2];
+                  const pad2 = (val: string | number) => String(val).padStart(2, '0');
+                  const cleanSeat = (s: string) => String(s).replace(/号$/u, '');
+                  const seatText = `${pad2(carriage)}车${cleanSeat(seatNumber)}`;
+                  return { ...o, seat: seatText, passengers: [{ name: o.passenger || '未知', seatNumber, seatType: '二等座', carriage }] };
+                }
+              }
+            } catch {}
+            return o;
+          }));
+          setOrders(enriched);
+        } catch {}
       }
     } catch (error) {
       console.error('获取订单错误:', error);
@@ -404,15 +492,18 @@ const ProfilePage: React.FC = () => {
               departureTime: order.departureTime,
               arrivalTime: order.arrivalTime,
               date: order.departureDate,
+              bookDate: order.orderDate || order.bookDate || (order.createdAt ? String(order.createdAt).slice(0,10) : undefined),
+              tripDate: order.departureDate,
               passenger: order.passengers?.[0]?.passengerName || '未知',
               seat: order.passengers?.[0]?.seatNumber || '待分配',
-              passengers: Array.isArray(order.passengers)
-                ? order.passengers.map((p: any) => ({
-                    name: p.passengerName || p.name || '未知',
-                    seatNumber: p.seatNumber,
-                    seatType: p.seatType,
-                  }))
-                : undefined,
+               passengers: Array.isArray(order.passengers)
+                 ? order.passengers.map((p: any) => ({
+                     name: p.passengerName || p.name || '未知',
+                     seatNumber: p.seatNumber,
+                     seatType: p.seatType,
+                     carriage: p.carriage,
+                   }))
+                 : undefined,
               price: order.totalPrice,
               status: (
                 order.status === 'unpaid' ? 'unpaid' :
@@ -430,6 +521,83 @@ const ProfilePage: React.FC = () => {
               total: data.data.pagination.total,
               totalPages: data.data.pagination.totalPages
             });
+
+        try {
+          const { getOrderDetail } = await import('../services/orderService');
+          const enriched = await Promise.all(formattedOrders.map(async (o: Order) => {
+            const hasSeat = (o.passengers && o.passengers[0]?.seatNumber) || (o.seat && o.seat !== '待分配');
+            if (hasSeat) return o;
+            try {
+              const localById = localStorage.getItem(`orderSeatAssignments:${o.id}`);
+              const localByNum = localStorage.getItem(`orderSeatAssignments:${o.orderNumber}`);
+              let local = localById || localByNum;
+              if (!local) {
+                // 兜底：扫描所有本地键，按同订单号匹配
+                for (let i = 0; i < localStorage.length; i++) {
+                  const k = localStorage.key(i) || '';
+                  if (k.startsWith('orderSeatAssignments:')) {
+                    const v = localStorage.getItem(k);
+                    if (v) {
+                      try {
+                        const parsed = JSON.parse(v);
+                        if (parsed && parsed.orderNumber && String(parsed.orderNumber) === String(o.orderNumber)) { local = v; break; }
+                      } catch {}
+                    }
+                  }
+                }
+              }
+              if (local) {
+                const parsed = JSON.parse(local) as { passengers?: Array<{ name: string; seatNumber?: string; carriage?: string | number; seatType?: string }> };
+                const lp = Array.isArray(parsed.passengers) ? parsed.passengers : [];
+                if (lp.length > 0) {
+                  const p0 = lp[0];
+                  const pad2 = (val: string | number) => String(val).padStart(2, '0');
+                  const cleanSeat = (s: string) => String(s).replace(/号$/u, '');
+                  const seatText = (p0.carriage && p0.seatNumber) ? `${pad2(p0.carriage)}车${cleanSeat(p0.seatNumber)}` : (o.seat || '待分配');
+                  return { ...o, seat: seatText, passengers: lp };
+                }
+              }
+            } catch {}
+            try {
+              let detail: any;
+              try {
+                if (o.id) detail = await getOrderDetail(String(o.id));
+              } catch {}
+              if (!detail) {
+                try { detail = await getOrderDetail(String(o.orderNumber)); } catch {}
+              }
+              const passengers = (detail as any)?.passengers || (detail as any)?.data?.order?.passengers || [];
+              if (Array.isArray(passengers) && passengers.length > 0) {
+                const p0 = passengers[0];
+                const carriage = p0.carriage;
+                const seatNumber = p0.seatNumber;
+                const pad2 = (val: string | number) => String(val).padStart(2, '0');
+                const cleanSeat = (s: string) => String(s).replace(/号$/u, '');
+                const seatText = (carriage && seatNumber) ? `${pad2(carriage)}车${cleanSeat(seatNumber)}` : (o.seat || '待分配');
+                return {
+                  ...o,
+                  seat: seatText,
+                  passengers: [{ name: p0.passengerName || p0.name || '未知', seatNumber, seatType: p0.seatType, carriage }]
+                };
+              }
+              // 乘客列表不可用时，尝试从详情中的 seat 文本解析
+              const rawSeat = (detail as any)?.seat || (detail as any)?.data?.order?.seat;
+              if (typeof rawSeat === 'string' && rawSeat && rawSeat !== '待分配') {
+                const m = rawSeat.match(/^(\d{1,2})车(\S+)$/);
+                if (m) {
+                  const carriage = m[1];
+                  const seatNumber = m[2];
+                  const pad2 = (val: string | number) => String(val).padStart(2, '0');
+                  const cleanSeat = (s: string) => String(s).replace(/号$/u, '');
+                  const seatText = `${pad2(carriage)}车${cleanSeat(seatNumber)}`;
+                  return { ...o, seat: seatText, passengers: [{ name: o.passenger || '未知', seatNumber, seatType: '二等座', carriage }] };
+                }
+              }
+            } catch {}
+            return o;
+          }));
+          setOrders(enriched);
+        } catch {}
           }
         } else {
           console.error('获取订单失败:', response.statusText);
@@ -440,7 +608,7 @@ const ProfilePage: React.FC = () => {
     } finally {
       setIsLoadingOrders(false);
     }
-  };
+  }
 
   const handleAddPassenger = () => {
     setEditingPassenger(null);
@@ -623,10 +791,67 @@ const ProfilePage: React.FC = () => {
 
   // 筛选订单
   const filteredOrders = orders.filter(order => {
-    const statusMatch = orderFilter === 'all' || order.status === orderFilter;
-    const dateMatch = !dateFilter || order.date === dateFilter;
-    return statusMatch && dateMatch;
+    const statusMatch = orderFilter ? order.status === orderFilter : true;
+    const selectedDate = dateMode === 'book' ? (order.bookDate || order.date) : (order.tripDate || order.date);
+    const dateMatch = (!dateStart || (selectedDate && selectedDate >= dateStart)) && (!dateEnd || (selectedDate && selectedDate <= dateEnd));
+    const kw = keyword.trim();
+    const keywords = [order.orderNumber, order.trainNumber, order.passenger, ...(order.passengers ? order.passengers.map(p => p.name) : [])].filter(Boolean) as string[];
+    const keywordMatch = !kw || keywords.some(v => v.includes(kw));
+    return statusMatch && dateMatch && keywordMatch;
   });
+
+  const formatSeatText = (carriage?: string | number, seatNumber?: string, fallback?: string): string => {
+    const pad2 = (val: string | number) => String(val).padStart(2, '0');
+    const cleanSeat = (s: string) => s.replace(/号$/u, '');
+    if (carriage !== undefined && carriage !== null && String(carriage).trim() !== '' && seatNumber) {
+      return `${pad2(carriage)}车${cleanSeat(String(seatNumber))}`;
+    }
+    if (fallback) {
+      const f = fallback.trim();
+      const m = f.match(/^(\d{1,2})\D*(\S+)$/);
+      if (m) return `${pad2(m[1])}车${cleanSeat(m[2])}`;
+      return f || '待分配';
+    }
+    return '待分配';
+  };
+
+  const resolveSeatText = (order: Order): string => {
+    const first = order.passengers && order.passengers[0];
+    if (first && first.carriage !== undefined && first.seatNumber) {
+      return formatSeatText(first.carriage, first.seatNumber);
+    }
+    try {
+      const keyById = `orderSeatAssignments:${order.id}`;
+      const keyByNum = `orderSeatAssignments:${order.orderNumber}`;
+      let local = localStorage.getItem(keyById) || localStorage.getItem(keyByNum);
+      if (!local) {
+        for (let i = 0; i < localStorage.length; i++) {
+          const k = localStorage.key(i) || '';
+          if (k.startsWith('orderSeatAssignments:')) {
+            const v = localStorage.getItem(k);
+            if (!v) continue;
+            try {
+              const parsed = JSON.parse(v) as { orderNumber?: string; passengers?: Array<{ seatNumber?: string; carriage?: string | number }> };
+              if (parsed && parsed.orderNumber && String(parsed.orderNumber) === String(order.orderNumber)) { local = v; break; }
+            } catch {}
+          }
+        }
+      }
+      if (local) {
+        const parsed = JSON.parse(local) as { passengers?: Array<{ seatNumber?: string; carriage?: string | number }> };
+        const lp = Array.isArray(parsed.passengers) ? parsed.passengers : [];
+        if (lp.length > 0) {
+          const p0 = lp[0];
+          return formatSeatText(p0.carriage, p0.seatNumber, order.seat);
+        }
+      }
+    } catch {}
+    return formatSeatText(undefined, undefined, order.seat || '待分配');
+  };
+
+  const toggleOrderCollapse = (orderId: string) => {
+    setCollapsedMap(prev => ({ ...prev, [orderId]: !prev[orderId] }));
+  };
 
   return (
     <div className="profile-page">
@@ -679,21 +904,7 @@ const ProfilePage: React.FC = () => {
         </div>
       </header>
 
-      {/* 导航栏（与首页一致）*/}
-      <nav className="navbar">
-        <div className="nav-container">
-          <ul className="nav-links">
-            <li><a href="/">首页</a></li>
-            <li><a href="/train-list">车票</a></li>
-            <li><a href="#">团购服务</a></li>
-            <li><a href="#">会员服务</a></li>
-            <li><a href="#">站车服务</a></li>
-            <li><a href="#">商旅服务</a></li>
-            <li><a href="#">出行指南</a></li>
-            <li><a href="#">信息查询</a></li>
-          </ul>
-        </div>
-      </nav>
+      <Navbar />
 
       {/* 主要内容 */}
       <div className="profile-main">
@@ -1145,128 +1356,102 @@ const ProfilePage: React.FC = () => {
 
           {activeSection === 'orders' && (
             <div className="content-section">
-              <div className="section-header">
-                <h2>火车票订单</h2>
-                <div className="breadcrumb">
-                  <span>订单中心</span>
-                  <span className="separator">{'>'}</span>
-                  <span className="current">火车票订单</span>
-                </div>
-              </div>
-
               <div className="orders-section">
-              <div className="order-tabs">
-                <button className={`tab-btn ${orderFilter === 'all' ? 'active' : ''}`} data-testid="orders-tab-all" onClick={() => setOrderFilter('all')}>全部订单</button>
-                <button className={`tab-btn ${orderFilter === 'unpaid' ? 'active' : ''}`} data-testid="orders-tab-unfinished" onClick={() => setOrderFilter('unpaid')}>未完成订单</button>
-                <button className={`tab-btn ${orderFilter === 'paid' ? 'active' : ''}`} data-testid="orders-tab-not-travelled" onClick={() => setOrderFilter('paid')}>未出行订单</button>
-                <button className={`tab-btn ${orderFilter === 'completed' ? 'active' : ''}`} data-testid="orders-tab-travelled" onClick={() => setOrderFilter('completed')}>已出行订单</button>
-              </div>
-                <div className="order-filters">
-                  <select 
-                    className="filter-select"
-                    value={orderFilter}
-                    onChange={(e) => setOrderFilter(e.target.value)}
-                  >
-                    <option value="all">全部订单</option>
-                    <option value="paid">已支付</option>
-                    <option value="unpaid">未支付</option>
-                    <option value="cancelled">已取消</option>
-                    <option value="refunded">已退票</option>
-                    <option value="completed">已出行</option>
+                <div className="order-tabs">
+                  <button className={`tab-btn ${orderFilter === 'unpaid' ? 'active' : ''}`} data-testid="orders-tab-unfinished" onClick={() => setOrderFilter('unpaid')}>未完成订单</button>
+                  <button className={`tab-btn ${orderFilter === 'paid' ? 'active' : ''}`} data-testid="orders-tab-not-travelled" onClick={() => setOrderFilter('paid')}>未出行订单</button>
+                  <button className={`tab-btn ${orderFilter === 'completed' ? 'active' : ''}`} data-testid="orders-tab-travelled" onClick={() => setOrderFilter('completed')}>已出行订单</button>
+                </div>
+                <div className="order-filters advanced">
+                  <select className="filter-select date-mode" value={dateMode} onChange={(e) => setDateMode(e.target.value as 'book' | 'trip')}>
+                    <option value="book">按订票日期查询</option>
+                    <option value="trip">按乘车日期查询</option>
                   </select>
-                  <input 
-                    type="date" 
-                    className="date-filter"
-                    value={dateFilter}
-                    onChange={(e) => setDateFilter(e.target.value)}
-                    placeholder="选择日期"
-                  />
+                  <input type="date" className="date-filter" value={dateStart} onChange={(e) => setDateStart(e.target.value)} />
+                  <span className="date-sep">—</span>
+                  <input type="date" className="date-filter" value={dateEnd} onChange={(e) => setDateEnd(e.target.value)} />
+                  <div className="search-input-wrap small">
+                    <input
+                      type="text"
+                      placeholder="订单号/车次/姓名"
+                      value={keywordInput}
+                      onChange={(e) => setKeywordInput(e.target.value)}
+                      className="search-input"
+                    />
+                    {keywordInput && (
+                      <button type="button" className="clear-btn" aria-label="清空" onClick={() => { setKeywordInput(''); setKeyword(''); }}>
+                        ×
+                      </button>
+                    )}
+                  </div>
+                  <button className="search-btn" onClick={() => setKeyword(keywordInput.trim())}>查询</button>
                 </div>
 
-                <div className="orders-list">
+                <div className="orders-table">
                   {isLoadingOrders ? (
                     <div className="loading-state">
                       <p>加载中...</p>
                     </div>
                   ) : filteredOrders.length > 0 ? (
                     <>
+                      <div className="orders-table-header">
+                        <div>车次信息</div>
+                        <div>旅客信息</div>
+                        <div>席位信息</div>
+                        <div>票价</div>
+                        <div>车票状态</div>
+                      </div>
                       {filteredOrders.map(order => (
-                        <div key={order.id} className="order-card">
-                          <div className="order-header">
-                            <span className="order-number">订单号：{order.orderNumber}</span>
-                            <span className={`order-status ${getStatusClass(order.status)}`}>
-                              {getStatusText(order.status)}
-                            </span>
+                        <div key={order.id} className="orders-table-item">
+                          <div className="order-meta">
+                            <button className="toggle-btn" aria-expanded={!collapsedMap[order.id]} onClick={() => toggleOrderCollapse(order.id)}>{collapsedMap[order.id] ? '▸' : '▾'}</button>
+                            <span>订票日期：{order.bookDate || order.date}</span><span className="meta-sep">订单号：{order.orderNumber}</span>
                           </div>
-                          <div className="order-content">
-                            <div className="train-info">
-                              <h4>{order.trainNumber}</h4>
-                              <p>{order.departure} → {order.arrival}</p>
-                              <p>{order.date} {order.departureTime} - {order.arrivalTime}</p>
+                          {!collapsedMap[order.id] && (
+                          <div className="orders-table-row">
+                            <div className="train-col">
+                              <div className="train-route">{order.departure} → {order.arrival}</div>
+                              <div className="train-time">{order.date} {order.departureTime} 开</div>
                             </div>
-                            <div className="passenger-info">
-                              <p>
-                                乘车人：{(order.passengers && order.passengers.length > 0)
-                                  ? order.passengers.map(p => p.name).join('、')
-                                  : order.passenger}
-                              </p>
-                              <p>
-                                座位：{(order.passengers && order.passengers.length > 0)
-                                  ? order.passengers.map(p => p.seatNumber || '待分配').join('，')
-                                  : order.seat}
-                              </p>
+                            <div className="passenger-col">
+                              <div className="passenger-name">{(order.passengers && order.passengers.length > 0) ? (order.passengers[0]?.name || order.passenger) : order.passenger}</div>
+                              <button className="link-btn small" onClick={() => handleOrderDetail(order.orderNumber)}>打印信息单</button>
+                              <div className="id-type">居民身份证</div>
                             </div>
-                            <div className="price-info">
-                              <p className="price">¥{order.price}</p>
+                            <div className="seat-col">
+                              <div>{(order.passengers && order.passengers.length > 0) ? (order.passengers[0]?.seatType || '二等座') : '二等座'}</div>
+                              <div>{resolveSeatText(order)}</div>
+                            </div>
+                            <div className="price-col">
+                              <div>成人票</div>
+                              <div className="price-val">{typeof order.price === 'number' ? `${order.price}元` : order.price}</div>
+                            </div>
+                            <div className="status-col">
+                              <div className={`ticket-status ${getStatusClass(order.status)}`}>{getStatusText(order.status)}</div>
+                              {order.status === 'paid' && (
+                                <button className="link-btn small" onClick={() => handleRefund(order.id)}>退票</button>
+                              )}
+                              {order.status === 'unpaid' && (
+                                <button className="link-btn small" onClick={() => handlePayOpen(order)}>去支付</button>
+                              )}
                             </div>
                           </div>
-                          <div className="order-actions">
-                            <button 
-                              className="detail-btn"
-                              onClick={() => handleOrderDetail(order.orderNumber)}
-                            >
-                              查看详情
-                            </button>
-                            {order.status === 'unpaid' && (
-                              <button 
-                                className="pay-btn"
-                                onClick={() => handlePayOpen(order)}
-                              >
-                                去支付
-                              </button>
-                            )}
-                            {order.status === 'paid' && (
-                              <button 
-                                className="refund-btn"
-                                onClick={() => handleRefund(order.id)}
-                              >
-                                退票
-                              </button>
-                            )}
+                          )}
+                          <div className="order-ops">
+                            <button className="detail-btn" onClick={() => handleOrderDetail(order.orderNumber)}>订单详情</button>
+                            <button className="ops-btn" disabled>添加免费乘车儿童</button>
+                            <button className="ops-btn" disabled>购/赔/退保险</button>
+                            <button className="ops-btn" disabled>改签</button>
+                            <button className="ops-btn" disabled>变更到站</button>
+                            <button className="ops-btn" onClick={() => navigate('/train-list')}>餐饮•特产</button>
                           </div>
                         </div>
                       ))}
-                      
-                      {/* 分页控件 */}
                       {orderPagination.totalPages > 1 && (
                         <div className="pagination">
-                          <button 
-                            className="page-btn"
-                            disabled={orderPagination.page === 1}
-                            onClick={() => handlePageChange(orderPagination.page - 1)}
-                          >
-                            上一页
-                          </button>
-                          <span className="page-info">
-                            第 {orderPagination.page} 页，共 {orderPagination.totalPages} 页
-                          </span>
-                          <button 
-                            className="page-btn"
-                            disabled={orderPagination.page === orderPagination.totalPages}
-                            onClick={() => handlePageChange(orderPagination.page + 1)}
-                          >
-                            下一页
-                          </button>
+                          <button className="page-btn" disabled={orderPagination.page === 1} onClick={() => handlePageChange(orderPagination.page - 1)}>上一页</button>
+                          <span className="page-info">第 {orderPagination.page} 页，共 {orderPagination.totalPages} 页</span>
+                          <button className="page-btn" disabled={orderPagination.page === orderPagination.totalPages} onClick={() => handlePageChange(orderPagination.page + 1)}>下一页</button>
                         </div>
                       )}
                     </>

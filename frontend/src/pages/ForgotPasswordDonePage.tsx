@@ -4,6 +4,7 @@ import Footer from '../components/Footer';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import './HomePage.css';
+import Navbar from '../components/Navbar';
 
 const ForgotPasswordDonePage: React.FC = () => {
   const navigate = useNavigate();
@@ -50,20 +51,7 @@ const ForgotPasswordDonePage: React.FC = () => {
         </div>
       </header>
 
-      <nav className="navbar">
-        <div className="nav-container">
-          <ul className="nav-links">
-            <li><a href="/" className="active">首页</a></li>
-            <li><a href="/train-list">车票</a></li>
-            <li><a href="#">团购服务</a></li>
-            <li><a href="#">会员服务</a></li>
-            <li><a href="#">站车服务</a></li>
-            <li><a href="#">商旅服务</a></li>
-            <li><a href="#">出行指南</a></li>
-            <li><a href="#">信息查询</a></li>
-          </ul>
-        </div>
-      </nav>
+      <Navbar active="home" />
       <div className="fp-container">
         <div className="fp-tabs">
           <div className="fp-tab">人脸找回</div>

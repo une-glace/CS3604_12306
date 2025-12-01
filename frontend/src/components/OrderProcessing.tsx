@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import './OrderProcessing.css';
 
 interface OrderProcessingProps {
@@ -17,8 +18,9 @@ const OrderProcessing: React.FC<OrderProcessingProps> = ({
   onComplete,
   orderData
 }) => {
-  const [currentStep, setCurrentStep] = useState(0);
-  const [progress, setProgress] = useState(0);
+  const navigate = useNavigate();
+  const [, setCurrentStep] = useState(0);
+  const [, setProgress] = useState(0);
 
   const steps = [
     { text: '验证订单信息', duration: 1000 },
@@ -73,56 +75,25 @@ const OrderProcessing: React.FC<OrderProcessingProps> = ({
     <div className="order-processing-overlay">
       <div className="order-processing-modal">
         <div className="processing-header">
-          <h3>订单处理中</h3>
+          <h3>提示</h3>
           <div className="order-id">订单号：{orderData.orderId}</div>
         </div>
         
-        <div className="processing-content">
-          <div className="loading-animation">
-            <div className="spinner"></div>
+        <div className="processing-content simple">
+          <div className="simple-icon" aria-hidden>
+            <div className="icon-ring">
+              <span className="dot"></span>
+              <span className="dot"></span>
+              <span className="dot"></span>
+            </div>
           </div>
-          
-          <div className="progress-section">
-            <div className="progress-bar">
-              <div 
-                className="progress-fill" 
-                style={{ width: `${progress}%` }}
-              ></div>
+          <div className="simple-text">
+            <div className="simple-title">订单已经提交，系统正在处理中，请稍等。</div>
+            <div className="simple-sub">
+              查看订单处理情况，请点击
+              <button className="simple-link" onClick={() => navigate('/profile?section=orders')}>未完成订单</button>
             </div>
-            <div className="progress-text">{Math.round(progress)}%</div>
-          </div>
-          
-          <div className="steps-list">
-            {steps.map((step, index) => (
-              <div 
-                key={index} 
-                className={`step-item ${
-                  index < currentStep ? 'completed' : 
-                  index === currentStep ? 'active' : 'pending'
-                }`}
-              >
-                <div className="step-icon">
-                  {index < currentStep ? '✓' : 
-                   index === currentStep ? '⟳' : '○'}
-                </div>
-                <div className="step-text">{step.text}</div>
-              </div>
-            ))}
-          </div>
-          
-          <div className="order-summary">
-            <div className="summary-item">
-              <span>车次：</span>
-              <span>{orderData.trainInfo?.trainNumber}</span>
-            </div>
-            <div className="summary-item">
-              <span>乘车人数：</span>
-              <span>{orderData.passengers?.length}人</span>
-            </div>
-            <div className="summary-item">
-              <span>总金额：</span>
-              <span className="price">¥{orderData.totalPrice}</span>
-            </div>
+            <div className="simple-desc">欢迎购买铁路乘意险</div>
           </div>
         </div>
         

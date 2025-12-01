@@ -9,6 +9,7 @@ import LoginModal from '../components/LoginModal';
 import Footer from '../components/Footer';
 import './TrainListPage.css';
 import './HomePage.css';
+import Navbar from '../components/Navbar';
 
 interface TrainInfo {
   trainNo: string;
@@ -359,21 +360,7 @@ const TrainListPage: React.FC = () => {
         </div>
       </header>
 
-      {/* 导航栏：与首页一致，当前页高亮“车票” */}
-      <nav className="navbar">
-        <div className="nav-container">
-          <ul className="nav-links">
-            <li><a href="/">首页</a></li>
-            <li><a href="/train-list" className="active">车票</a></li>
-            <li><a href="#">团购服务</a></li>
-            <li><a href="#">会员服务</a></li>
-            <li><a href="#">站车服务</a></li>
-            <li><a href="#">商旅服务</a></li>
-            <li><a href="#">出行指南</a></li>
-            <li><a href="#">信息查询</a></li>
-          </ul>
-        </div>
-      </nav>
+      <Navbar active="tickets" />
 
       {/* 查询条件区域 */}
       <SearchConditions

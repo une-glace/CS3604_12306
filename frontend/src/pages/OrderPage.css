@@ -639,6 +639,51 @@
   box-shadow: none;
 }
 
+.pay-container {
+  width: 980px;
+  margin: 16px auto;
+}
+
+.pay-banner {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 80px;
+  padding: 12px 16px;
+  background: #fffbe6;
+  border: 1px solid #ffe58f;
+  border-radius: 0px;
+}
+
+.pay-banner .banner-icon {
+  width: 36px;
+  height: 36px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: #ffe58f;
+  border: 1px solid #fadb14;
+  font-size: 20px;
+  color: #b36b00;
+}
+
+.pay-banner .banner-text {
+  flex: 1;
+  font-size: 14px;
+  color: #333;
+}
+
+.pay-banner .countdown {
+  font-size: 16px;
+  font-weight: 700;
+  color: #fa7f2d;
+}
+
+.pay-banner .countdown .count-mm,
+.pay-banner .countdown .count-ss {
+  font-size: 18px;
+}
+
 /* 响应式设计 */
 @media (max-width: 1200px) {
   .order-container {
@@ -990,7 +1035,7 @@
   margin-top: 12px;
   background: #fffbe6; /* 淡黄色背景 */
   border: 1px solid #ffe58f; /* 边框与背景协调 */
-  border-radius: 6px;
+  border-radius: 0px;
   padding: 12px 16px;
   color: #8c6d1f; /* 与背景协调的文字颜色 */
 }
@@ -1001,7 +1046,7 @@
 }
 .warm-tips-list {
   margin: 0;
-  padding-left: 18px; /* 让编号对齐 */
+  padding-left: 0;
 }
 .warm-tips-list li {
   margin-bottom: 6px;
@@ -1010,3 +1055,81 @@
 .warm-tips .link {
   color: #1e88e5;
 }
+
+/* 支付订单页样式 */
+.pay-order-page { background: #fff; }
+.pay-container {
+  width: 100%;
+  max-width: 980px;
+  margin: 16px auto;
+  padding: 0 12px;
+}
+.pay-banner {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: #fff;
+  border: 1px solid #3399FF;
+  border-radius: 0px;
+  padding: 12px 16px;
+  color: #333;
+  min-height: 80px;
+}
+.banner-icon {
+  width: 28px;
+  height: 28px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: #e6f7ff;
+}
+.countdown { color: #ff8c00; font-weight: 700; display: inline; }
+.count-mm, .count-ss { font-size: 18px; }
+
+.pay-card {
+  margin-top: 12px;
+  border: 1px solid #3399FF;
+  border-radius: 0px;
+  overflow: hidden;
+  background: #fff;
+}
+.pay-card-header {
+  background: linear-gradient(135deg, #4a90e2 0%, #357abd 100%);
+  color: #fff;
+  border-bottom: 1px solid #357abd;
+  padding: 6px 12px;
+  font-size: 14px;
+  font-weight: 200;
+  max-height: 32px;
+  border-radius: 6px;
+}
+.pay-card-body { padding: 12px; }
+.pay-info-row { display: flex; align-items: baseline; gap: 8px; color: #333; font-size: 16px; font-weight: 700;}
+.pay-info-train .pay-train-strong { font-weight: 700; color: #040405; }
+.train-suffix { font-size: 14px; font-weight: 400; color: #666; }
+.depart-strong { font-weight: 700; }
+.station-strong { font-weight: 700; }
+.station-suffix { font-size: 10px; font-weight: 400; color: #666; margin-left: 2px; }
+.arrival-small { font-size: 10px; }
+.sp { white-space: pre; }
+
+.pay-passenger-table { border: 1px solid #e6f0fc; border-radius: 6px; overflow: hidden; margin-top: 12px; }
+.pay-table-header, .pay-table-row { display: grid; grid-template-columns: 60px 60px 100px 1fr 100px 100px 80px 100px 120px; align-items: center; }
+.pay-table-header { background: #f8f8f8; color: #555; height: 28.5px; padding: 0 12px; font-size: 13px; }
+.pay-table-row { height: 33px; padding: 0 12px; border-top: 1px solid #f0f0f0; font-size: 14px; }
+.pay-table-header > div, .pay-table-row > div { text-align: left; justify-self: start; }
+
+.pay-insurance { margin-top: 12px; display: flex; align-items: center; gap: 12px; }
+.ins-text { color: #666; }
+.ins-btn { border: 1px solid #cfe1ff; background: #fff; color: #090909; border-radius: 4px; padding: 4px 10px; cursor: pointer; }
+
+.pay-card-footer { display: flex; flex-direction: column; align-items: stretch; padding: 12px; }
+.pay-total-row { display: flex; justify-content: flex-end; align-items: baseline; gap: 8px; color: #333; padding: 4px 0; }
+.pay-total-row .total-val { color: #de8920; font-weight: 400; font-size: 12px; }
+.pay-divider { height: 1px; background: #9ec9ff; margin: 8px 0; }
+.pay-action-row { display: flex; justify-content: center; gap: 12px; padding: 8px 0; }
+.cancel-btn { border: 1px solid #cfe1ff; background: #fff; color: #333; border-radius: 4px; padding: 6px 16px; cursor: pointer; max-width: 100px; }
+.pay-btn { background: #fa8c16; color: #fff; border: none; border-radius: 4px; padding: 6px 16px; cursor: pointer; }
+.pay-btn:hover { background: #f57c00; }
+.detail-passenger-table .pay-table-header, .detail-passenger-table .pay-table-row { grid-template-columns: 60px 60px 100px 1fr 100px 100px 80px 100px 120px 100px; }
