@@ -7,58 +7,46 @@ Run npm run test:e2e --prefix frontend
 
 
 Running 26 tests using 2 workers
-·FFFF·FFFFF·F·FFF··FFFFFF·
+··F··F·········F··········
 
-  1) [chromium] › tests/e2e/book-from-list.spec.ts:4:3 › 从列表点击预订稳定用例 › 点击预订进入订单页（有列表则点击，无列表则跳过） ────
+  1) [chromium] › tests/e2e/filters.spec.ts:18:3 › 车次筛选与条件修改 › 仅显示 D-动车 ────────────────────────────
 
-    Error: expect(page).toHaveURL(expected) failed
-
-    Expected pattern: /\/order/
-    Received string:  "http://localhost:5174/train-list?from=%E5%8C%97%E4%BA%AC%E5%8D%97&to=%E4%B8%8A%E6%B5%B7%E8%99%B9%E6%A1%A5&date=2025-12-15"
-    Timeout: 5000ms
-
+    TimeoutError: locator.click: Timeout 15000ms exceeded.
     Call log:
-      - Expect "toHaveURL" with timeout 5000ms
-        9 × unexpected value "http://localhost:5174/train-list?from=%E5%8C%97%E4%BA%AC%E5%8D%97&to=%E4%B8%8A%E6%B5%B7%E8%99%B9%E6%A1%A5&date=2025-12-15"
+      - waiting for getByRole('button', { name: '查询', exact: true })
+        - locator resolved to <button class="search-button">查询</button>
+      - attempting click action
+        2 × waiting for element to be visible, enabled and stable
+          - element is visible, enabled and stable
+          - scrolling into view if needed
+          - done scrolling
+          - <div class="col-title">更多</div> from <nav class="navbar">…</nav> subtree intercepts pointer events
+        - retrying click action
+        - waiting 20ms
+        2 × waiting for element to be visible, enabled and stable
+          - element is visible, enabled and stable
+          - scrolling into view if needed
+          - done scrolling
+          - <div class="col-title">更多</div> from <nav class="navbar">…</nav> subtree intercepts pointer events
+        - retrying click action
+          - waiting 100ms
+        29 × waiting for element to be visible, enabled and stable
+           - element is visible, enabled and stable
+           - scrolling into view if needed
+           - done scrolling
+           - <div class="col-title">更多</div> from <nav class="navbar">…</nav> subtree intercepts pointer events
+         - retrying click action
+           - waiting 500ms
 
 
-      21 |     if (await btn.count()) {
-      22 |       await btn.click();
-    > 23 |       await expect(page).toHaveURL(/\/order/);
-         |                          ^
-      24 |     } else {
-      25 |       await expect(page).toHaveURL(/\/train-list/);
-      26 |     }
-        at /home/runner/work/CS3604_12306/CS3604_12306/frontend/tests/e2e/book-from-list.spec.ts:23:26
-
-    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
-    test-results/book-from-list-从列表点击预订稳定用例-点击预订进入订单页（有列表则点击，无列表则跳过）-chromium/test-failed-1.png
-    ────────────────────────────────────────────────────────────────────────────────────────────────
-
-    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
-    test-results/book-from-list-从列表点击预订稳定用例-点击预订进入订单页（有列表则点击，无列表则跳过）-chromium/video.webm
-    ────────────────────────────────────────────────────────────────────────────────────────────────
-
-    Error Context: test-results/book-from-list-从列表点击预订稳定用例-点击预订进入订单页（有列表则点击，无列表则跳过）-chromium/error-context.md
-
-  2) [chromium] › tests/e2e/filters.spec.ts:18:3 › 车次筛选与条件修改 › 仅显示 D-动车 ────────────────────────────
-
-    Error: locator.click: Error: strict mode violation: locator('a[href="/train-list"]') resolved to 2 elements:
-        1) <a href="/train-list">车票</a> aka getByRole('link', { name: '车票', exact: true })
-        2) <a href="/train-list" class="ticket-item">单程</a> aka getByLabel('车票').getByText('单程')
-
-    Call log:
-      - waiting for locator('a[href="/train-list"]')
-
-
-       5 |     await page.goto('/');
-       6 |     // 使用顶部“车票”入口进入列表，确保统一导航
-    >  7 |     await page.locator('a[href="/train-list"]').click();
-         |                                                 ^
-       8 |     await expect(page).toHaveURL(/\/train-list/);
-       9 |     // 设置查询条件为北京南→上海虹桥 2025-12-15
-      10 |     await page.fill('.station-selector .station-item:first-child .station-input', '北京南');
-        at /home/runner/work/CS3604_12306/CS3604_12306/frontend/tests/e2e/filters.spec.ts:7:49
+      11 |     await page.fill('.station-selector .station-item:last-child .station-input', '上海虹桥');
+      12 |     await page.fill('#departure-date', '2025-12-15');
+    > 13 |     await page.getByRole('button', { name: '查询', exact: true }).click();
+         |                                                                 ^
+      14 |     await expect(page.locator('.result-count')).toBeVisible({ timeout: 20000 });
+      15 |     await page.locator('.loading-state').waitFor({ state: 'detached', timeout: 20000 }).catch(() => {});
+      16 |   });
+        at /home/runner/work/CS3604_12306/CS3604_12306/frontend/tests/e2e/filters.spec.ts:13:65
 
     attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
     test-results/filters-车次筛选与条件修改-仅显示-D-动车-chromium/test-failed-1.png
@@ -70,53 +58,44 @@ Running 26 tests using 2 workers
 
     Error Context: test-results/filters-车次筛选与条件修改-仅显示-D-动车-chromium/error-context.md
 
-  3) [chromium] › tests/e2e/filters.spec.ts:31:3 › 车次筛选与条件修改 › 仅显示包含一等座的车次 ─────────────────────────
+  2) [chromium] › tests/e2e/filters.spec.ts:40:3 › 车次筛选与条件修改 › 修改查询为南京→上海并刷新列表 ─────────────────────
 
-    Error: locator.click: Error: strict mode violation: locator('a[href="/train-list"]') resolved to 2 elements:
-        1) <a href="/train-list">车票</a> aka getByRole('link', { name: '车票', exact: true })
-        2) <a href="/train-list" class="ticket-item">单程</a> aka getByLabel('车票').getByText('单程')
-
+    TimeoutError: locator.click: Timeout 15000ms exceeded.
     Call log:
-      - waiting for locator('a[href="/train-list"]')
+      - waiting for getByRole('button', { name: '查询', exact: true })
+        - locator resolved to <button class="search-button">查询</button>
+      - attempting click action
+        2 × waiting for element to be visible, enabled and stable
+          - element is visible, enabled and stable
+          - scrolling into view if needed
+          - done scrolling
+          - <div class="col-title">更多</div> from <nav class="navbar">…</nav> subtree intercepts pointer events
+        - retrying click action
+        - waiting 20ms
+        2 × waiting for element to be visible, enabled and stable
+          - element is visible, enabled and stable
+          - scrolling into view if needed
+          - done scrolling
+          - <div class="col-title">更多</div> from <nav class="navbar">…</nav> subtree intercepts pointer events
+        - retrying click action
+          - waiting 100ms
+        29 × waiting for element to be visible, enabled and stable
+           - element is visible, enabled and stable
+           - scrolling into view if needed
+           - done scrolling
+           - <div class="col-title">更多</div> from <nav class="navbar">…</nav> subtree intercepts pointer events
+         - retrying click action
+           - waiting 500ms
 
 
-       5 |     await page.goto('/');
-       6 |     // 使用顶部“车票”入口进入列表，确保统一导航
-    >  7 |     await page.locator('a[href="/train-list"]').click();
-         |                                                 ^
-       8 |     await expect(page).toHaveURL(/\/train-list/);
-       9 |     // 设置查询条件为北京南→上海虹桥 2025-12-15
-      10 |     await page.fill('.station-selector .station-item:first-child .station-input', '北京南');
-        at /home/runner/work/CS3604_12306/CS3604_12306/frontend/tests/e2e/filters.spec.ts:7:49
-
-    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
-    test-results/filters-车次筛选与条件修改-仅显示包含一等座的车次-chromium/test-failed-1.png
-    ────────────────────────────────────────────────────────────────────────────────────────────────
-
-    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
-    test-results/filters-车次筛选与条件修改-仅显示包含一等座的车次-chromium/video.webm
-    ────────────────────────────────────────────────────────────────────────────────────────────────
-
-    Error Context: test-results/filters-车次筛选与条件修改-仅显示包含一等座的车次-chromium/error-context.md
-
-  4) [chromium] › tests/e2e/filters.spec.ts:40:3 › 车次筛选与条件修改 › 修改查询为南京→上海并刷新列表 ─────────────────────
-
-    Error: locator.click: Error: strict mode violation: locator('a[href="/train-list"]') resolved to 2 elements:
-        1) <a href="/train-list">车票</a> aka getByRole('link', { name: '车票', exact: true })
-        2) <a href="/train-list" class="ticket-item">单程</a> aka getByLabel('车票').getByText('单程')
-
-    Call log:
-      - waiting for locator('a[href="/train-list"]')
-
-
-       5 |     await page.goto('/');
-       6 |     // 使用顶部“车票”入口进入列表，确保统一导航
-    >  7 |     await page.locator('a[href="/train-list"]').click();
-         |                                                 ^
-       8 |     await expect(page).toHaveURL(/\/train-list/);
-       9 |     // 设置查询条件为北京南→上海虹桥 2025-12-15
-      10 |     await page.fill('.station-selector .station-item:first-child .station-input', '北京南');
-        at /home/runner/work/CS3604_12306/CS3604_12306/frontend/tests/e2e/filters.spec.ts:7:49
+      11 |     await page.fill('.station-selector .station-item:last-child .station-input', '上海虹桥');
+      12 |     await page.fill('#departure-date', '2025-12-15');
+    > 13 |     await page.getByRole('button', { name: '查询', exact: true }).click();
+         |                                                                 ^
+      14 |     await expect(page.locator('.result-count')).toBeVisible({ timeout: 20000 });
+      15 |     await page.locator('.loading-state').waitFor({ state: 'detached', timeout: 20000 }).catch(() => {});
+      16 |   });
+        at /home/runner/work/CS3604_12306/CS3604_12306/frontend/tests/e2e/filters.spec.ts:13:65
 
     attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
     test-results/filters-车次筛选与条件修改-修改查询为南京→上海并刷新列表-chromium/test-failed-1.png
@@ -128,222 +107,44 @@ Running 26 tests using 2 workers
 
     Error Context: test-results/filters-车次筛选与条件修改-修改查询为南京→上海并刷新列表-chromium/error-context.md
 
-  5) [chromium] › tests/e2e/order.spec.ts:5:3 › 订票与订单支付 › 下单并支付成功 ──────────────────────────────────
+  3) [slow-chromium] › tests/e2e/filters.spec.ts:18:3 › 车次筛选与条件修改 › 仅显示 D-动车 ───────────────────────
 
-    Error: expect(locator).toBeVisible() failed
-
-    Locator: locator('.orders-list .order-card').first().or(locator('.orders-list .empty-state'))
-    Expected: visible
-    Timeout: 15000ms
-    Error: element(s) not found
-
+    TimeoutError: locator.click: Timeout 15000ms exceeded.
     Call log:
-      - Expect "toBeVisible" with timeout 15000ms
-      - waiting for locator('.orders-list .order-card').first().or(locator('.orders-list .empty-state'))
+      - waiting for getByRole('button', { name: '查询', exact: true })
+        - locator resolved to <button class="search-button">查询</button>
+      - attempting click action
+        2 × waiting for element to be visible, enabled and stable
+          - element is visible, enabled and stable
+          - scrolling into view if needed
+          - done scrolling
+          - <div class="col-title">更多</div> from <nav class="navbar">…</nav> subtree intercepts pointer events
+        - retrying click action
+        - waiting 20ms
+        2 × waiting for element to be visible, enabled and stable
+          - element is visible, enabled and stable
+          - scrolling into view if needed
+          - done scrolling
+          - <div class="col-title">更多</div> from <nav class="navbar">…</nav> subtree intercepts pointer events
+        - retrying click action
+          - waiting 100ms
+        29 × waiting for element to be visible, enabled and stable
+           - element is visible, enabled and stable
+           - scrolling into view if needed
+           - done scrolling
+           - <div class="col-title">更多</div> from <nav class="navbar">…</nav> subtree intercepts pointer events
+         - retrying click action
+           - waiting 500ms
 
 
-       98 |     const paidList = page.locator('.orders-list .order-card').first();
-       99 |     const paidEmpty = page.locator('.orders-list .empty-state');
-    > 100 |     await expect(paidList.or(paidEmpty)).toBeVisible({ timeout: 15000 });
-          |                                          ^
-      101 |     // 未完成订单（等同于未支付）
-      102 |     await page.getByTestId('orders-tab-unfinished').click();
-      103 |     await page.locator('.orders-section .loading-state').waitFor({ state: 'detached', timeout: 15000 }).catch(() => {});
-        at /home/runner/work/CS3604_12306/CS3604_12306/frontend/tests/e2e/order.spec.ts:100:42
-
-    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
-    test-results/order-订票与订单支付-下单并支付成功-chromium/test-failed-1.png
-    ────────────────────────────────────────────────────────────────────────────────────────────────
-
-    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
-    test-results/order-订票与订单支付-下单并支付成功-chromium/video.webm
-    ────────────────────────────────────────────────────────────────────────────────────────────────
-
-    Error Context: test-results/order-订票与订单支付-下单并支付成功-chromium/error-context.md
-
-  6) [chromium] › tests/e2e/orders-center.spec.ts:5:3 › 订单中心列表 › 未出行与未完成列表断言 ───────────────────────
-
-    Error: expect(locator).toBeVisible() failed
-
-    Locator: locator('.orders-list .order-card').first().or(locator('.orders-list .empty-state'))
-    Expected: visible
-    Timeout: 15000ms
-    Error: element(s) not found
-
-    Call log:
-      - Expect "toBeVisible" with timeout 15000ms
-      - waiting for locator('.orders-list .order-card').first().or(locator('.orders-list .empty-state'))
-
-
-      49 |     const paidList = page.locator('.orders-list .order-card').first();
-      50 |     const paidEmpty = page.locator('.orders-list .empty-state');
-    > 51 |     await expect(paidList.or(paidEmpty)).toBeVisible({ timeout: 15000 });
-         |                                          ^
-      52 |     // 切换“未完成订单”（未支付）
-      53 |     await page.getByTestId('orders-tab-unfinished').click();
-      54 |     await page.locator('.orders-section .loading-state').waitFor({ state: 'detached', timeout: 15000 }).catch(() => {});
-        at /home/runner/work/CS3604_12306/CS3604_12306/frontend/tests/e2e/orders-center.spec.ts:51:42
-
-    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
-    test-results/orders-center-订单中心列表-未出行与未完成列表断言-chromium/test-failed-1.png
-    ────────────────────────────────────────────────────────────────────────────────────────────────
-
-    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
-    test-results/orders-center-订单中心列表-未出行与未完成列表断言-chromium/video.webm
-    ────────────────────────────────────────────────────────────────────────────────────────────────
-
-    Error Context: test-results/orders-center-订单中心列表-未出行与未完成列表断言-chromium/error-context.md
-
-  7) [chromium] › tests/e2e/orders-pay.spec.ts:4:3 › 订单中心未完成订单去支付 › 点击去支付后订单进入未出行列表 ────────────────
-
-    Error: expect(locator).toBeVisible() failed
-
-    Locator: locator('.orders-list .order-card .pay-btn').first()
-    Expected: visible
-    Timeout: 15000ms
-    Error: element(s) not found
-
-    Call log:
-      - Expect "toBeVisible" with timeout 15000ms
-      - waiting for locator('.orders-list .order-card .pay-btn').first()
-
-
-      62 |     // 点击首个“去支付”按钮
-      63 |     const payBtn = page.locator('.orders-list .order-card .pay-btn').first();
-    > 64 |     await expect(payBtn).toBeVisible({ timeout: 15000 });
-         |                          ^
-      65 |     await payBtn.click();
-      66 |
-      67 |     // 等待支付弹窗并接受“支付成功”提示
-        at /home/runner/work/CS3604_12306/CS3604_12306/frontend/tests/e2e/orders-pay.spec.ts:64:26
-
-    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
-    test-results/orders-pay-订单中心未完成订单去支付-点击去支付后订单进入未出行列表-chromium/test-failed-1.png
-    ────────────────────────────────────────────────────────────────────────────────────────────────
-
-    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
-    test-results/orders-pay-订单中心未完成订单去支付-点击去支付后订单进入未出行列表-chromium/video.webm
-    ────────────────────────────────────────────────────────────────────────────────────────────────
-
-    Error Context: test-results/orders-pay-订单中心未完成订单去支付-点击去支付后订单进入未出行列表-chromium/error-context.md
-
-  8) [chromium] › tests/e2e/passenger-view.spec.ts:5:3 › 常用乘车人-查看 › 鉴于用户已登录；当进入乘车人管理；那么默认乘客显示在列表中；并且至少一条记录 
-
-    Error: expect(locator).toBeVisible() failed
-
-    Locator: getByRole('heading', { name: '乘车人管理' })
-    Expected: visible
-    Timeout: 5000ms
-    Error: element(s) not found
-
-    Call log:
-      - Expect "toBeVisible" with timeout 5000ms
-      - waiting for getByRole('heading', { name: '乘车人管理' })
-
-
-      49 |     await page.getByRole('button', { name: '乘车人' }).click();
-      50 |     await page.locator('.loading-container .loading').waitFor({ state: 'detached', timeout: 15000 }).catch(() => {});
-    > 51 |     await expect(page.getByRole('heading', { name: '乘车人管理' })).toBeVisible();
-         |                                                                ^
-      52 |
-      53 |     const rows = page.locator('.passenger-table .table-row');
-      54 |     await expect(rows.first().or(page.locator('.passenger-table .empty-state'))).toBeVisible({ timeout: 20000 });
-        at /home/runner/work/CS3604_12306/CS3604_12306/frontend/tests/e2e/passenger-view.spec.ts:51:64
-
-    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
-    test-results/passenger-view-常用乘车人-查看-鉴于-c67e3-乘车人管理；那么默认乘客显示在列表中；并且至少一条记录-chromium/test-failed-1.png
-    ────────────────────────────────────────────────────────────────────────────────────────────────
-
-    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
-    test-results/passenger-view-常用乘车人-查看-鉴于-c67e3-乘车人管理；那么默认乘客显示在列表中；并且至少一条记录-chromium/video.webm
-    ────────────────────────────────────────────────────────────────────────────────────────────────
-
-    Error Context: test-results/passenger-view-常用乘车人-查看-鉴于-c67e3-乘车人管理；那么默认乘客显示在列表中；并且至少一条记录-chromium/error-context.md
-
-  9) [chromium] › tests/e2e/passengers.spec.ts:10:3 › 常用乘车人管理 › 添加两名乘车人并删除其中一名 ─────────────────────
-
-    Error: expect(locator).toBeVisible() failed
-
-    Locator: getByRole('heading', { name: '乘车人管理' })
-    Expected: visible
-    Timeout: 5000ms
-    Error: element(s) not found
-
-    Call log:
-      - Expect "toBeVisible" with timeout 5000ms
-      - waiting for getByRole('heading', { name: '乘车人管理' })
-
-
-      10 |   test('添加两名乘车人并删除其中一名', async ({ page }) => {
-      11 |     await page.getByRole('button', { name: '乘车人' }).click();
-    > 12 |     await expect(page.getByRole('heading', { name: '乘车人管理' })).toBeVisible();
-         |                                                                ^
-      13 |
-      14 |     // 生成合法的中国身份证号：前17位 + 校验位
-      15 |     const weights = [7,9,10,5,8,4,2,1,6,3,7,9,10,5,8,4,2];
-        at /home/runner/work/CS3604_12306/CS3604_12306/frontend/tests/e2e/passengers.spec.ts:12:64
-
-    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
-    test-results/passengers-常用乘车人管理-添加两名乘车人并删除其中一名-chromium/test-failed-1.png
-    ────────────────────────────────────────────────────────────────────────────────────────────────
-
-    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
-    test-results/passengers-常用乘车人管理-添加两名乘车人并删除其中一名-chromium/video.webm
-    ────────────────────────────────────────────────────────────────────────────────────────────────
-
-    Error Context: test-results/passengers-常用乘车人管理-添加两名乘车人并删除其中一名-chromium/error-context.md
-
-  10) [chromium] › tests/e2e/personal-info.spec.ts:5:3 › 个人信息编辑 › 修改邮箱并保存 ──────────────────────────
-
-    Error: expect(locator).toBeVisible() failed
-
-    Locator: locator('h2').filter({ hasText: '个人信息' })
-    Expected: visible
-    Timeout: 5000ms
-    Error: element(s) not found
-
-    Call log:
-      - Expect "toBeVisible" with timeout 5000ms
-      - waiting for locator('h2').filter({ hasText: '个人信息' })
-
-
-       8 |
-       9 |     await page.getByRole('button', { name: '查看个人信息' }).click();
-    > 10 |     await expect(page.locator('h2').filter({ hasText: '个人信息' })).toBeVisible();
-         |                                                                  ^
-      11 |
-      12 |     await page.locator('button.edit-btn').first().click();
-      13 |     await page.fill('#email', 'newuser@example.com');
-        at /home/runner/work/CS3604_12306/CS3604_12306/frontend/tests/e2e/personal-info.spec.ts:10:66
-
-    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
-    test-results/personal-info-个人信息编辑-修改邮箱并保存-chromium/test-failed-1.png
-    ────────────────────────────────────────────────────────────────────────────────────────────────
-
-    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
-    test-results/personal-info-个人信息编辑-修改邮箱并保存-chromium/video.webm
-    ────────────────────────────────────────────────────────────────────────────────────────────────
-
-    Error Context: test-results/personal-info-个人信息编辑-修改邮箱并保存-chromium/error-context.md
-
-  11) [slow-chromium] › tests/e2e/filters.spec.ts:18:3 › 车次筛选与条件修改 › 仅显示 D-动车 ──────────────────────
-
-    Error: locator.click: Error: strict mode violation: locator('a[href="/train-list"]') resolved to 2 elements:
-        1) <a href="/train-list">车票</a> aka getByRole('link', { name: '车票', exact: true })
-        2) <a href="/train-list" class="ticket-item">单程</a> aka getByLabel('车票').getByText('单程')
-
-    Call log:
-      - waiting for locator('a[href="/train-list"]')
-
-
-       5 |     await page.goto('/');
-       6 |     // 使用顶部“车票”入口进入列表，确保统一导航
-    >  7 |     await page.locator('a[href="/train-list"]').click();
-         |                                                 ^
-       8 |     await expect(page).toHaveURL(/\/train-list/);
-       9 |     // 设置查询条件为北京南→上海虹桥 2025-12-15
-      10 |     await page.fill('.station-selector .station-item:first-child .station-input', '北京南');
-        at /home/runner/work/CS3604_12306/CS3604_12306/frontend/tests/e2e/filters.spec.ts:7:49
+      11 |     await page.fill('.station-selector .station-item:last-child .station-input', '上海虹桥');
+      12 |     await page.fill('#departure-date', '2025-12-15');
+    > 13 |     await page.getByRole('button', { name: '查询', exact: true }).click();
+         |                                                                 ^
+      14 |     await expect(page.locator('.result-count')).toBeVisible({ timeout: 20000 });
+      15 |     await page.locator('.loading-state').waitFor({ state: 'detached', timeout: 20000 }).catch(() => {});
+      16 |   });
+        at /home/runner/work/CS3604_12306/CS3604_12306/frontend/tests/e2e/filters.spec.ts:13:65
 
     attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
     test-results/filters-车次筛选与条件修改-仅显示-D-动车-slow-chromium/test-failed-1.png
@@ -355,281 +156,9 @@ Running 26 tests using 2 workers
 
     Error Context: test-results/filters-车次筛选与条件修改-仅显示-D-动车-slow-chromium/error-context.md
 
-  12) [slow-chromium] › tests/e2e/filters.spec.ts:31:3 › 车次筛选与条件修改 › 仅显示包含一等座的车次 ───────────────────
-
-    Error: locator.click: Error: strict mode violation: locator('a[href="/train-list"]') resolved to 2 elements:
-        1) <a href="/train-list">车票</a> aka getByRole('link', { name: '车票', exact: true })
-        2) <a href="/train-list" class="ticket-item">单程</a> aka getByLabel('车票').getByText('单程')
-
-    Call log:
-      - waiting for locator('a[href="/train-list"]')
-
-
-       5 |     await page.goto('/');
-       6 |     // 使用顶部“车票”入口进入列表，确保统一导航
-    >  7 |     await page.locator('a[href="/train-list"]').click();
-         |                                                 ^
-       8 |     await expect(page).toHaveURL(/\/train-list/);
-       9 |     // 设置查询条件为北京南→上海虹桥 2025-12-15
-      10 |     await page.fill('.station-selector .station-item:first-child .station-input', '北京南');
-        at /home/runner/work/CS3604_12306/CS3604_12306/frontend/tests/e2e/filters.spec.ts:7:49
-
-    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
-    test-results/filters-车次筛选与条件修改-仅显示包含一等座的车次-slow-chromium/test-failed-1.png
-    ────────────────────────────────────────────────────────────────────────────────────────────────
-
-    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
-    test-results/filters-车次筛选与条件修改-仅显示包含一等座的车次-slow-chromium/video.webm
-    ────────────────────────────────────────────────────────────────────────────────────────────────
-
-    Error Context: test-results/filters-车次筛选与条件修改-仅显示包含一等座的车次-slow-chromium/error-context.md
-
-  13) [slow-chromium] › tests/e2e/filters.spec.ts:40:3 › 车次筛选与条件修改 › 修改查询为南京→上海并刷新列表 ───────────────
-
-    Error: locator.click: Error: strict mode violation: locator('a[href="/train-list"]') resolved to 2 elements:
-        1) <a href="/train-list">车票</a> aka getByRole('link', { name: '车票', exact: true })
-        2) <a href="/train-list" class="ticket-item">单程</a> aka getByLabel('车票').getByText('单程')
-
-    Call log:
-      - waiting for locator('a[href="/train-list"]')
-
-
-       5 |     await page.goto('/');
-       6 |     // 使用顶部“车票”入口进入列表，确保统一导航
-    >  7 |     await page.locator('a[href="/train-list"]').click();
-         |                                                 ^
-       8 |     await expect(page).toHaveURL(/\/train-list/);
-       9 |     // 设置查询条件为北京南→上海虹桥 2025-12-15
-      10 |     await page.fill('.station-selector .station-item:first-child .station-input', '北京南');
-        at /home/runner/work/CS3604_12306/CS3604_12306/frontend/tests/e2e/filters.spec.ts:7:49
-
-    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
-    test-results/filters-车次筛选与条件修改-修改查询为南京→上海并刷新列表-slow-chromium/test-failed-1.png
-    ────────────────────────────────────────────────────────────────────────────────────────────────
-
-    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
-    test-results/filters-车次筛选与条件修改-修改查询为南京→上海并刷新列表-slow-chromium/video.webm
-    ────────────────────────────────────────────────────────────────────────────────────────────────
-
-    Error Context: test-results/filters-车次筛选与条件修改-修改查询为南京→上海并刷新列表-slow-chromium/error-context.md
-
-  14) [slow-chromium] › tests/e2e/order.spec.ts:5:3 › 订票与订单支付 › 下单并支付成功 ────────────────────────────
-
-    Error: expect(locator).toBeVisible() failed
-
-    Locator: locator('.orders-list .order-card').first().or(locator('.orders-list .empty-state'))
-    Expected: visible
-    Timeout: 15000ms
-    Error: element(s) not found
-
-    Call log:
-      - Expect "toBeVisible" with timeout 15000ms
-      - waiting for locator('.orders-list .order-card').first().or(locator('.orders-list .empty-state'))
-
-
-       98 |     const paidList = page.locator('.orders-list .order-card').first();
-       99 |     const paidEmpty = page.locator('.orders-list .empty-state');
-    > 100 |     await expect(paidList.or(paidEmpty)).toBeVisible({ timeout: 15000 });
-          |                                          ^
-      101 |     // 未完成订单（等同于未支付）
-      102 |     await page.getByTestId('orders-tab-unfinished').click();
-      103 |     await page.locator('.orders-section .loading-state').waitFor({ state: 'detached', timeout: 15000 }).catch(() => {});
-        at /home/runner/work/CS3604_12306/CS3604_12306/frontend/tests/e2e/order.spec.ts:100:42
-
-    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
-    test-results/order-订票与���单支付-下单并支付成功-slow-chromium/test-failed-1.png
-    ────────────────────────────────────────────────────────────────────────────────────────────────
-
-    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
-    test-results/order-订票与订单支付-下单并支付成功-slow-chromium/video.webm
-    ────────────────────────────────────────────────────────────────────────────────────────────────
-
-    Error Context: test-results/order-订票与订单支付-下单并支付成功-slow-chromium/error-context.md
-
-  15) [slow-chromium] › tests/e2e/orders-center.spec.ts:5:3 › 订单中心列表 › 未出行与未完成列表断言 ─────────────────
-
-    Error: expect(locator).toBeVisible() failed
-
-    Locator: locator('.orders-list .order-card').first().or(locator('.orders-list .empty-state'))
-    Expected: visible
-    Timeout: 15000ms
-    Error: element(s) not found
-
-    Call log:
-      - Expect "toBeVisible" with timeout 15000ms
-      - waiting for locator('.orders-list .order-card').first().or(locator('.orders-list .empty-state'))
-
-
-      49 |     const paidList = page.locator('.orders-list .order-card').first();
-      50 |     const paidEmpty = page.locator('.orders-list .empty-state');
-    > 51 |     await expect(paidList.or(paidEmpty)).toBeVisible({ timeout: 15000 });
-         |                                          ^
-      52 |     // 切换“未完成订单”（未支付）
-      53 |     await page.getByTestId('orders-tab-unfinished').click();
-      54 |     await page.locator('.orders-section .loading-state').waitFor({ state: 'detached', timeout: 15000 }).catch(() => {});
-        at /home/runner/work/CS3604_12306/CS3604_12306/frontend/tests/e2e/orders-center.spec.ts:51:42
-
-    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
-    test-results/orders-center-订单中心列表-未出行与未完成列表断言-slow-chromium/test-failed-1.png
-    ────────────────────────────────────────────────────────────────────────────────────────────────
-
-    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
-    test-results/orders-center-订单中心列表-未出行与未完成列表断言-slow-chromium/video.webm
-    ────────────────────────────────────────────────────────────────────────────────────────────────
-
-    Error Context: test-results/orders-center-订单中心列表-未出行与未完成列表断言-slow-chromium/error-context.md
-
-  16) [slow-chromium] › tests/e2e/orders-pay.spec.ts:4:3 › 订单中心未完成订单去支付 › 点击去支付后订单进入未出行列表 ──────────
-
-    Error: expect(locator).toBeVisible() failed
-
-    Locator: locator('.orders-list .order-card .pay-btn').first()
-    Expected: visible
-    Timeout: 15000ms
-    Error: element(s) not found
-
-    Call log:
-      - Expect "toBeVisible" with timeout 15000ms
-      - waiting for locator('.orders-list .order-card .pay-btn').first()
-
-
-      62 |     // 点击首个“去支付”按钮
-      63 |     const payBtn = page.locator('.orders-list .order-card .pay-btn').first();
-    > 64 |     await expect(payBtn).toBeVisible({ timeout: 15000 });
-         |                          ^
-      65 |     await payBtn.click();
-      66 |
-      67 |     // 等待支付弹窗并接受“支付成功”提示
-        at /home/runner/work/CS3604_12306/CS3604_12306/frontend/tests/e2e/orders-pay.spec.ts:64:26
-
-    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
-    test-results/orders-pay-订单中心未完成订单去支付-点击去支付后订单进入未出行列表-slow-chromium/test-failed-1.png
-    ────────────────────────────────────────────────────────────────────────────────────────────────
-
-    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
-    test-results/orders-pay-订单中心未完成订单去支付-点击去支付后订单进入未出行列表-slow-chromium/video.webm
-    ────────────────────────────────────────────────────────────────────────────────────────────────
-
-    Error Context: test-results/orders-pay-订单中心未完成订单去支付-点击去支付后订单进入未出行列表-slow-chromium/error-context.md
-
-  17) [slow-chromium] › tests/e2e/passenger-view.spec.ts:5:3 › 常用乘车人-查看 › 鉴于用户已登录；当进入乘车人管理；那么默认乘客显示在列表中；并且至少一条记录 
-
-    Error: expect(locator).toBeVisible() failed
-
-    Locator: getByRole('heading', { name: '乘车人管理' })
-    Expected: visible
-    Timeout: 5000ms
-    Error: element(s) not found
-
-    Call log:
-      - Expect "toBeVisible" with timeout 5000ms
-      - waiting for getByRole('heading', { name: '乘车人管理' })
-
-
-      49 |     await page.getByRole('button', { name: '乘车人' }).click();
-      50 |     await page.locator('.loading-container .loading').waitFor({ state: 'detached', timeout: 15000 }).catch(() => {});
-    > 51 |     await expect(page.getByRole('heading', { name: '乘车人管理' })).toBeVisible();
-         |                                                                ^
-      52 |
-      53 |     const rows = page.locator('.passenger-table .table-row');
-      54 |     await expect(rows.first().or(page.locator('.passenger-table .empty-state'))).toBeVisible({ timeout: 20000 });
-        at /home/runner/work/CS3604_12306/CS3604_12306/frontend/tests/e2e/passenger-view.spec.ts:51:64
-
-    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
-    test-results/passenger-view-常用乘车人-查看-鉴于-c67e3-乘车人管理；那么默认乘客显示在列表中；并且至少一条记录-slow-chromium/test-failed-1.png
-    ────────────────────────────────────────────────────────────────────────────────────────────────
-
-    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
-    test-results/passenger-view-常用乘车人-查看-鉴于-c67e3-乘车人管理；那么默认乘客显示在列表中；并且至少一条记录-slow-chromium/video.webm
-    ────────────────────────────────────────────────────────────────────────────────────────────────
-
-    Error Context: test-results/passenger-view-常用乘车人-查看-鉴于-c67e3-乘车人管理；那么默认乘客显示在列表中；并且至少一条记录-slow-chromium/error-context.md
-
-  18) [slow-chromium] › tests/e2e/passengers.spec.ts:10:3 › 常用乘车人管理 › 添加两名乘车人并删除其中一名 ───────────────
-
-    Error: expect(locator).toBeVisible() failed
-
-    Locator: getByRole('heading', { name: '乘车人管理' })
-    Expected: visible
-    Timeout: 5000ms
-    Error: element(s) not found
-
-    Call log:
-      - Expect "toBeVisible" with timeout 5000ms
-      - waiting for getByRole('heading', { name: '乘车人管理' })
-
-
-      10 |   test('添加两名乘车人并删除其中一名', async ({ page }) => {
-      11 |     await page.getByRole('button', { name: '乘车人' }).click();
-    > 12 |     await expect(page.getByRole('heading', { name: '乘车人管理' })).toBeVisible();
-         |                                                                ^
-      13 |
-      14 |     // 生成合法的中国身份证号：前17位 + 校验位
-      15 |     const weights = [7,9,10,5,8,4,2,1,6,3,7,9,10,5,8,4,2];
-        at /home/runner/work/CS3604_12306/CS3604_12306/frontend/tests/e2e/passengers.spec.ts:12:64
-
-    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
-    test-results/passengers-常用乘车人管理-添加两名乘车人并删除其中一名-slow-chromium/test-failed-1.png
-    ────────────────────────────────────────────────────────────────────────────────────────────────
-
-    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
-    test-results/passengers-常用乘车人管理-添加两名乘车人并删除其中一名-slow-chromium/video.webm
-    ────────────────────────────────────────────────────────────────────────────────────────────────
-
-    Error Context: test-results/passengers-常用乘车人管理-添加两名乘车人并删除其中一名-slow-chromium/error-context.md
-
-  19) [slow-chromium] › tests/e2e/personal-info.spec.ts:5:3 › 个人信息编辑 › 修改邮箱并保存 ─────────────────────
-
-    Error: expect(locator).toBeVisible() failed
-
-    Locator: locator('h2').filter({ hasText: '个人信息' })
-    Expected: visible
-    Timeout: 5000ms
-    Error: element(s) not found
-
-    Call log:
-      - Expect "toBeVisible" with timeout 5000ms
-      - waiting for locator('h2').filter({ hasText: '个人信息' })
-
-
-       8 |
-       9 |     await page.getByRole('button', { name: '查看个人信息' }).click();
-    > 10 |     await expect(page.locator('h2').filter({ hasText: '个人信息' })).toBeVisible();
-         |                                                                  ^
-      11 |
-      12 |     await page.locator('button.edit-btn').first().click();
-      13 |     await page.fill('#email', 'newuser@example.com');
-        at /home/runner/work/CS3604_12306/CS3604_12306/frontend/tests/e2e/personal-info.spec.ts:10:66
-
-    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
-    test-results/personal-info-个人信息编辑-修改邮箱并保存-slow-chromium/test-failed-1.png
-    ────────────────────────────────────────────────────────────────────────────────────────────────
-
-    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
-    test-results/personal-info-个人信息编辑-修改邮箱并保存-slow-chromium/video.webm
-    ────────────────────────────────────────────────────────────────────────────────────────────────
-
-    Error Context: test-results/personal-info-个人信息编辑-修改邮箱并保存-slow-chromium/error-context.md
-
-  19 failed
-    [chromium] › tests/e2e/book-from-list.spec.ts:4:3 › 从列表点击预订稳定用例 › 点击预订进入订单页（有列表则点击，无列表则跳过） ─────
+  3 failed
     [chromium] › tests/e2e/filters.spec.ts:18:3 › 车次筛选与条件修改 › 仅显示 D-动车 ─────────────────────────────
-    [chromium] › tests/e2e/filters.spec.ts:31:3 › 车次筛选与条件修改 › 仅显示包含一等座的车次 ──────────────────────────
     [chromium] › tests/e2e/filters.spec.ts:40:3 › 车次筛选与条件修改 › 修改查询为南京→上海并刷新列表 ──────────────────────
-    [chromium] › tests/e2e/order.spec.ts:5:3 › 订票与订单支付 › 下单并支付成功 ───────────────────────────────────
-    [chromium] › tests/e2e/orders-center.spec.ts:5:3 › 订单中心列表 › 未出行与未完成列表断言 ────────────────────────
-    [chromium] › tests/e2e/orders-pay.spec.ts:4:3 › 订单中心未完成订单去支付 › 点击去支付后订单进入未出行列表 ─────────────────
-    [chromium] › tests/e2e/passenger-view.spec.ts:5:3 › 常用乘车人-查看 › 鉴于用户已登录；当进入乘车人管理；那么默认乘客显示在列表中；并且至少一条记录 
-    [chromium] › tests/e2e/passengers.spec.ts:10:3 › 常用乘车人管理 › 添加两名乘车人并删除其中一名 ──────────────────────
-    [chromium] › tests/e2e/personal-info.spec.ts:5:3 › 个人信息编辑 › 修改邮箱并保存 ────────────────────────────
     [slow-chromium] › tests/e2e/filters.spec.ts:18:3 › 车次筛选与条件修改 › 仅显示 D-动车 ────────────────────────
-    [slow-chromium] › tests/e2e/filters.spec.ts:31:3 › 车次筛选与条件修改 › 仅显示包含一等座的车次 ─────────────────────
-    [slow-chromium] › tests/e2e/filters.spec.ts:40:3 › 车次筛选与条件修改 › 修改查询为南京→上海并刷新列表 ─────────────────
-    [slow-chromium] › tests/e2e/order.spec.ts:5:3 › 订票与订单支付 › 下单并支付成功 ──────────────────────────────
-    [slow-chromium] › tests/e2e/orders-center.spec.ts:5:3 › 订单中心列表 › 未出行与未完成列表断言 ───────────────────
-    [slow-chromium] › tests/e2e/orders-pay.spec.ts:4:3 › 订单中心未完成订单去支付 › 点击去支付后订单进入未出行列表 ────────────
-    [slow-chromium] › tests/e2e/passenger-view.spec.ts:5:3 › 常用乘车人-查看 › 鉴于用户已登录；当进入乘车人管理；那么默认乘客显示在列表中；并且至少一条记录 
-    [slow-chromium] › tests/e2e/passengers.spec.ts:10:3 › 常用乘车人管理 › 添加两名乘车人并删除其中一名 ─────────────────
-    [slow-chromium] › tests/e2e/personal-info.spec.ts:5:3 › 个人信息编辑 › 修改邮箱并保存 ───────────────────────
-  7 passed (2.3m)
+  23 passed (1.7m)
 Error: Process completed with exit code 1.

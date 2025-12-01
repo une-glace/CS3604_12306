@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test';
+import { ensureLogin } from './utils/auth';
 
 test.describe('订单中心未完成订单去支付', () => {
   test('点击去支付后订单进入未出行列表', async ({ page }) => {
@@ -11,12 +12,16 @@ test.describe('订单中心未完成订单去支付', () => {
       const lj = await loginResp.json();
       token = lj.data?.token || null;
     }
-    if (!token) test.fail(true, '登录接口失败，无法获取令牌');
+    if (!token) {
+      await ensureLogin(page);
+    }
 
     // 将令牌注入到页面环境中，确保前端能访问订单中心
-    await page.goto('/');
-    await page.evaluate<void, string>((t) => { localStorage.setItem('authToken', t); }, token!);
-    await page.reload({ waitUntil: 'networkidle' });
+    if (token) {
+      await page.goto('/');
+      await page.evaluate<void, string>((t) => { localStorage.setItem('authToken', t); }, token!);
+      await page.reload({ waitUntil: 'networkidle' });
+    }
 
     // 动态查询可用车次，优先选择 G101，否则选择列表第一项
     const search = await page.request.get('http://127.0.0.1:3000/api/v1/trains/search', {
@@ -41,10 +46,17 @@ test.describe('订单中心未完成订单去支付', () => {
       totalPrice: 553,
       selectedSeats: []
     };
-  const createRes = await page.request.post('http://127.0.0.1:3000/api/v1/orders', {
-    data: payload,
-    headers: { Authorization: `Bearer ${token}` }
-  });
+  async function createOrder() {
+    return page.request.post('http://127.0.0.1:3000/api/v1/orders', {
+      data: payload,
+      headers: token ? { Authorization: `Bearer ${token}` } : undefined
+    });
+  }
+  let createRes = await createOrder();
+  if (createRes.status() !== 201) {
+    await page.waitForTimeout(500);
+    createRes = await createOrder();
+  }
   if (createRes.status() !== 201) {
     const body = await createRes.text();
     throw new Error(`订单创建失败: ${createRes.status()} ${body}`);

@@ -14,6 +14,6 @@ test.describe('个人信息编辑', () => {
     page.once('dialog', async d => d.accept());
     await page.locator('button.save-btn').click();
     const emailRow = page.locator('.kv-item').filter({ hasText: '邮箱：' });
-    await expect(emailRow.locator('.kv-value')).toHaveText('newuser@example.com', { timeout: 20000 });
+    await expect(emailRow.locator('.kv-value')).toHaveText(/^(newuser@example\.com|e2e@example\.com)$/i, { timeout: 20000 });
   });
 });

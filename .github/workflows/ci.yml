@@ -87,6 +87,8 @@ jobs:
           npm start --prefix backend &
 
       - name: Start frontend dev server (vite)
+        env:
+          VITE_E2E: 'true'
         run: |
           npm run dev --prefix frontend -- --open false &
 

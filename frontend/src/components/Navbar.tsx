@@ -8,19 +8,32 @@ interface NavbarProps {
 const Navbar: React.FC<NavbarProps> = ({ active }) => {
   const [isTicketOpen, setIsTicketOpen] = React.useState(false);
   const ticketTimerRef = React.useRef<number | null>(null);
+  const ticketOpenTimerRef = React.useRef<number | null>(null);
   const location = useLocation();
 
   const handleTicketEnter = () => {
+    if (active === 'tickets') return;
     if (ticketTimerRef.current) {
       clearTimeout(ticketTimerRef.current);
       ticketTimerRef.current = null;
     }
-    setIsTicketOpen(true);
+    if (ticketOpenTimerRef.current) {
+      clearTimeout(ticketOpenTimerRef.current);
+      ticketOpenTimerRef.current = null;
+    }
+    ticketOpenTimerRef.current = window.setTimeout(() => {
+      setIsTicketOpen(true);
+      ticketOpenTimerRef.current = null;
+    }, 220);
   };
 
   const handleTicketLeave = () => {
     if (ticketTimerRef.current) {
       clearTimeout(ticketTimerRef.current);
+    }
+    if (ticketOpenTimerRef.current) {
+      clearTimeout(ticketOpenTimerRef.current);
+      ticketOpenTimerRef.current = null;
     }
     ticketTimerRef.current = window.setTimeout(() => {
       setIsTicketOpen(false);
@@ -37,7 +50,7 @@ const Navbar: React.FC<NavbarProps> = ({ active }) => {
       <div className="nav-container">
         <ul className="nav-links">
           <li><a href="/" className={active === 'home' ? 'active' : undefined}>首页</a></li>
-          <li className="ticket-nav" onMouseEnter={handleTicketEnter} onMouseLeave={handleTicketLeave} onFocus={handleTicketEnter} onBlur={handleTicketLeave}>
+          <li className="ticket-nav" onMouseEnter={handleTicketEnter} onMouseLeave={handleTicketLeave}>
             <a href="/train-list" className={active === 'tickets' ? 'active' : undefined}>车票</a>
             <div className={`ticket-dropdown ${isTicketOpen ? 'open' : ''}`} role="menu" aria-label="车票" onMouseEnter={handleTicketEnter} onMouseLeave={handleTicketLeave}>
               <div className="ticket-grid">
