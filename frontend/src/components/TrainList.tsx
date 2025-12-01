@@ -231,23 +231,23 @@ const TrainList: React.FC<TrainListProps> = ({ trains, onTrainSelect }) => {
       <div className="train-list-header">
         <div className="header-row">
           <div className="train-info-header">
-            <div className="train-no-header">
-              车次
+            <div className="train-no-header" onClick={() => handleSort('trainNo')}>
+              车次 {renderSortIcon('trainNo')}
             </div>
             <div className="stations-header">
               <div>出发站</div>
               <div>到达站</div>
             </div>
             <div className="times-header">
-              <div className="times-sort">
-                出发时间
+              <div className="times-sort" onClick={() => handleSort('departure')}>
+                出发时间 {renderSortIcon('departure')}
               </div>
-              <div className="times-sort">
-                到达时间
+              <div className="times-sort" onClick={() => handleSort('arrival')}>
+                到达时间 {renderSortIcon('arrival')}
               </div>
             </div>
-            <div className="duration-header">
-              历时
+            <div className="duration-header" onClick={() => handleSort('duration')}>
+              历时 {renderSortIcon('duration')}
             </div>
           </div>
           <div className="seat-headers">
@@ -272,7 +272,7 @@ const TrainList: React.FC<TrainListProps> = ({ trains, onTrainSelect }) => {
         {sortedTrains.map((train, index) => (
           <div key={`${train.trainNo}-${index}`} className="train-row">
             <div className="train-info">
-              <div className="train-no">
+              <div className={`train-no ${getTrainTypeClass(train.trainType)}`}>
                 <span className="train-no-text">{train.trainNo}</span>
               </div>
               <div className="stations-info">

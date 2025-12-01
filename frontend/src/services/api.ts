@@ -43,14 +43,14 @@ const request = async (url: string, options: RequestInit = {}) => {
 export const get = (url: string) => request(url, { method: 'GET' });
 
 // POST请求
-export const post = (url: string, data?: Record<string, unknown>) =>
+export const post = (url: string, data?: unknown) =>
   request(url, {
     method: 'POST',
     body: data ? JSON.stringify(data) : undefined,
   });
 
 // PUT请求
-export const put = (url: string, data?: Record<string, unknown>) =>
+export const put = (url: string, data?: unknown) =>
   request(url, {
     method: 'PUT',
     body: data ? JSON.stringify(data) : undefined,
