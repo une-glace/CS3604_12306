@@ -1,0 +1,235 @@
+.catering-list {
+    padding: 24px;
+}
+
+.filter-card {
+    background: #fff;
+    border: 1px solid #e5e5e5;
+    border-radius: 6px;
+    padding: 12px;
+}
+
+.filter-card .row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.field {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: #fafafa;
+    border: 1px solid #e5e5e5;
+    border-radius: 4px;
+    padding: 6px 10px;
+}
+
+.field.date {
+    background: transparent;
+    border: none;
+    padding: 0;
+}
+
+.field .label {
+    color: #666;
+    font-size: 12px;
+}
+
+.field input {
+    border: none;
+    outline: none;
+    font-size: 14px;
+    background: transparent;
+    min-width: 140px;
+}
+
+.field.date input {
+    border: 1px solid #e5e5e5;
+    border-radius: 4px;
+    background: #fff;
+    padding: 8px 10px;
+    min-width: 160px;
+}
+
+.search-btn {
+    background: #ff7e00;
+    color: #fff;
+    border: none;
+    border-radius: 4px;
+    padding: 10px 18px;
+    font-size: 14px;
+    cursor: pointer;
+}
+
+.options {
+    margin-top: 12px;
+    color: #666;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.chip {
+    display: inline-flex;
+    align-items: center;
+    height: 28px;
+    padding: 0 10px;
+    border-radius: 14px;
+    border: 1px solid #e5e5e5;
+    background: #fff;
+    font-size: 12px;
+    color: #333;
+    cursor: pointer;
+}
+
+.chip.active {
+    background: #0066cc;
+    color: #fff;
+    border-color: #0066cc;
+}
+
+/* 列车自营商品 */
+.section-title {
+    font-size: 16px;
+    font-weight: bold;
+    margin: 24px 0 12px;
+    color: #f37000;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.self-operated-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 16px;
+    margin-bottom: 30px;
+}
+
+.self-operated-card {
+    background: #fff;
+    border: 1px solid #e5e5e5;
+    border-radius: 4px;
+    padding: 16px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
+.self-operated-card img {
+    width: 80px;
+    height: 80px;
+    object-fit: cover;
+}
+
+.self-operated-card .info {
+    flex: 1;
+}
+
+.self-operated-card .name {
+    font-size: 14px;
+    font-weight: 500;
+    margin-bottom: 8px;
+}
+
+.self-operated-card .price {
+    color: #ff7e00;
+    font-weight: bold;
+    font-size: 16px;
+}
+
+/* 站点部分 */
+.station-section {
+    margin-bottom: 24px;
+}
+
+.station-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 12px;
+    font-size: 15px;
+    color: #0066cc;
+    font-weight: bold;
+}
+
+.station-time {
+    color: #666;
+    font-weight: normal;
+    font-size: 13px;
+}
+
+/* 商家列表 */
+.store-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+}
+
+.store-card {
+    background: #fff;
+    border: 1px solid #e5e5e5;
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.store-content {
+    padding: 16px;
+    display: flex;
+    gap: 12px;
+}
+
+.store-logo {
+    width: 80px;
+    height: 80px;
+    border: 1px solid #f0f0f0;
+    border-radius: 4px;
+}
+
+.store-info {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+
+.store-name {
+    font-weight: bold;
+    font-size: 14px;
+    color: #333;
+}
+
+.store-meta {
+    font-size: 12px;
+    color: #999;
+    margin: 6px 0;
+}
+
+.store-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+}
+
+.tag {
+    background: #fff0e0;
+    color: #ff7e00;
+    font-size: 11px;
+    padding: 1px 4px;
+    border-radius: 2px;
+}
+
+.store-footer {
+    background: #fafafa;
+    padding: 8px 16px;
+    display: flex;
+    justify-content: space-between;
+    font-size: 12px;
+    color: #999;
+    border-top: 1px solid #f5f5f5;
+}
+
+.start-time {
+    color: #666;
+}

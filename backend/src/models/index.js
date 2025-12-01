@@ -5,6 +5,7 @@ const OrderPassenger = require('./OrderPassenger');
 const Train = require('./Train');
 const TrainSeat = require('./TrainSeat');
 const Passenger = require('./Passenger');
+const Station = require('./Station');
 
 // 定义模型关联关系
 // Order 与 OrderPassenger 的关联关系
@@ -60,6 +61,7 @@ const models = {
   Train,
   TrainSeat,
   Passenger,
+  Station,
   sequelize
 };
 
