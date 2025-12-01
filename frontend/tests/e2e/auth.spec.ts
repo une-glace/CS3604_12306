@@ -1,7 +1,7 @@
 import { test, expect } from '@playwright/test';
 
 const username = 'newuser';
-const password = 'mypassword';
+const password = 'mypassword12306';
 
 test.describe('用户认证', () => {
   test('注册流程', async ({ page }) => {
