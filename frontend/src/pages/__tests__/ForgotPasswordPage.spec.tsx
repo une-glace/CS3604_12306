@@ -20,11 +20,8 @@ describe('忘记密码-手机找回-第一步', () => {
       </AuthProvider>
     );
 
-    const inputs = screen.getAllByRole('textbox');
-    if (inputs.length >= 2) {
-      await user.type(inputs[0], '15540255343');
-      await user.type(inputs[1], '100111222233334443');
-    }
+    await user.type(screen.getByLabelText('手机号码'), '15540255343');
+    await user.type(screen.getByLabelText('证件号码'), '100111222233334443');
     await user.click(screen.getByRole('button', { name: '提交' }));
 
     await screen.findByText('请填写手机验证码：', undefined, { timeout: 2000 });

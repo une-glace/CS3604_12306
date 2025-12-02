@@ -19,8 +19,8 @@ describe('忘记密码-手机找回-第二步', () => {
         </MemoryRouter>
       </AuthProvider>
     );
-
-    const codeInput = screen.getAllByRole('textbox')[0];
+    
+    const codeInput = screen.getByLabelText('验证码');
     await user.type(codeInput, '123456');
     await user.click(screen.getByRole('button', { name: '获取手机验证码' }));
     await user.click(screen.getByRole('button', { name: '提交' }));
