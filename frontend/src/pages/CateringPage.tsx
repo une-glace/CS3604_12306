@@ -12,7 +12,7 @@ const CateringPage: React.FC = () => {
 
   const today = useMemo(() => new Date().toISOString().split('T')[0], []);
   const [date, setDate] = useState<string>(today);
-  const [trainNo, setTrainNo] = useState<string>('G10');
+  const [trainNo, setTrainNo] = useState<string>('');
   const [fromStation, setFromStation] = useState<string>('');
   const [toStation, setToStation] = useState<string>('');
 
@@ -24,7 +24,7 @@ const CateringPage: React.FC = () => {
   const handleSearch = () => {
     const params = new URLSearchParams();
     params.set('date', date);
-    params.set('train', trainNo);
+    if (trainNo.trim()) params.set('train', trainNo.trim());
     if (fromStation.trim()) params.set('from', fromStation.trim());
     if (toStation.trim()) params.set('to', toStation.trim());
     navigate(`/catering/book?${params.toString()}`);

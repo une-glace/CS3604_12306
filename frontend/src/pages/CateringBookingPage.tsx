@@ -16,7 +16,7 @@ const CateringBookingPage: React.FC = () => {
   const { user, isLoggedIn, logout } = useAuth();
 
   const dateParam = searchParams.get('date') || new Date().toISOString().split('T')[0];
-  const trainParam = searchParams.get('train') || 'G10';
+  const trainParam = searchParams.get('train') ?? '';
   const fromParam = searchParams.get('from') || '';
   const toParam = searchParams.get('to') || '';
 

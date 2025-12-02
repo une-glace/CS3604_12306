@@ -1,6 +1,8 @@
 .vendor-page { background: #fff; min-height: 100vh; }
 .vendor-main { width: 1190px; margin: 0 auto; }
 .vendor-breadcrumb { margin-top: 12px; color: #666; font-size: 12px; }
+.vendor-breadcrumb .crumb-link { background: none; border: none; color: #2a76ff; cursor: pointer; font-size: 12px; padding: 0; }
+.vendor-breadcrumb .crumb-link:hover { text-decoration: underline; }
 .vendor-header { display: flex; align-items: center; justify-content: space-between; gap: 12px; background: #fff; border: 1px solid #cfe1ff; border-radius: 6px; padding: 12px; margin-top: 8px; }
 .vendor-header-left { display: flex; align-items: center; gap: 12px; }
 .vendor-info { display: flex; flex-direction: column; }

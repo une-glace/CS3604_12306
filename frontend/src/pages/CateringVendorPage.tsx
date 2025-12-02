@@ -129,7 +129,7 @@ const CateringVendorPage: React.FC = () => {
       <Navbar />
 
       <main className="vendor-main">
-        <div className="vendor-breadcrumb">商旅服务 &gt; 餐饮•特产 &gt; {name}</div>
+        <div className="vendor-breadcrumb"><span>商旅服务</span> &gt; <button type="button" className="crumb-link" onClick={() => navigate('/catering/book')}>餐饮•特产</button> &gt; <span className="crumb-current">{name}</span></div>
         <section className="vendor-header">
           <div className="vendor-header-left">
             <img className="vendor-avatar" src={`/Food/${brand}.jpg`} alt={brand} />
