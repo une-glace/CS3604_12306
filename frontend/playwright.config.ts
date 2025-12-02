@@ -1,12 +1,13 @@
 import { defineConfig, devices } from '@playwright/test';
 
+const BASE = process.env.PW_BASE_URL || 'http://localhost:5174';
+
 export default defineConfig({
   testDir: './tests/e2e',
   timeout: 60_000,
   retries: 0,
-  workers: 1,
   use: {
-    baseURL: 'http://localhost:5174',
+    baseURL: BASE,
     trace: 'on-first-retry',
     screenshot: 'only-on-failure',
     video: 'retain-on-failure',

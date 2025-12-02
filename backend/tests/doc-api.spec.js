@@ -35,11 +35,13 @@ describe('12306 文档映射 API', () => {
     await sequelize.close();
   });
 
-  it('鉴于数据已初始化；当 注册新用户 new user；那么 返回201并给出 token', async () => {
+  it('鉴于数据已初始化；当 注册新用户 new_user；那么 返回201并给出 token', async () => {
     const res = await request(app)
       .post('/api/v1/auth/register')
       .send({
-        username: 'new user',
+        // 修改：用户名需符合后端 User 模型的正则约束 ^[a-zA-Z][a-zA-Z0-9_]*$
+        // 原用例 "new user" 含空格被 Sequelize 校验拦截，导致后续登录与鉴权失败
+        username: 'new_user',
         password: 'mypassword',
         confirmPassword: 'mypassword',
         realName: 'New User',
@@ -60,7 +62,8 @@ describe('12306 文档映射 API', () => {
   it('鉴于已注册；当 使用账号密码登录；那么 返回200并给出 token', async () => {
     const res = await request(app)
       .post('/api/v1/auth/login')
-      .send({ username: 'new user', password: 'mypassword' });
+      // 与注册保持一致：使用符合规范的用户名 new_user
+      .send({ username: 'new_user', password: 'mypassword' });
     expect(res.status).toBe(200);
     token = res.body?.data?.token;
     expect(token).toBeTruthy();

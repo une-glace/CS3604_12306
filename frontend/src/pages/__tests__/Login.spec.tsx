@@ -23,7 +23,8 @@ describe('Login component', () => {
       </MemoryRouter>
     );
     await user.type(screen.getByPlaceholderText('请输入用户名或邮箱'), 'newuser');
-    await user.type(screen.getByPlaceholderText('请输入密码'), 'mypassword');
+    // 与前端密码校验保持一致（至少两类字符）
+    await user.type(screen.getByPlaceholderText('请输入密码'), 'my_password1');
     const alertMock = vi.spyOn(window, 'alert').mockImplementation(() => {});
     await user.click(screen.getByRole('button', { name: '立即登录' }));
     alertMock.mockRestore();

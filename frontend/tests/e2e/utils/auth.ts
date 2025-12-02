@@ -1,6 +1,7 @@
 import type { Page } from '@playwright/test';
 
-export async function ensureLogin(page: Page, username = 'newuser', password = 'mypassword'): Promise<void> {
+// 说明：与前端注册校验保持一致，默认密码需包含两类字符
+export async function ensureLogin(page: Page, username = 'newuser', password = 'my_password1'): Promise<void> {
   const apiLogin = async (): Promise<string | null> => {
     const resp = await page.request.post('http://127.0.0.1:3000/api/v1/auth/login', {
       data: { username, password }
@@ -27,29 +28,34 @@ export async function ensureLogin(page: Page, username = 'newuser', password = '
     return null;
   };
 
-  await page.goto('/login');
-  await page.fill('#username', username);
-  await page.fill('#password', password);
-  try {
-    await Promise.all([
-      page.waitForEvent('dialog', { timeout: 8000 }).then(d => d.accept()),
-      page.locator('button.login-button').click()
-    ]);
-  } catch {
-    await page.waitForTimeout(10);
-  }
-  await page.waitForLoadState('networkidle').catch(() => {});
-  if (!/\/profile$/.test(page.url())) {
-    let token = await apiLogin();
-    if (!token) {
-      await page.waitForLoadState('networkidle').catch(() => {});
+  // 优先使用接口登录，提升稳定性；若失败再尝试UI登录
+  let token = await apiLogin();
+  if (!token) {
+    await page.goto('/login');
+    await page.fill('#username', username);
+    await page.fill('#password', password);
+    try {
+      await Promise.all([
+        page.waitForEvent('dialog', { timeout: 8000 }).then(d => d.accept()),
+        page.locator('button.login-button').click()
+      ]);
+    } catch {
+      await page.waitForTimeout(10);
+    }
+    await page.waitForLoadState('networkidle').catch(() => {});
+    if (!/\/profile$/.test(page.url())) {
       token = await apiLogin();
     }
-    if (token) {
-      await page.evaluate((t) => localStorage.setItem('authToken', t as string), token);
-      await page.goto('/profile');
-      await page.waitForLoadState('domcontentloaded').catch(() => {});
-      await page.locator('.profile-page').first().waitFor({ state: 'visible', timeout: 20000 }).catch(() => {});
-    }
+  }
+  if (token) {
+    // 先进入站点以初始化 origin，再写入 localStorage
+    await page.goto('/');
+    await page.waitForLoadState('domcontentloaded').catch(() => {});
+    await page.evaluate((t) => localStorage.setItem('authToken', t as string), token);
+    // 强制刷新以让 AuthProvider 重新执行 refreshUser 并设置 isLoggedIn
+    await page.reload({ waitUntil: 'networkidle' }).catch(() => {});
+    await page.goto('/profile');
+    await page.waitForLoadState('domcontentloaded').catch(() => {});
+    await page.locator('.profile-page').first().waitFor({ state: 'visible', timeout: 20000 }).catch(() => {});
   }
 }

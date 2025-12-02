@@ -1,0 +1,142 @@
+# Page snapshot
+
+```yaml
+- generic [ref=e4]:
+  - banner [ref=e5]:
+    - generic [ref=e6]:
+      - generic [ref=e7]:
+        - img "中国铁路12306" [ref=e8]
+        - generic [ref=e9]:
+          - generic [ref=e10]: 中国铁路12306
+          - generic [ref=e11]: 12306 CHINA RAILWAY
+      - generic [ref=e12]:
+        - textbox "搜索车票、 餐饮、 常旅客、 相关规章" [ref=e13]
+        - button "Q" [ref=e14] [cursor=pointer]
+      - generic [ref=e15]:
+        - link "无障碍" [ref=e16] [cursor=pointer]:
+          - /url: "#"
+        - generic [ref=e17]: "|"
+        - link "敬老版" [ref=e18] [cursor=pointer]:
+          - /url: "#"
+        - generic [ref=e19]: "|"
+        - link "English" [ref=e20] [cursor=pointer]:
+          - /url: "#"
+        - generic [ref=e21]: "|"
+        - button "我的12306" [ref=e22] [cursor=pointer]
+        - generic [ref=e23]: "|"
+        - button "登录" [ref=e24] [cursor=pointer]
+        - button "注册" [ref=e25] [cursor=pointer]
+  - navigation [ref=e26]:
+    - list [ref=e28]:
+      - listitem [ref=e29]:
+        - link "首页" [ref=e30] [cursor=pointer]:
+          - /url: /
+      - listitem [ref=e31]:
+        - link "车票" [ref=e32] [cursor=pointer]:
+          - /url: /train-list
+      - listitem [ref=e33]:
+        - link "团购服务" [ref=e34] [cursor=pointer]:
+          - /url: "#"
+      - listitem [ref=e35]:
+        - link "会员服务" [ref=e36] [cursor=pointer]:
+          - /url: "#"
+      - listitem [ref=e37]:
+        - link "站车服务" [ref=e38] [cursor=pointer]:
+          - /url: "#"
+      - listitem [ref=e39]:
+        - link "商旅服务" [ref=e40] [cursor=pointer]:
+          - /url: "#"
+      - listitem [ref=e41]:
+        - link "出行指南" [ref=e42] [cursor=pointer]:
+          - /url: "#"
+      - listitem [ref=e43]:
+        - link "信息查询" [ref=e44] [cursor=pointer]:
+          - /url: "#"
+  - main [ref=e45]:
+    - generic [ref=e46]:
+      - generic [ref=e47]:
+        - generic [ref=e48]:
+          - img "轮播一" [ref=e50]
+          - img "轮播二" [ref=e52]
+          - img "轮播三" [ref=e54]
+          - img "轮播四" [ref=e56]
+          - img "轮播五" [ref=e58]
+          - img "轮播六" [ref=e60]
+        - button "上一张" [ref=e61] [cursor=pointer]: ‹
+        - button "下一张" [ref=e62] [cursor=pointer]: ›
+        - generic [ref=e63]:
+          - button "切换到第1张" [ref=e64] [cursor=pointer]
+          - button "切换到第2张" [ref=e65] [cursor=pointer]
+          - button "切换到第3张" [ref=e66] [cursor=pointer]
+          - button "切换到第4张" [ref=e67] [cursor=pointer]
+          - button "切换到第5张" [ref=e68] [cursor=pointer]
+          - button "切换到第6张" [ref=e69] [cursor=pointer]
+      - generic [ref=e70]:
+        - button "车票" [ref=e72] [cursor=pointer]
+        - generic [ref=e73]:
+          - generic [ref=e74]:
+            - button "单程" [ref=e75]
+            - button "往返" [disabled] [ref=e76]
+            - button "中转换乘" [disabled] [ref=e77]
+            - button "退改签" [disabled] [ref=e78]
+          - generic [ref=e80]:
+            - generic [ref=e81]:
+              - generic [ref=e82]:
+                - generic [ref=e83]: 出发地
+                - combobox "出发地" [ref=e84]
+              - button "⇄" [ref=e85] [cursor=pointer]
+              - generic [ref=e86]:
+                - generic [ref=e87]: 目的地
+                - combobox "目的地" [ref=e88]
+            - generic [ref=e89]:
+              - generic [ref=e90]: 出发日期
+              - textbox "出发日期" [ref=e91]
+            - button "查 询" [ref=e92] [cursor=pointer]
+  - generic "首页服务快捷按钮" [ref=e93]:
+    - button "重点旅客预约" [ref=e94] [cursor=pointer]
+    - button "遗失物品查找" [ref=e95] [cursor=pointer]
+    - button "约车服务" [ref=e96] [cursor=pointer]
+    - button "便民托运" [ref=e97] [cursor=pointer]
+    - button "车站引导" [ref=e98] [cursor=pointer]
+    - button "站车风采" [ref=e99] [cursor=pointer]
+    - button "用户反馈" [ref=e100] [cursor=pointer]
+  - region "图文服务入口" [ref=e101]:
+    - generic [ref=e102]:
+      - img "服务宣传图一" [ref=e104]
+      - img "服务宣传图二" [ref=e106]
+      - img "服务宣传图三" [ref=e108]
+      - img "服务宣传图四" [ref=e110]
+  - region "公告与常见问题与信用信息" [ref=e111]:
+    - tablist "通知栏选项" [ref=e112]:
+      - tab "最新发布" [selected] [ref=e113] [cursor=pointer]
+      - tab "常见问题" [ref=e114] [cursor=pointer]
+      - tab "信用信息" [ref=e115] [cursor=pointer]
+    - generic [ref=e117]:
+      - list [ref=e118]:
+        - listitem [ref=e119]:
+          - link "公告" [ref=e121] [cursor=pointer]:
+            - /url: "#"
+          - generic [ref=e122]: 2024-12-11
+        - listitem [ref=e123]:
+          - link "关于优化铁路车票改签规则的公告" [ref=e125] [cursor=pointer]:
+            - /url: "#"
+          - generic [ref=e126]: 2024-01-11
+        - listitem [ref=e127]:
+          - link "铁路旅客禁止、限制携带和托运物品目录" [ref=e129] [cursor=pointer]:
+            - /url: "#"
+          - generic [ref=e130]: 2023-11-30
+        - listitem [ref=e131]:
+          - link "公告" [ref=e133] [cursor=pointer]:
+            - /url: "#"
+          - generic [ref=e134]: 2022-12-22
+        - listitem [ref=e135]:
+          - link "中国铁路上海局集团有限公司关于2025年11月16日~2025年..." [ref=e137] [cursor=pointer]:
+            - /url: "#"
+          - generic [ref=e138]: 2025-11-10
+      - link "更多>" [ref=e139] [cursor=pointer]:
+        - /url: "#"
+  - contentinfo [ref=e140]:
+    - generic [ref=e142]:
+      - paragraph [ref=e143]: 版权所有©2008-2025 中国铁道科学研究院集团有限公司 技术支持：铁旅科技有限公司
+      - paragraph [ref=e144]: 公安 京公网安备 11010802038392号 | 京ICP备05020493号-4 | ICP证：京B2-20202537 | 营业执照
+```

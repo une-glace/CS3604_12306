@@ -4,7 +4,7 @@ test.describe('订单中心未完成订单去支付', () => {
   test('点击去支付后订单进入未出行列表', async ({ page }) => {
     // 登录并获取令牌
     const loginResp = await page.request.post('http://127.0.0.1:3000/api/v1/auth/login', {
-      data: { username: 'newuser', password: 'mypassword' }
+      data: { username: 'newuser', password: 'my_password1' }
     });
     let token: string | null = null;
     if (loginResp.status() === 200) {

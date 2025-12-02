@@ -23,9 +23,9 @@
         <div class='clearfix'>
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">2.08% </span>
+                <span class="strong">1.98% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>4/192</span>
+                <span class='fraction'>4/202</span>
             </div>
         
             
@@ -44,9 +44,9 @@
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">2.08% </span>
+                <span class="strong">1.98% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>4/192</span>
+                <span class='fraction'>4/202</span>
             </div>
         
             
@@ -310,7 +310,17 @@
 <a name='L245'></a><a href='#L245'>245</a>
 <a name='L246'></a><a href='#L246'>246</a>
 <a name='L247'></a><a href='#L247'>247</a>
-<a name='L248'></a><a href='#L248'>248</a></td><td class="line-coverage quiet"><span class="cline-any cline-yes">1x</span>
+<a name='L248'></a><a href='#L248'>248</a>
+<a name='L249'></a><a href='#L249'>249</a>
+<a name='L250'></a><a href='#L250'>250</a>
+<a name='L251'></a><a href='#L251'>251</a>
+<a name='L252'></a><a href='#L252'>252</a>
+<a name='L253'></a><a href='#L253'>253</a>
+<a name='L254'></a><a href='#L254'>254</a>
+<a name='L255'></a><a href='#L255'>255</a>
+<a name='L256'></a><a href='#L256'>256</a>
+<a name='L257'></a><a href='#L257'>257</a>
+<a name='L258'></a><a href='#L258'>258</a></td><td class="line-coverage quiet"><span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -366,6 +376,17 @@
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
@@ -392,7 +413,6 @@
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
@@ -571,8 +591,8 @@ interface Passenger {
 interface AddPassengerModalProps {
   isOpen: boolean;
   onClose: () =&gt; void;
-  onAdd: (passenger: Omit&lt;Passenger, 'id'&gt;) =&gt; void;
-  onEdit?: (id: string, passenger: Omit&lt;Passenger, 'id'&gt;) =&gt; void;
+  onAdd: (passenger: Omit&lt;Passenger, 'id'&gt;) =&gt; void | Promise&lt;void&gt;;
+  onEdit?: (id: string, passenger: Omit&lt;Passenger, 'id'&gt;) =&gt; void | Promise&lt;void&gt;;
   editingPassenger?: Passenger | null;
 }
 &nbsp;
@@ -609,10 +629,21 @@ const AddPassengerModal: React.FC&lt;AddPassengerModalProps&gt; = <span class="f
 <span class="cstat-no" title="statement not covered" >      newErrors.name = '姓名需为中文（可包含·）';</span>
 <span class="cstat-no" title="statement not covered" >    }</span>
     
-<span class="cstat-no" title="statement not covered" >    if (!formData.idCard.trim()) {</span>
+<span class="cstat-no" title="statement not covered" >    const id = (formData.idCard || '').trim();</span>
+<span class="cstat-no" title="statement not covered" >    if (!id) {</span>
 <span class="cstat-no" title="statement not covered" >      newErrors.idCard = '请输入身份证号';</span>
-<span class="cstat-no" title="statement not covered" >    } else if (!/^[1-9]\d{5}(18|19|20)\d{2}((0[1-9])|(1[0-2]))(([0-2][1-9])|10|20|30|31)\d{3}[0-9Xx]$/.test(formData.idCard)) {</span>
-<span class="cstat-no" title="statement not covered" >      newErrors.idCard = '身份证号格式不正确';</span>
+<span class="cstat-no" title="statement not covered" >    } else {</span>
+      // 居民身份证：仅前端校验长度和字符范围，不做校验码计算
+<span class="cstat-no" title="statement not covered" >      if ((formData.idType || '1') === '1') {</span>
+<span class="cstat-no" title="statement not covered" >        if (id.length !== 18) {</span>
+<span class="cstat-no" title="statement not covered" >          newErrors.idCard = '身份证号格式不正确';</span>
+<span class="cstat-no" title="statement not covered" >        } else {</span>
+<span class="cstat-no" title="statement not covered" >          const pattern = /^\d{17}[0-9Xx]$/;</span>
+<span class="cstat-no" title="statement not covered" >          if (!pattern.test(id)) {</span>
+<span class="cstat-no" title="statement not covered" >            newErrors.idCard = '身份证号格式不正确';</span>
+<span class="cstat-no" title="statement not covered" >          }</span>
+<span class="cstat-no" title="statement not covered" >        }</span>
+<span class="cstat-no" title="statement not covered" >      }</span>
 <span class="cstat-no" title="statement not covered" >    }</span>
     
 <span class="cstat-no" title="statement not covered" >    if (!formData.phone.trim()) {</span>
@@ -629,7 +660,7 @@ const AddPassengerModal: React.FC&lt;AddPassengerModalProps&gt; = <span class="f
 <span class="cstat-no" title="statement not covered" >    return Object.keys(newErrors).length === 0;</span>
 <span class="cstat-no" title="statement not covered" >  };</span>
 &nbsp;
-<span class="cstat-no" title="statement not covered" >  const handleSubmit = (e: React.FormEvent) =&gt; {</span>
+<span class="cstat-no" title="statement not covered" >  const handleSubmit = async (e: React.FormEvent) =&gt; {</span>
 <span class="cstat-no" title="statement not covered" >    e.preventDefault();</span>
 <span class="cstat-no" title="statement not covered" >    if (validateForm()) {</span>
 <span class="cstat-no" title="statement not covered" >      const submitData = {</span>
@@ -639,11 +670,10 @@ const AddPassengerModal: React.FC&lt;AddPassengerModalProps&gt; = <span class="f
 <span class="cstat-no" title="statement not covered" >        passengerType: formData.passengerType,</span>
 <span class="cstat-no" title="statement not covered" >        idType: formData.idType || '1'</span>
 <span class="cstat-no" title="statement not covered" >      };</span>
-      
 <span class="cstat-no" title="statement not covered" >      if (editingPassenger &amp;&amp; onEdit) {</span>
-<span class="cstat-no" title="statement not covered" >        onEdit(editingPassenger.id, submitData);</span>
+<span class="cstat-no" title="statement not covered" >        await Promise.resolve(onEdit(editingPassenger.id, submitData));</span>
 <span class="cstat-no" title="statement not covered" >      } else {</span>
-<span class="cstat-no" title="statement not covered" >        onAdd(submitData);</span>
+<span class="cstat-no" title="statement not covered" >        await Promise.resolve(onAdd(submitData));</span>
 <span class="cstat-no" title="statement not covered" >      }</span>
 <span class="cstat-no" title="statement not covered" >      setFormData({ name: '', idCard: '', phone: '', countryCode: '+86', passengerType: '成人', idType: '1' });</span>
 <span class="cstat-no" title="statement not covered" >      setErrors({});</span>
@@ -811,7 +841,7 @@ export default AddPassengerModal;
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2025-11-21T15:19:20.308Z
+                at 2025-12-02T09:14:47.250Z
             </div>
         <script src="../../../prettify.js"></script>
         <script>

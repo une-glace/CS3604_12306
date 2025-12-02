@@ -7,7 +7,7 @@ test.describe('订单中心列表', () => {
 
     // 后端创建一笔已支付订单，以保证“未出行订单”有数据
     const apiLogin = await page.request.post('http://127.0.0.1:3000/api/v1/auth/login', {
-      data: { username: 'newuser', password: 'mypassword' }
+      data: { username: 'newuser', password: 'my_password1' }
     });
     let token: string | null = null;
     if (apiLogin.status() === 200) {

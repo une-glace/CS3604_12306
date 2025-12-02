@@ -5,7 +5,8 @@ test.describe('订票与订单支付', () => {
   test('下单并支付成功', async ({ page }) => {
     // 登录
     const apiRes = await page.request.post('http://127.0.0.1:3000/api/v1/auth/login', {
-      data: { username: 'newuser', password: 'mypassword' }
+      // 与注册一致使用复杂度密码
+      data: { username: 'newuser', password: 'my_password1' }
     });
     if (apiRes.status() === 200) {
       const data = await apiRes.json();
@@ -75,7 +76,7 @@ test.describe('订票与订单支付', () => {
     await page.getByTestId('orders-tab-not-travelled').click();
     await page.locator('.orders-section .loading-state').waitFor({ state: 'detached', timeout: 15000 }).catch(() => {});
     // 若支付流程未产生已支付订单，使用接口将最新未支付订单置为已支付
-    const apiLogin = await page.request.post('http://127.0.0.1:3000/api/v1/auth/login', { data: { username: 'newuser', password: 'mypassword' } });
+    const apiLogin = await page.request.post('http://127.0.0.1:3000/api/v1/auth/login', { data: { username: 'newuser', password: 'my_password1' } });
     if (apiLogin.status() === 200) {
       const token = (await apiLogin.json()).data?.token;
       const unpaid = await page.request.get('http://127.0.0.1:3000/api/v1/orders', {
