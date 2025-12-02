@@ -72,11 +72,12 @@ const TrainList: React.FC<TrainListProps> = ({ trains, onTrainSelect }) => {
         case 'arrival':
           comparison = a.toTime.localeCompare(b.toTime);
           break;
-        case 'duration':
+        case 'duration': {
           const aDuration = parseDuration(a.duration);
           const bDuration = parseDuration(b.duration);
           comparison = aDuration - bDuration;
           break;
+        }
         case 'trainNo':
           comparison = a.trainNo.localeCompare(b.trainNo);
           break;
@@ -144,7 +145,7 @@ const TrainList: React.FC<TrainListProps> = ({ trains, onTrainSelect }) => {
 
   // 合并座位信息显示（例如 商务/特等、优选/一等）
   const renderMergedSeatInfo = (train: TrainInfo, keys: (keyof TrainInfo['seats'])[]) => {
-    const normalize = (v: any) => {
+    const normalize = (v: string | number | undefined | null) => {
       if (v === undefined || v === null) return { count: 0, available: false, wait: false };
       if (typeof v === 'number') return { count: v, available: v > 0, wait: false };
       if (typeof v === 'string') {
@@ -164,7 +165,7 @@ const TrainList: React.FC<TrainListProps> = ({ trains, onTrainSelect }) => {
     let hasAvailable = false;
     let hasWait = false;
     keys.forEach(k => {
-      const v = normalize((train.seats as any)[k]);
+      const v = normalize(train.seats[k]);
       total += v.count;
       hasAvailable = hasAvailable || v.available;
       hasWait = hasWait || v.wait;

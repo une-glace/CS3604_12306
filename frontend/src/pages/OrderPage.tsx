@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import AddPassengerModal from '../components/AddPassengerModal';
@@ -189,7 +189,7 @@ const OrderPage: React.FC = () => {
   }, [location, user]);
 
   // 刷新乘车人列表
-  const refreshPassengers = async () => {
+  const refreshPassengers = useCallback(async () => {
     try {
       const { getPassengers } = await import('../services/passengerService');
       const passengerList = await getPassengers();
@@ -227,7 +227,7 @@ const OrderPage: React.FC = () => {
     } catch (error) {
       console.error('刷新乘车人信息失败:', error);
     }
-  };
+  }, [user, selectedPassengers]);
 
   const handlePassengerSelect = (passengerId: string) => {
     const isSelected = selectedPassengers.includes(passengerId);

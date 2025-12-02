@@ -31,8 +31,9 @@ const ForgotPasswordVerifyPage: React.FC = () => {
         return;
       }
       setCooldown(60);
-    } catch (e: any) {
-      alert(e?.message || '发送验证码失败');
+    } catch (e: unknown) {
+      const msg = e instanceof Error ? e.message : '发送验证码失败';
+      alert(msg);
       setSending(false);
     }
   };
@@ -55,8 +56,9 @@ const ForgotPasswordVerifyPage: React.FC = () => {
       } else {
         alert(resp.message || '验证码校验失败');
       }
-    } catch (e: any) {
-      alert(e?.message || '验证码校验失败');
+    } catch (e: unknown) {
+      const msg = e instanceof Error ? e.message : '验证码校验失败';
+      alert(msg);
     } finally {
       setVerifying(false);
     }

@@ -118,8 +118,12 @@ const Login: React.FC<LoginProps> = ({ onNavigateToRegister }) => {
           alert(response.message || '登录失败，请重试');
         }
       }
-    } catch (error: any) {
-      alert(error?.message || '登录失败，请重试');
+    } catch (error: unknown) {
+      if (error instanceof Error) {
+        alert(error.message);
+      } else {
+        alert('登录失败，请重试');
+      }
     } finally {
       setIsLoading(false);
     }

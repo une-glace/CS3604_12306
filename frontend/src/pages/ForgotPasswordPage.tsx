@@ -26,8 +26,9 @@ const ForgotPasswordPage: React.FC = () => {
       } else {
         alert(resp.message || '账户校验失败，请检查手机号与证件号码');
       }
-    } catch (e: any) {
-      alert(e?.message || '账户校验失败，请检查手机号与证件号码');
+    } catch (e: unknown) {
+      const msg = e instanceof Error ? e.message : '账户校验失败，请检查手机号与证件号码';
+      alert(msg);
     } finally {
       setIsLoading(false);
     }

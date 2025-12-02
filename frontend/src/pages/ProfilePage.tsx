@@ -107,7 +107,7 @@ const ProfilePage: React.FC = () => {
       try {
         const passengerList = await apiGetPassengers();
         // 强制保证首位为登录用户本人
-        let normalized = passengerList.slice();
+        const normalized = passengerList.slice();
         if (user) {
           const hasSelf = normalized.some(p => p.isDefault || (p.name === user.realName && p.idCard === user.idNumber));
           if (!hasSelf) {
@@ -165,6 +165,179 @@ const ProfilePage: React.FC = () => {
     }
   }, [user]);
 
+  const fetchOrders = React.useCallback(async (page = 1, status = orderFilter) => {
+    try {
+      setIsLoadingOrders(true);
+      const { fetchUserOrdersFormatted, getOrderDetail } = await import('../services/orderService');
+      const data = await fetchUserOrdersFormatted(page, orderPagination.limit, status);
+      const formattedOrders = data.orders;
+      setOrders(formattedOrders);
+      setOrderPagination(data.pagination);
+
+      const enriched = await Promise.all(formattedOrders.map(async (o: Order) => {
+        const hasSeat = (o.passengers && o.passengers[0]?.seatNumber) || (o.seat && o.seat !== '待分配');
+        if (hasSeat) return o;
+        try {
+          const localById = localStorage.getItem(`orderSeatAssignments:${o.id}`);
+          const localByNum = localStorage.getItem(`orderSeatAssignments:${o.orderNumber}`);
+          let local = localById || localByNum;
+          if (!local) {
+            for (let i = 0; i < localStorage.length; i++) {
+              const k = localStorage.key(i) || '';
+              if (k.startsWith('orderSeatAssignments:')) {
+                const v = localStorage.getItem(k);
+                if (v) {
+                  try {
+                    const parsed = JSON.parse(v);
+                    if (parsed && parsed.orderNumber && String(parsed.orderNumber) === String(o.orderNumber)) { local = v; break; }
+                  } catch (e) { console.warn('解析本地键失败', e); }
+                }
+              }
+            }
+          }
+          if (local) {
+            const parsed = JSON.parse(local) as { passengers?: Array<{ name: string; seatNumber?: string; carriage?: string | number; seatType?: string }> };
+            const lp = Array.isArray(parsed.passengers) ? parsed.passengers : [];
+            if (lp.length > 0) {
+              const p0 = lp[0];
+              const pad2 = (val: string | number) => String(val).padStart(2, '0');
+              const cleanSeat = (s: string) => String(s).replace(/号$/u, '');
+              const seatText = (p0.carriage && p0.seatNumber) ? `${pad2(p0.carriage)}车${cleanSeat(p0.seatNumber)}` : (o.seat || '待分配');
+              return { ...o, seat: seatText, passengers: lp };
+            }
+          }
+        } catch (e) { console.warn('读取本地座位映射失败', e); }
+        try {
+          let detail: unknown;
+          try { if (o.id) detail = await getOrderDetail(String(o.id)); } catch (e) { console.warn('按ID获取订单详情失败', e); }
+          if (!detail) { try { detail = await getOrderDetail(String(o.orderNumber)); } catch (e) { console.warn('按订单号获取订单详情失败', e); } }
+          const d1 = detail as Record<string, unknown> | null | undefined;
+          const maybePassengers = d1 && Array.isArray((d1 as Record<string, unknown>).passengers) ? (d1 as Record<string, unknown>).passengers as unknown[] : undefined;
+          const maybeData = d1 && typeof (d1 as Record<string, unknown>).data === 'object' ? (d1 as Record<string, unknown>).data as Record<string, unknown> : undefined;
+          const maybeOrder = maybeData && typeof maybeData.order === 'object' ? (maybeData.order as Record<string, unknown>) : undefined;
+          const passengers = Array.isArray(maybePassengers) ? maybePassengers : (Array.isArray(maybeOrder?.passengers) ? (maybeOrder!.passengers as unknown[]) : []);
+          if (Array.isArray(passengers) && passengers.length > 0) {
+            const p0 = passengers[0] as { passengerName?: string; name?: string; seatNumber?: string; seatType?: string; carriage?: string | number };
+            const carriage = p0.carriage;
+            const seatNumber = p0.seatNumber;
+            const pad2 = (val: string | number) => String(val).padStart(2, '0');
+            const cleanSeat = (s: string) => String(s).replace(/号$/u, '');
+            const seatText = (carriage && seatNumber) ? `${pad2(carriage)}车${cleanSeat(seatNumber)}` : (o.seat || '待分配');
+            return { ...o, seat: seatText, passengers: [{ name: p0.passengerName || p0.name || '未知', seatNumber, seatType: p0.seatType, carriage }] };
+          }
+          const maybeSeat = d1 && typeof (d1 as Record<string, unknown>).seat === 'string' ? (d1 as Record<string, unknown>).seat as string : undefined;
+          const rawSeat = typeof maybeOrder?.seat === 'string' ? (maybeOrder!.seat as string) : maybeSeat;
+          if (typeof rawSeat === 'string' && rawSeat && rawSeat !== '待分配') {
+            const m = rawSeat.match(/^(\d{1,2})车(\S+)$/);
+            if (m) {
+              const carriage = m[1];
+              const seatNumber = m[2];
+              const pad2 = (val: string | number) => String(val).padStart(2, '0');
+              const cleanSeat = (s: string) => String(s).replace(/号$/u, '');
+              const seatText = `${pad2(carriage)}车${cleanSeat(seatNumber)}`;
+              return { ...o, seat: seatText, passengers: [{ name: o.passenger || '未知', seatNumber, seatType: '二等座', carriage }] };
+            }
+          }
+        } catch (e) { console.warn('补充订单详情失败', e); }
+        return o;
+      }));
+      setOrders(enriched);
+    } catch (error) {
+      console.error('获取订单错误:', error);
+      try {
+        const token = localStorage.getItem('authToken');
+        const params = new URLSearchParams({ page: String(page), limit: String(orderPagination.limit) });
+        if (status && status !== 'all') params.append('status', status);
+        const response = await fetch(`http://localhost:3000/api/v1/orders?${params}`, { headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' } });
+        if (response.ok) {
+          const data = await response.json();
+          if (data.success) {
+            const formattedOrders = data.data.orders.map((order: unknown) => {
+              const o = order as { id?: string; orderId?: string; trainNumber?: string; fromStation?: string; toStation?: string; departureTime?: string; arrivalTime?: string; departureDate?: string; orderDate?: string; bookDate?: string; createdAt?: unknown; passengers?: Array<{ passengerName?: string; name?: string; seatNumber?: string; seatType?: string; carriage?: string | number }>; totalPrice?: number; status?: string };
+              return ({ id: o.id || '', orderNumber: o.orderId || '', trainNumber: o.trainNumber || '', departure: o.fromStation || '', arrival: o.toStation || '', departureTime: o.departureTime || '', arrivalTime: o.arrivalTime || '', date: o.departureDate || '', bookDate: o.orderDate || o.bookDate || (o.createdAt ? String(o.createdAt).slice(0,10) : undefined), tripDate: o.departureDate || '', passenger: (o.passengers && o.passengers[0]?.passengerName) ? String(o.passengers[0]!.passengerName) : '未知', seat: (o.passengers && o.passengers[0]?.seatNumber) ? String(o.passengers[0]!.seatNumber) : '待分配', passengers: Array.isArray(o.passengers) ? o.passengers.map(p => ({ name: p.passengerName || p.name || '未知', seatNumber: p.seatNumber, seatType: p.seatType, carriage: p.carriage })) : undefined, price: o.totalPrice || 0, status: (o.status === 'unpaid' ? 'unpaid' : o.status === 'paid' ? 'paid' : o.status === 'cancelled' ? 'cancelled' : o.status === 'refunded' ? 'refunded' : o.status === 'completed' ? 'completed' : 'unpaid') });
+            });
+            setOrders(formattedOrders);
+            setOrderPagination({ page: data.data.pagination.page, limit: data.data.pagination.limit, total: data.data.pagination.total, totalPages: data.data.pagination.totalPages });
+            try {
+              const { getOrderDetail } = await import('../services/orderService');
+              const enriched = await Promise.all(formattedOrders.map(async (o: Order) => {
+                const hasSeat = (o.passengers && o.passengers[0]?.seatNumber) || (o.seat && o.seat !== '待分配');
+                if (hasSeat) return o;
+                try {
+                  const localById = localStorage.getItem(`orderSeatAssignments:${o.id}`);
+                  const localByNum = localStorage.getItem(`orderSeatAssignments:${o.orderNumber}`);
+                  let local = localById || localByNum;
+                  if (!local) {
+                    for (let i = 0; i < localStorage.length; i++) {
+                      const k = localStorage.key(i) || '';
+                      if (k.startsWith('orderSeatAssignments:')) {
+                        const v = localStorage.getItem(k);
+                        if (v) {
+                          try { const parsed = JSON.parse(v); if (parsed && parsed.orderNumber && String(parsed.orderNumber) === String(o.orderNumber)) { local = v; break; } } catch (e) { console.warn('解析本地键失败', e); }
+                        }
+                      }
+                    }
+                  }
+                  if (local) {
+                    const parsed = JSON.parse(local) as { passengers?: Array<{ name: string; seatNumber?: string; carriage?: string | number; seatType?: string }> };
+                    const lp = Array.isArray(parsed.passengers) ? parsed.passengers : [];
+                    if (lp.length > 0) {
+                      const p0 = lp[0];
+                      const pad2 = (val: string | number) => String(val).padStart(2, '0');
+                      const cleanSeat = (s: string) => String(s).replace(/号$/u, '');
+                      const seatText = (p0.carriage && p0.seatNumber) ? `${pad2(p0.carriage)}车${cleanSeat(p0.seatNumber)}` : (o.seat || '待分配');
+                      return { ...o, seat: seatText, passengers: lp };
+                    }
+                  }
+                } catch (e) { console.warn('读取本地座位映射失败', e); }
+                try {
+                  let detail: unknown;
+                  try { if (o.id) detail = await getOrderDetail(String(o.id)); } catch (e) { console.warn('按ID获取订单详情失败', e); }
+                  if (!detail) { try { detail = await getOrderDetail(String(o.orderNumber)); } catch (e) { console.warn('按订单号获取订单详情失败', e); } }
+                  const d1 = detail as Record<string, unknown> | null | undefined;
+                  const maybePassengers = d1 && Array.isArray((d1 as Record<string, unknown>).passengers) ? (d1 as Record<string, unknown>).passengers as unknown[] : undefined;
+                  const maybeData = d1 && typeof (d1 as Record<string, unknown>).data === 'object' ? (d1 as Record<string, unknown>).data as Record<string, unknown> : undefined;
+                  const maybeOrder = maybeData && typeof maybeData.order === 'object' ? (maybeData.order as Record<string, unknown>) : undefined;
+                  const passengers = Array.isArray(maybePassengers) ? maybePassengers : (Array.isArray(maybeOrder?.passengers) ? (maybeOrder!.passengers as unknown[]) : []);
+                  if (Array.isArray(passengers) && passengers.length > 0) {
+                    const p0 = passengers[0] as { passengerName?: string; name?: string; seatNumber?: string; seatType?: string; carriage?: string | number };
+                    const carriage = p0.carriage;
+                    const seatNumber = p0.seatNumber;
+                    const pad2 = (val: string | number) => String(val).padStart(2, '0');
+                    const cleanSeat = (s: string) => String(s).replace(/号$/u, '');
+                    const seatText = (carriage && seatNumber) ? `${pad2(carriage)}车${cleanSeat(seatNumber)}` : (o.seat || '待分配');
+                    return { ...o, seat: seatText, passengers: [{ name: p0.passengerName || p0.name || '未知', seatNumber, seatType: p0.seatType, carriage }] };
+                  }
+                  const maybeSeat = d1 && typeof (d1 as Record<string, unknown>).seat === 'string' ? (d1 as Record<string, unknown>).seat as string : undefined;
+                  const rawSeat = typeof maybeOrder?.seat === 'string' ? (maybeOrder!.seat as string) : maybeSeat;
+                  if (typeof rawSeat === 'string' && rawSeat && rawSeat !== '待分配') {
+                    const m = rawSeat.match(/^(\d{1,2})车(\S+)$/);
+                    if (m) {
+                      const carriage = m[1];
+                      const seatNumber = m[2];
+                      const pad2 = (val: string | number) => String(val).padStart(2, '0');
+                      const cleanSeat = (s: string) => String(s).replace(/号$/u, '');
+                      const seatText = `${pad2(carriage)}车${cleanSeat(seatNumber)}`;
+                      return { ...o, seat: seatText, passengers: [{ name: o.passenger || '未知', seatNumber, seatType: '二等座', carriage }] };
+                    }
+                  }
+                } catch (e) { console.warn('补充订单详情失败', e); }
+                return o;
+              }));
+              setOrders(enriched);
+            } catch (e) { console.warn('补充订单详情失败（外层）', e); }
+          }
+        } else {
+          console.error('获取订单失败:', response.statusText);
+        }
+      } catch (fallbackError) {
+        console.error('获取订单失败（回退方式也失败）:', fallbackError);
+      }
+    } finally {
+      setIsLoadingOrders(false);
+    }
+  }, [orderFilter, orderPagination.limit]);
+
   // 监听订单筛选变化 - 必须在条件渲染之前声明
   useEffect(() => {
     if (activeSection === 'orders') {
@@ -174,7 +347,7 @@ const ProfilePage: React.FC = () => {
       }, 0);
       return () => clearTimeout(timer);
     }
-  }, [orderFilter, activeSection]);
+  }, [orderFilter, activeSection, fetchOrders]);
 
   // 如果正在加载，显示加载状态
   if (isLoading) {
@@ -310,7 +483,7 @@ const ProfilePage: React.FC = () => {
       if (import.meta.env.VITE_E2E === 'true') {
         try {
           localStorage.setItem('e2eUserPatch', JSON.stringify({ email: emailInput, phoneNumber: phoneInput, countryCode: countryCodeInput }));
-        } catch {}
+        } catch (e) { console.warn('写入本地用户补丁失败', e); }
         setUserLocal({ email: emailInput, phoneNumber: phoneInput, countryCode: countryCodeInput });
         alert('修改成功');
         setIsEditingContact(false);
@@ -325,9 +498,10 @@ const ProfilePage: React.FC = () => {
       } else {
         alert(resp.message || '修改失败');
       }
-    } catch (e: any) {
+    } catch (e: unknown) {
       console.error('保存邮箱失败', e);
-      alert(e.message || '修改失败');
+      const msg = e instanceof Error ? e.message : '修改失败';
+      alert(msg);
       setIsEditingContact(false);
     }
   };
@@ -344,285 +518,6 @@ const ProfilePage: React.FC = () => {
     console.log('学生资质查询');
   };
 
-  // 获取订单列表
-  async function fetchOrders(page = 1, status = orderFilter) {
-    try {
-      setIsLoadingOrders(true);
-      
-      // 使用统一的订单服务
-      const { getUserOrders } = await import('../services/orderService');
-      const data = await getUserOrders(page, orderPagination.limit, status);
-      
-      if (data && data.orders) {
-        // 转换后端数据格式为前端格式
-         const formattedOrders = data.orders.map((order: any) => ({
-           id: order.id,
-           orderNumber: order.orderId || order.orderNumber,
-           trainNumber: order.trainNumber,
-           departure: order.fromStation || order.departure,
-           arrival: order.toStation || order.arrival,
-           departureTime: order.departureTime,
-           arrivalTime: order.arrivalTime,
-           date: order.departureDate || order.date,
-           bookDate: order.orderDate || order.bookDate || (order.createdAt ? String(order.createdAt).slice(0,10) : undefined),
-           tripDate: order.departureDate || order.date,
-           passenger: order.passengers?.[0]?.passengerName || order.passenger || '未知',
-           seat: order.passengers?.[0]?.seatNumber || order.seat || '待分配',
-            passengers: Array.isArray(order.passengers)
-              ? order.passengers.map((p: any) => ({
-                  name: p.passengerName || p.name || '未知',
-                  seatNumber: p.seatNumber,
-                  seatType: p.seatType,
-                  carriage: p.carriage,
-                }))
-              : undefined,
-           price: order.totalPrice || order.price,
-          status: (
-            order.status === 'unpaid' ? 'unpaid' :
-            order.status === 'paid' ? 'paid' :
-            order.status === 'cancelled' ? 'cancelled' :
-            order.status === 'refunded' ? 'refunded' :
-            order.status === 'completed' ? 'completed' : 'unpaid'
-          ) as 'paid' | 'unpaid' | 'cancelled' | 'refunded' | 'completed'
-         }));
-        
-        setOrders(formattedOrders);
-        setOrderPagination({
-          page: data.pagination?.page || page,
-          limit: data.pagination?.limit || orderPagination.limit,
-          total: data.pagination?.total || formattedOrders.length,
-          totalPages: Math.ceil((data.pagination?.total || formattedOrders.length) / (data.pagination?.limit || orderPagination.limit))
-        });
-
-        try {
-          const { getOrderDetail } = await import('../services/orderService');
-          const enriched = await Promise.all(formattedOrders.map(async (o: Order) => {
-            const hasSeat = (o.passengers && o.passengers[0]?.seatNumber) || (o.seat && o.seat !== '待分配');
-            if (hasSeat) return o;
-            try {
-              const localById = localStorage.getItem(`orderSeatAssignments:${o.id}`);
-              const localByNum = localStorage.getItem(`orderSeatAssignments:${o.orderNumber}`);
-              let local = localById || localByNum;
-              if (!local) {
-                // 兜底：扫描所有本地键，按同订单号匹配
-                for (let i = 0; i < localStorage.length; i++) {
-                  const k = localStorage.key(i) || '';
-                  if (k.startsWith('orderSeatAssignments:')) {
-                    const v = localStorage.getItem(k);
-                    if (v) {
-                      try {
-                        const parsed = JSON.parse(v);
-                        if (parsed && parsed.orderNumber && String(parsed.orderNumber) === String(o.orderNumber)) { local = v; break; }
-                      } catch {}
-                    }
-                  }
-                }
-              }
-              if (local) {
-                const parsed = JSON.parse(local) as { passengers?: Array<{ name: string; seatNumber?: string; carriage?: string | number; seatType?: string }> };
-                const lp = Array.isArray(parsed.passengers) ? parsed.passengers : [];
-                if (lp.length > 0) {
-                  const p0 = lp[0];
-                  const pad2 = (val: string | number) => String(val).padStart(2, '0');
-                  const cleanSeat = (s: string) => String(s).replace(/号$/u, '');
-                  const seatText = (p0.carriage && p0.seatNumber) ? `${pad2(p0.carriage)}车${cleanSeat(p0.seatNumber)}` : (o.seat || '待分配');
-                  return { ...o, seat: seatText, passengers: lp };
-                }
-              }
-            } catch {}
-            try {
-              let detail: any;
-              try {
-                if (o.id) detail = await getOrderDetail(String(o.id));
-              } catch {}
-              if (!detail) {
-                try { detail = await getOrderDetail(String(o.orderNumber)); } catch {}
-              }
-              const passengers = (detail as any)?.passengers || (detail as any)?.data?.order?.passengers || [];
-              if (Array.isArray(passengers) && passengers.length > 0) {
-                const p0 = passengers[0];
-                const carriage = p0.carriage;
-                const seatNumber = p0.seatNumber;
-                const pad2 = (val: string | number) => String(val).padStart(2, '0');
-                const cleanSeat = (s: string) => String(s).replace(/号$/u, '');
-                const seatText = (carriage && seatNumber) ? `${pad2(carriage)}车${cleanSeat(seatNumber)}` : (o.seat || '待分配');
-                return {
-                  ...o,
-                  seat: seatText,
-                  passengers: [{ name: p0.passengerName || p0.name || '未知', seatNumber, seatType: p0.seatType, carriage }]
-                };
-              }
-              // 乘客列表不可用时，尝试从详情中的 seat 文本解析
-              const rawSeat = (detail as any)?.seat || (detail as any)?.data?.order?.seat;
-              if (typeof rawSeat === 'string' && rawSeat && rawSeat !== '待分配') {
-                const m = rawSeat.match(/^(\d{1,2})车(\S+)$/);
-                if (m) {
-                  const carriage = m[1];
-                  const seatNumber = m[2];
-                  const pad2 = (val: string | number) => String(val).padStart(2, '0');
-                  const cleanSeat = (s: string) => String(s).replace(/号$/u, '');
-                  const seatText = `${pad2(carriage)}车${cleanSeat(seatNumber)}`;
-                  return { ...o, seat: seatText, passengers: [{ name: o.passenger || '未知', seatNumber, seatType: '二等座', carriage }] };
-                }
-              }
-            } catch {}
-            return o;
-          }));
-          setOrders(enriched);
-        } catch {}
-      }
-    } catch (error) {
-      console.error('获取订单错误:', error);
-      // 如果新的服务失败，回退到原来的方式
-      try {
-        const token = localStorage.getItem('authToken');
-        
-        const params = new URLSearchParams({
-          page: page.toString(),
-          limit: orderPagination.limit.toString()
-        });
-        
-        if (status && status !== 'all') {
-          params.append('status', status);
-        }
-
-        const response = await fetch(`http://localhost:3000/api/v1/orders?${params}`, {
-          headers: {
-            'Authorization': `Bearer ${token}`,
-            'Content-Type': 'application/json'
-          }
-        });
-
-        if (response.ok) {
-          const data = await response.json();
-          if (data.success) {
-            // 转换后端数据格式为前端格式
-            const formattedOrders = data.data.orders.map((order: any) => ({
-              id: order.id,
-              orderNumber: order.orderId,
-              trainNumber: order.trainNumber,
-              departure: order.fromStation,
-              arrival: order.toStation,
-              departureTime: order.departureTime,
-              arrivalTime: order.arrivalTime,
-              date: order.departureDate,
-              bookDate: order.orderDate || order.bookDate || (order.createdAt ? String(order.createdAt).slice(0,10) : undefined),
-              tripDate: order.departureDate,
-              passenger: order.passengers?.[0]?.passengerName || '未知',
-              seat: order.passengers?.[0]?.seatNumber || '待分配',
-               passengers: Array.isArray(order.passengers)
-                 ? order.passengers.map((p: any) => ({
-                     name: p.passengerName || p.name || '未知',
-                     seatNumber: p.seatNumber,
-                     seatType: p.seatType,
-                     carriage: p.carriage,
-                   }))
-                 : undefined,
-              price: order.totalPrice,
-              status: (
-                order.status === 'unpaid' ? 'unpaid' :
-                order.status === 'paid' ? 'paid' :
-                order.status === 'cancelled' ? 'cancelled' :
-                order.status === 'refunded' ? 'refunded' :
-                order.status === 'completed' ? 'completed' : 'unpaid'
-              )
-            }));
-            
-            setOrders(formattedOrders);
-            setOrderPagination({
-              page: data.data.pagination.page,
-              limit: data.data.pagination.limit,
-              total: data.data.pagination.total,
-              totalPages: data.data.pagination.totalPages
-            });
-
-        try {
-          const { getOrderDetail } = await import('../services/orderService');
-          const enriched = await Promise.all(formattedOrders.map(async (o: Order) => {
-            const hasSeat = (o.passengers && o.passengers[0]?.seatNumber) || (o.seat && o.seat !== '待分配');
-            if (hasSeat) return o;
-            try {
-              const localById = localStorage.getItem(`orderSeatAssignments:${o.id}`);
-              const localByNum = localStorage.getItem(`orderSeatAssignments:${o.orderNumber}`);
-              let local = localById || localByNum;
-              if (!local) {
-                // 兜底：扫描所有本地键，按同订单号匹配
-                for (let i = 0; i < localStorage.length; i++) {
-                  const k = localStorage.key(i) || '';
-                  if (k.startsWith('orderSeatAssignments:')) {
-                    const v = localStorage.getItem(k);
-                    if (v) {
-                      try {
-                        const parsed = JSON.parse(v);
-                        if (parsed && parsed.orderNumber && String(parsed.orderNumber) === String(o.orderNumber)) { local = v; break; }
-                      } catch {}
-                    }
-                  }
-                }
-              }
-              if (local) {
-                const parsed = JSON.parse(local) as { passengers?: Array<{ name: string; seatNumber?: string; carriage?: string | number; seatType?: string }> };
-                const lp = Array.isArray(parsed.passengers) ? parsed.passengers : [];
-                if (lp.length > 0) {
-                  const p0 = lp[0];
-                  const pad2 = (val: string | number) => String(val).padStart(2, '0');
-                  const cleanSeat = (s: string) => String(s).replace(/号$/u, '');
-                  const seatText = (p0.carriage && p0.seatNumber) ? `${pad2(p0.carriage)}车${cleanSeat(p0.seatNumber)}` : (o.seat || '待分配');
-                  return { ...o, seat: seatText, passengers: lp };
-                }
-              }
-            } catch {}
-            try {
-              let detail: any;
-              try {
-                if (o.id) detail = await getOrderDetail(String(o.id));
-              } catch {}
-              if (!detail) {
-                try { detail = await getOrderDetail(String(o.orderNumber)); } catch {}
-              }
-              const passengers = (detail as any)?.passengers || (detail as any)?.data?.order?.passengers || [];
-              if (Array.isArray(passengers) && passengers.length > 0) {
-                const p0 = passengers[0];
-                const carriage = p0.carriage;
-                const seatNumber = p0.seatNumber;
-                const pad2 = (val: string | number) => String(val).padStart(2, '0');
-                const cleanSeat = (s: string) => String(s).replace(/号$/u, '');
-                const seatText = (carriage && seatNumber) ? `${pad2(carriage)}车${cleanSeat(seatNumber)}` : (o.seat || '待分配');
-                return {
-                  ...o,
-                  seat: seatText,
-                  passengers: [{ name: p0.passengerName || p0.name || '未知', seatNumber, seatType: p0.seatType, carriage }]
-                };
-              }
-              // 乘客列表不可用时，尝试从详情中的 seat 文本解析
-              const rawSeat = (detail as any)?.seat || (detail as any)?.data?.order?.seat;
-              if (typeof rawSeat === 'string' && rawSeat && rawSeat !== '待分配') {
-                const m = rawSeat.match(/^(\d{1,2})车(\S+)$/);
-                if (m) {
-                  const carriage = m[1];
-                  const seatNumber = m[2];
-                  const pad2 = (val: string | number) => String(val).padStart(2, '0');
-                  const cleanSeat = (s: string) => String(s).replace(/号$/u, '');
-                  const seatText = `${pad2(carriage)}车${cleanSeat(seatNumber)}`;
-                  return { ...o, seat: seatText, passengers: [{ name: o.passenger || '未知', seatNumber, seatType: '二等座', carriage }] };
-                }
-              }
-            } catch {}
-            return o;
-          }));
-          setOrders(enriched);
-        } catch {}
-          }
-        } else {
-          console.error('获取订单失败:', response.statusText);
-        }
-      } catch (fallbackError) {
-        console.error('获取订单失败（回退方式也失败）:', fallbackError);
-      }
-    } finally {
-      setIsLoadingOrders(false);
-    }
-  }
 
   const handleAddPassenger = () => {
     setEditingPassenger(null);
@@ -674,7 +569,7 @@ const ProfilePage: React.FC = () => {
       if (import.meta.env.VITE_E2E !== 'true') {
         try {
           const passengerList = await apiGetPassengers();
-          let normalized = passengerList.slice();
+          const normalized = passengerList.slice();
           if (user) {
             const hasSelf = normalized.some(p => p.isDefault || (p.name === user.realName && p.idCard === user.idNumber));
             if (!hasSelf) {
@@ -690,9 +585,9 @@ const ProfilePage: React.FC = () => {
             }
           }
           setPassengers(normalized);
-        } catch {}
+        } catch (e) { console.warn('刷新后获取乘客失败', e); }
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('添加乘车人失败:', error);
       setPassengers(prev => prev.map(p => p.id === optimistic.id ? { ...p, id: `local-${Date.now()}` } : p));
     }
@@ -787,7 +682,8 @@ const ProfilePage: React.FC = () => {
       setIsPaymentModalOpen(false);
       alert('支付成功！');
       fetchOrders(orderPagination.page, orderFilter);
-    } catch (e) {
+    } catch (error) {
+      console.warn('支付状态更新失败', error);
       setIsPaymentModalOpen(false);
       alert('支付成功，但状态更新稍后刷新');
       fetchOrders(orderPagination.page, orderFilter);
@@ -849,7 +745,7 @@ const ProfilePage: React.FC = () => {
             try {
               const parsed = JSON.parse(v) as { orderNumber?: string; passengers?: Array<{ seatNumber?: string; carriage?: string | number }> };
               if (parsed && parsed.orderNumber && String(parsed.orderNumber) === String(order.orderNumber)) { local = v; break; }
-            } catch {}
+            } catch (e) { console.warn('解析本地键失败', e); }
           }
         }
       }
@@ -861,7 +757,7 @@ const ProfilePage: React.FC = () => {
           return formatSeatText(p0.carriage, p0.seatNumber, order.seat);
         }
       }
-    } catch {}
+    } catch (e) { console.warn('解析本地座位缓存失败', e); }
     return formatSeatText(undefined, undefined, order.seat || '待分配');
   };
 

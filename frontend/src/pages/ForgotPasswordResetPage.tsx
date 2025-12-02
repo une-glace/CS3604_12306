@@ -53,8 +53,9 @@ const ForgotPasswordResetPage: React.FC = () => {
       } else {
         alert(resp.message || '密码重置失败');
       }
-    } catch (e: any) {
-      alert(e?.message || '密码重置失败');
+    } catch (e: unknown) {
+      const msg = e instanceof Error ? e.message : '密码重置失败';
+      alert(msg);
     } finally {
       setLoading(false);
     }

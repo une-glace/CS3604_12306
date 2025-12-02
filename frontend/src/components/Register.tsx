@@ -147,9 +147,10 @@ const Register: React.FC<RegisterProps> = () => {
         setIsVerified(false);
         setErrors(prev => ({ ...prev, phoneVerificationCode: resp.message || '验证码输入错误，请重新输入' }));
       }
-    } catch (e: any) {
+    } catch (e: unknown) {
       setIsVerified(false);
-      setErrors(prev => ({ ...prev, phoneVerificationCode: e.message || '验证码校验失败' }));
+      const msg = e instanceof Error ? e.message : '验证码校验失败';
+      setErrors(prev => ({ ...prev, phoneVerificationCode: msg }));
     } finally {
       setIsLoading(false);
     }
@@ -265,7 +266,7 @@ const Register: React.FC<RegisterProps> = () => {
                 navigate('/profile');
                 return;
               }
-            } catch {}
+            } catch (err) { console.error('自动登录失败', err); }
           }
         } else {
           const msg = response.message || '';
@@ -278,14 +279,15 @@ const Register: React.FC<RegisterProps> = () => {
                 navigate('/profile');
                 return;
               }
-            } catch {}
+            } catch (err) { console.error('自动登录失败', err); }
           }
           alert(msg || '注册失败，请重试');
         }
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('注册失败:', error);
-      alert(error?.message || '注册失败，请重试');
+      const msg = error instanceof Error ? error.message : '注册失败，请重试';
+      alert(msg);
     } finally {
       setIsLoading(false);
     }

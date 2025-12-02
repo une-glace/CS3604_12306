@@ -50,6 +50,7 @@ const OrderConfirmModal: React.FC<OrderConfirmModalProps> = ({
   ticketInfos,
   seatInfo
 }) => {
+  const [selectedCodes, setSelectedCodes] = useState<string[]>([]);
   if (!isOpen || !trainInfo) return null;
 
   const weekDay = (dateStr: string) => {
@@ -108,7 +109,6 @@ const OrderConfirmModal: React.FC<OrderConfirmModalProps> = ({
     );
   };
 
-  const [selectedCodes, setSelectedCodes] = useState<string[]>([]);
   const toggleSeat = (code: string) => {
     setSelectedCodes(prev => {
       if (prev.includes(code)) {

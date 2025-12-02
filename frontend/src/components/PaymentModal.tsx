@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import './PaymentModal.css';
 
 interface PaymentModalProps {
@@ -35,14 +35,20 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
     onSuccessRef.current = onPaymentSuccess;
   }, [onPaymentSuccess]);
 
-  const clearTimers = () => {
+  const clearTimers = useCallback(() => {
     if (intervalRef.current !== null) { clearInterval(intervalRef.current); intervalRef.current = null; }
     if (processingRef.current !== null) { clearTimeout(processingRef.current); processingRef.current = null; }
     if (successRef.current !== null) { clearTimeout(successRef.current); successRef.current = null; }
     if (navigateRef.current !== null) { clearTimeout(navigateRef.current); navigateRef.current = null; }
-  };
+  }, []);
 
-  const startFlow = () => {
+  const generateQRCode = useCallback(() => {
+    const mockQRData = `alipay://pay?orderId=${orderData.orderId}&amount=${orderData.totalPrice}`;
+    const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(mockQRData)}`;
+    setQrCodeUrl(qrUrl);
+  }, [orderData.orderId, orderData.totalPrice]);
+
+  const startFlow = useCallback(() => {
     clearTimers();
     setPaymentStatus('waiting');
     setCountdown(900);
@@ -66,24 +72,16 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
     navigateRef.current = window.setTimeout(() => {
       if (onSuccessRef.current) onSuccessRef.current();
     }, 3500);
-  };
+  }, [clearTimers, generateQRCode]);
 
   useEffect(() => {
     if (isOpen) {
       startFlow();
       return () => { clearTimers(); };
     }
-  }, [isOpen]);
+  }, [isOpen, startFlow, clearTimers]);
 
-  const generateQRCode = () => {
-    // 模拟生成支付宝二维码
-    // 实际项目中应该调用支付宝API生成真实的二维码
-    const mockQRData = `alipay://pay?orderId=${orderData.orderId}&amount=${orderData.totalPrice}`;
-    
-    // 使用在线二维码生成服务（仅用于演示）
-    const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(mockQRData)}`;
-    setQrCodeUrl(qrUrl);
-  };
+  
 
   const formatTime = (seconds: number) => {
     const minutes = Math.floor(seconds / 60);

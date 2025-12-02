@@ -7,8 +7,8 @@ interface OrderProcessingProps {
   onComplete: () => void;
   orderData: {
     orderId: string;
-    trainInfo: any;
-    passengers: any[];
+    trainInfo: unknown;
+    passengers: unknown[];
     totalPrice: number;
   };
 }
@@ -22,20 +22,20 @@ const OrderProcessing: React.FC<OrderProcessingProps> = ({
   const [, setCurrentStep] = useState(0);
   const [, setProgress] = useState(0);
 
-  const steps = [
-    { text: '验证订单信息', duration: 1000 },
-    { text: '查询剩余席位', duration: 1500 },
-    { text: '分配座位号', duration: 2000 },
-    { text: '生成订单', duration: 1000 },
-    { text: '处理完成', duration: 500 }
-  ];
-
   useEffect(() => {
     if (!isOpen) {
       setCurrentStep(0);
       setProgress(0);
       return;
     }
+
+    const steps = [
+      { text: '验证订单信息', duration: 1000 },
+      { text: '查询剩余席位', duration: 1500 },
+      { text: '分配座位号', duration: 2000 },
+      { text: '生成订单', duration: 1000 },
+      { text: '处理完成', duration: 500 }
+    ];
 
     let stepIndex = 0;
     let progressValue = 0;

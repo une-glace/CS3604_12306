@@ -6,6 +6,7 @@ import { parseCityStationInput } from '../utils/cityStationMap';
 import FilterConditions from '../components/FilterConditions';
 import TrainList from '../components/TrainList';
 import LoginModal from '../components/LoginModal';
+import type { SearchTrainItem } from '../services/trainService';
 import Footer from '../components/Footer';
 import './TrainListPage.css';
 import './HomePage.css';
@@ -77,10 +78,10 @@ const TrainListPage: React.FC = () => {
   };
 
   // 后端查询映射函数
-  const mapToTrainInfo = (t: any): TrainInfo => {
+  const mapToTrainInfo = (t: SearchTrainItem): TrainInfo => {
     const seats: TrainInfo['seats'] = {};
-    const si = t.seatInfo || {};
-    const fmt = (item: any) => {
+    const si: SearchTrainItem['seatInfo'] = t.seatInfo ?? {} as SearchTrainItem['seatInfo'];
+    const fmt = (item: SearchTrainItem['seatInfo'][string] | undefined) => {
       if (!item) return undefined;
       if (item.availableSeats > 0) return '有';
       if (item.isAvailable === true) return '候补';
@@ -96,7 +97,7 @@ const TrainListPage: React.FC = () => {
     if (si['软卧']) seats.softSleeper = fmt(si['软卧']);
     const canBook = Object.keys(si).length === 0
       ? true
-      : Object.values(si).some((x: any) => x && x.availableSeats > 0);
+      : Object.values(si).some((x) => x && x.availableSeats > 0);
     const isHighSpeed = t.trainType === 'G' || t.trainType === 'C';
     return {
       trainNo: t.trainNumber,
@@ -146,7 +147,13 @@ const TrainListPage: React.FC = () => {
           }
         }
 
-        const searchParams: any = {
+        const searchParams: {
+          fromStation: string;
+          toStation: string;
+          departureDate: string;
+          fromStations?: string[];
+          toStations?: string[];
+        } = {
           fromStation,
           toStation,
           departureDate: departDate,
@@ -176,7 +183,13 @@ const TrainListPage: React.FC = () => {
   }, [fromStation, toStation, departDate, fromStations, toStations]);
 
   // 处理筛选条件变化（横向筛选栏）
-  const handleFiltersChange = (filters: any) => {
+  const handleFiltersChange = (filters: {
+    departureTime?: string;
+    trainTypes?: string[];
+    departureStations?: string[];
+    arrivalStations?: string[];
+    seatTypes?: string[];
+  }) => {
     let filtered = [...trains];
 
     // 发车时间筛选（单选）
@@ -248,7 +261,11 @@ const TrainListPage: React.FC = () => {
   };
 
   // 处理查询条件变化
-  const handleConditionsChange = (conditions: any) => {
+  const handleConditionsChange = (conditions: {
+    fromStation: string;
+    toStation: string;
+    departDate: string;
+  }) => {
     // 更新URL参数
     const newSearchParams = new URLSearchParams();
     newSearchParams.set('from', conditions.fromStation);
