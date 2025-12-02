@@ -200,8 +200,9 @@ const TrainListPage: React.FC = () => {
 
     // 车次类型筛选
     if (Array.isArray(filters.trainTypes) && filters.trainTypes.length > 0) {
+      const trainTypes = filters.trainTypes as string[];
       filtered = filtered.filter(train => {
-        return filters.trainTypes.some((type: string) => {
+        return trainTypes.some((type: string) => {
           if (type === 'GC') return train.trainType === 'G' || train.trainType === 'C';
           if (type === 'D') return train.trainType === 'D';
           if (type === 'Z') return train.trainType === 'Z';
@@ -247,8 +248,9 @@ const TrainListPage: React.FC = () => {
         hard_sleeper: 'hardSleeper',
         hard_seat: 'hardSeat'
       };
+      const seatTypes = filters.seatTypes as string[];
       filtered = filtered.filter(train => {
-        return filters.seatTypes.some((st: string) => {
+        return seatTypes.some((st: string) => {
           const key = seatKeyMap[st];
           if (!key) return false;
           const v = train.seats[key];
