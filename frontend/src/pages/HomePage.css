@@ -218,6 +218,37 @@
   bottom: -6px;
 }
 
+/* 商旅服务下拉菜单 */
+.biz-nav { position: static; }
+.biz-dropdown {
+  position: absolute;
+  top: 50px;
+  left: 0;
+  right: 0;
+  width: auto;
+  background: #fff;
+  border: 1px solid #e9edf2;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+  display: none;
+  z-index: 6;
+  padding: 16px 24px;
+  box-sizing: border-box;
+}
+.biz-dropdown.open { display: block; }
+.biz-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 24px;
+}
+.biz-item {
+  display: block;
+  color: #000;
+  text-decoration: none;
+  padding: 6px 0;
+  font-size: 14px;
+}
+.biz-item:hover { color: #2a76ff; }
+
 /* 主要内容区域 */
 .main-content {
   width: 100%;

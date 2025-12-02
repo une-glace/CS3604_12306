@@ -9,6 +9,9 @@ const Navbar: React.FC<NavbarProps> = ({ active }) => {
   const [isTicketOpen, setIsTicketOpen] = React.useState(false);
   const ticketTimerRef = React.useRef<number | null>(null);
   const ticketOpenTimerRef = React.useRef<number | null>(null);
+  const [isBizOpen, setIsBizOpen] = React.useState(false);
+  const bizTimerRef = React.useRef<number | null>(null);
+  const bizOpenTimerRef = React.useRef<number | null>(null);
   const location = useLocation();
 
   const handleTicketEnter = () => {
@@ -41,8 +44,38 @@ const Navbar: React.FC<NavbarProps> = ({ active }) => {
     }, 180);
   };
 
+  const handleBizEnter = () => {
+    if (bizTimerRef.current) {
+      clearTimeout(bizTimerRef.current);
+      bizTimerRef.current = null;
+    }
+    if (bizOpenTimerRef.current) {
+      clearTimeout(bizOpenTimerRef.current);
+      bizOpenTimerRef.current = null;
+    }
+    bizOpenTimerRef.current = window.setTimeout(() => {
+      setIsBizOpen(true);
+      bizOpenTimerRef.current = null;
+    }, 220);
+  };
+
+  const handleBizLeave = () => {
+    if (bizTimerRef.current) {
+      clearTimeout(bizTimerRef.current);
+    }
+    if (bizOpenTimerRef.current) {
+      clearTimeout(bizOpenTimerRef.current);
+      bizOpenTimerRef.current = null;
+    }
+    bizTimerRef.current = window.setTimeout(() => {
+      setIsBizOpen(false);
+      bizTimerRef.current = null;
+    }, 180);
+  };
+
   React.useEffect(() => {
     setIsTicketOpen(false);
+    setIsBizOpen(false);
   }, [location]);
 
   return (
@@ -78,7 +111,16 @@ const Navbar: React.FC<NavbarProps> = ({ active }) => {
           <li><a href="#">团购服务</a></li>
           <li><a href="#">会员服务</a></li>
           <li><a href="#">站车服务</a></li>
-          <li><a href="#">商旅服务</a></li>
+          <li className="biz-nav" onMouseEnter={handleBizEnter} onMouseLeave={handleBizLeave}>
+            <a href="#">商旅服务</a>
+            <div className={`biz-dropdown ${isBizOpen ? 'open' : ''}`} role="menu" aria-label="商旅服务" onMouseEnter={handleBizEnter} onMouseLeave={handleBizLeave}>
+              <div className="biz-grid">
+                <a href="/catering" className="biz-item">餐饮•特产</a>
+                <a href="#" className="biz-item">保险</a>
+                <a href="#" className="biz-item">雪具快运</a>
+              </div>
+            </div>
+          </li>
           <li><a href="#">出行指南</a></li>
           <li><a href="#">信息查询</a></li>
         </ul>
