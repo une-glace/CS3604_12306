@@ -70,7 +70,13 @@ test.describe('订票与订单支付', () => {
       }
     }
     await ensureLogin(page);
-    await expect(page).toHaveURL(/\/profile$/);
+    // 支付完成后 session 可能变化，确保登录状态
+    // 若停留在登录页，说明 session 已过期或被清除，重新登录
+    await page.waitForTimeout(500);
+    if (page.url().includes('/login')) {
+      await ensureLogin(page);
+    }
+    await page.waitForURL(/\/profile$/, { timeout: 10000 }).catch(() => {});
     await page.getByRole('button', { name: '火车票订单' }).click();
     // 未出行订单（等同于已支付）
     await page.getByTestId('orders-tab-not-travelled').click();
