@@ -43,7 +43,6 @@ const CateringBookingPage: React.FC = () => {
   const [qTo, setQTo] = React.useState<string>(baseStations.to);
 
   const date = qDate;
-  const train = qTrain;
   const fromStation = qFrom;
   const toStation = qTo;
   const departTimes = TRAIN_TIMES[qTrain.toUpperCase()] || { fromTime: '08:00', toTime: '10:00' };
@@ -84,12 +83,7 @@ const CateringBookingPage: React.FC = () => {
   const handleRegisterClick = () => navigate('/register');
   const handleProfileClick = () => navigate('/profile');
   const handleLogout = async () => { await logout(); navigate('/'); };
-
-  const handleBackToSearch = () => {
-    const p = new URLSearchParams({ date, train, from: fromStation, to: toStation });
-    navigate(`/catering?${p.toString()}`);
-  };
-
+  
   const handleQuery = () => {
     const p = new URLSearchParams();
     p.set('date', qDate);

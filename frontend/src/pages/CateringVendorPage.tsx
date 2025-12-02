@@ -61,7 +61,6 @@ const CateringVendorPage: React.FC = () => {
 
   const name = params.get('name') || '永和大王（上海虹桥站店）';
   const brand = params.get('brand') || '永和大王';
-  const station = params.get('station') || '上海虹桥';
   const minOrder = params.get('min') || '￥0.00';
   const deliveryFee = params.get('fee') || '￥8.00';
   const stopOrder = params.get('stop') || '12-02 09:00';
