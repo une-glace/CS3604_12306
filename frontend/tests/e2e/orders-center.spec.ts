@@ -3,43 +3,68 @@ import { ensureLogin } from './utils/auth';
 
 test.describe('订单中心列表', () => {
   test('未出行与未完成列表断言', async ({ page }) => {
-    await ensureLogin(page);
-
-    // 后端创建一笔已支付订单，以保证“未出行订单”有数据
-    const apiLogin = await page.request.post('http://127.0.0.1:3000/api/v1/auth/login', {
-      data: { username: 'newuser', password: 'mypassword' }
-    });
-    let token: string | null = null;
-    if (apiLogin.status() === 200) {
-      const lj = await apiLogin.json();
-      token = lj.data?.token || null;
-    }
-    if (token) {
-      const payload = {
-        trainInfo: {
-          trainNumber: 'G101', from: '北京南', to: '上海虹桥',
-          departureTime: '08:00', arrivalTime: '13:28', date: '2025-12-15', duration: '5小时28分'
-        },
-        passengers: [{ id: 'self', name: '测试用户', idCard: 'A1234567890123456', phone: '13812340001', passengerType: '成人' }],
-        ticketInfos: [{ passengerId: 'self', passengerName: '测试用户', seatType: '二等座', ticketType: '成人票', price: 553 }],
-        totalPrice: 553,
-        selectedSeats: []
-      };
-      const createRes = await page.request.post('http://127.0.0.1:3000/api/v1/orders', {
-        data: payload,
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      if (createRes.status() === 201) {
-        const cj = await createRes.json();
-        const oid = cj.data?.id;
-        if (oid) {
-          await page.request.put(`http://127.0.0.1:3000/api/v1/orders/${oid}/status`, {
-            data: { status: 'paid', paymentMethod: 'alipay', paymentTime: new Date().toISOString() },
-            headers: { Authorization: `Bearer ${token}` }
+    // Mock 订单列表接口
+    await page.route('**/api/v1/orders**', async route => {
+      const url = new URL(route.request().url());
+      const status = url.searchParams.get('status');
+      
+      if (route.request().method() === 'GET') {
+        if (status === 'paid') {
+          // 返回已支付订单
+          await route.fulfill({
+            status: 200,
+            contentType: 'application/json',
+            body: JSON.stringify({
+              success: true,
+              data: {
+                orders: [{
+                  id: 12345,
+                  status: 'paid',
+                  trainNumber: 'G101',
+                  fromStation: '北京南',
+                  toStation: '上海虹桥',
+                  departureTime: '2025-12-15T08:00:00',
+                  arrivalTime: '2025-12-15T13:28:00',
+                  totalPrice: 553,
+                  createdAt: new Date().toISOString(),
+                  paidAt: new Date().toISOString(),
+                  passengers: [{ name: '测试用户', seatType: '二等座', price: 553 }]
+                }]
+              }
+            })
           });
+        } else if (status === 'unpaid') {
+           // 返回未支付订单
+           await route.fulfill({
+            status: 200,
+            contentType: 'application/json',
+            body: JSON.stringify({
+              success: true,
+              data: {
+                orders: [{
+                  id: 67890,
+                  status: 'unpaid',
+                  trainNumber: 'G102',
+                  fromStation: '上海虹桥',
+                  toStation: '北京南',
+                  departureTime: '2025-12-16T09:00:00',
+                  arrivalTime: '2025-12-16T14:28:00',
+                  totalPrice: 553,
+                  createdAt: new Date().toISOString(),
+                  passengers: [{ name: '测试用户', seatType: '二等座', price: 553 }]
+                }]
+              }
+            })
+          });
+        } else {
+          await route.fulfill({ status: 200, body: JSON.stringify({ success: true, data: { orders: [] } }) });
         }
+      } else {
+        route.continue();
       }
-    }
+    });
+
+    await ensureLogin(page);
 
     await page.locator('.profile-page').first().waitFor({ state: 'visible', timeout: 20000 }).catch(() => {});
     await page.getByRole('button', { name: '火车票订单' }).click();

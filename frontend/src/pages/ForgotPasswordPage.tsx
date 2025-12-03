@@ -117,7 +117,7 @@ const ForgotPasswordPage: React.FC = () => {
               <select className="fp-select fp-country" value={countryCode} onChange={e => setCountryCode(e.target.value)}>
                 <option value="+86">+86</option>
               </select>
-              <input className="fp-input" type="text" placeholder="" value={phone} onChange={e => setPhone(e.target.value)} />
+              <input className="fp-input" type="text" aria-label="手机号码" placeholder="" value={phone} onChange={e => setPhone(e.target.value)} />
             </div>
             <div className="fp-hint fp-hint-ok">已通过校验的手机号码</div>
           </div>
@@ -138,7 +138,7 @@ const ForgotPasswordPage: React.FC = () => {
           <div className="fp-row">
             <label className="fp-label"><span className="fp-required">*</span> 证件号码：</label>
             <div className="fp-field-group">
-              <input className="fp-input" type="text" placeholder="" value={idNumber} onChange={e => setIdNumber(e.target.value)} />
+              <input className="fp-input" type="text" aria-label="证件号码" placeholder="" value={idNumber} onChange={e => setIdNumber(e.target.value)} />
             </div>
             <div className="fp-hint">请填写证件号码</div>
           </div>

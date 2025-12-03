@@ -171,7 +171,7 @@ const register = async (req, res) => {
       const field = first?.path;
       const key = first?.validatorKey;
       if (field === 'username' && key === 'len') message = '用户名长度必须在6-30位之间';
-      if (field === 'username' && key === 'is') message = '用户名必须以字母开头，仅字母/数字/空格/下划线';
+      if (field === 'username' && key === 'is') message = '用户名只能由字母、数字和下划线，须以字母开头';
       if (field === 'id_number' && key === 'len') message = '身份证号长度必须在15-20位之间';
       if (field === 'phone_number' && key === 'is') message = '请输入正确的手机号码';
       return res.status(400).json({
@@ -321,10 +321,28 @@ const getCurrentUser = async (req, res) => {
   }
 };
 
+// 检查用户名是否可用
+const checkUsername = async (req, res) => {
+  try {
+    const { username } = req.query || {};
+    const v = validateUsername(username);
+    if (!v.isValid) {
+      return res.status(200).json({ success: true, message: v.message, data: { available: false } });
+    }
+    const existing = await User.findOne({ where: { username } });
+    const available = !existing;
+    return res.json({ success: true, message: available ? '用户名可用' : '用户名已存在', data: { available } });
+  } catch (error) {
+    console.error('检查用户名错误:', error);
+    return res.status(500).json({ success: false, message: '服务器内部错误' });
+  }
+};
+
 module.exports = {
   register,
   login,
   getCurrentUser,
+  checkUsername,
   // 更新个人信息（目前仅支持邮箱）
   updateProfile: async (req, res) => {
     try {

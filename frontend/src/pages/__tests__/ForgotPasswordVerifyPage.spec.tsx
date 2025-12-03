@@ -2,9 +2,9 @@ import { describe, test, expect, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MemoryRouter, Routes, Route } from 'react-router-dom';
+import { AuthProvider } from '../../contexts/AuthContext';
 import ForgotPasswordVerifyPage from '../ForgotPasswordVerifyPage';
 import ForgotPasswordResetPage from '../ForgotPasswordResetPage';
-import { AuthProvider } from '../../contexts/AuthContext';
 import * as Auth from '../../services/auth';
 
 describe('忘记密码-手机找回-第二步', () => {
@@ -12,29 +12,24 @@ describe('忘记密码-手机找回-第二步', () => {
     const user = userEvent.setup();
     vi.spyOn(Auth, 'sendPhoneCode').mockResolvedValue({ success: true, message: 'ok' } as unknown as Awaited<ReturnType<typeof Auth.sendPhoneCode>>);
     vi.spyOn(Auth, 'verifyPhoneCode').mockResolvedValue({ success: true, message: 'ok' } as unknown as Awaited<ReturnType<typeof Auth.verifyPhoneCode>>);
+    
     render(
-      <MemoryRouter initialEntries={["/forgot-password/verify"]}>
-        <Routes>
-          <Route path="/forgot-password/verify" element={<AuthProvider><ForgotPasswordVerifyPage /></AuthProvider>} />
-          <Route path="/forgot-password/reset" element={<AuthProvider><ForgotPasswordResetPage /></AuthProvider>} />
-        </Routes>
-      </MemoryRouter>
+      <AuthProvider>
+        <MemoryRouter initialEntries={["/forgot-password/verify"]}>
+          <Routes>
+            <Route path="/forgot-password/verify" element={<ForgotPasswordVerifyPage />} />
+            <Route path="/forgot-password/reset" element={<ForgotPasswordResetPage />} />
+          </Routes>
+        </MemoryRouter>
+      </AuthProvider>
     );
-
-    const { container } = render(
-      <MemoryRouter initialEntries={["/forgot-password/verify"]}>
-        <Routes>
-          <Route path="/forgot-password/verify" element={<AuthProvider><ForgotPasswordVerifyPage /></AuthProvider>} />
-          <Route path="/forgot-password/reset" element={<AuthProvider><ForgotPasswordResetPage /></AuthProvider>} />
-        </Routes>
-      </MemoryRouter>
-    );
-
-    const codeInput = container.querySelector('.fp-code') as HTMLInputElement;
+    
+    const codeInput = screen.getByLabelText('验证码');
     await user.type(codeInput, '123456');
-    const submitBtn = container.querySelector('.fp-submit') as HTMLButtonElement;
-    await user.click(submitBtn);
+    await user.click(screen.getByRole('button', { name: '获取手机验证码' }));
+    await user.click(screen.getByRole('button', { name: '提交' }));
 
-    expect(await screen.findByText('新密码：')).toBeInTheDocument();
+    await screen.findByText('新密码：', undefined, { timeout: 2000 });
+    expect(screen.getByText('新密码：')).toBeInTheDocument();
   });
 });

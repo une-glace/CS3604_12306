@@ -50,10 +50,21 @@ const AddPassengerModal: React.FC<AddPassengerModalProps> = ({
       newErrors.name = '姓名需为中文（可包含·）';
     }
     
-    if (!formData.idCard.trim()) {
+    const id = (formData.idCard || '').trim();
+    if (!id) {
       newErrors.idCard = '请输入身份证号';
-    } else if (!/^[1-9]\d{5}(18|19|20)\d{2}((0[1-9])|(1[0-2]))(([0-2][1-9])|10|20|30|31)\d{3}[0-9Xx]$/.test(formData.idCard)) {
-      newErrors.idCard = '身份证号格式不正确';
+    } else {
+      // 居民身份证：仅前端校验长度和字符范围，不做校验码计算
+      if ((formData.idType || '1') === '1') {
+        if (id.length !== 18) {
+          newErrors.idCard = '身份证号格式不正确';
+        } else {
+          const pattern = /^\d{17}[0-9Xx]$/;
+          if (!pattern.test(id)) {
+            newErrors.idCard = '身份证号格式不正确';
+          }
+        }
+      }
     }
     
     if (!formData.phone.trim()) {

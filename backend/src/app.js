@@ -19,7 +19,14 @@ const PORT = process.env.PORT || 3000;
 // 中间件配置
 app.use(helmet());
 app.use(cors({
-  origin: process.env.CORS_ORIGIN || 'http://localhost:5174',
+  origin: (process.env.CORS_ORIGIN ? process.env.CORS_ORIGIN.split(',') : [
+    'http://localhost:5174',
+    'http://localhost:5175',
+    'http://127.0.0.1:5174',
+    'http://127.0.0.1:5175',
+    'http://localhost:4173',
+    'http://127.0.0.1:4173'
+  ]),
   credentials: true
 }));
 app.use(morgan('combined'));

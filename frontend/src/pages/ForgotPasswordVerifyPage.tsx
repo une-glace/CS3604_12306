@@ -147,7 +147,7 @@ const ForgotPasswordVerifyPage: React.FC = () => {
           <div className="fp-row">
             <label className="fp-label"><span className="fp-required">*</span> 请填写手机验证码：</label>
             <div className="fp-field-group">
-              <input className="fp-input fp-code" type="text" placeholder="" value={code} onChange={e => setCode(e.target.value)} />
+              <input className="fp-input fp-code" type="text" aria-label="验证码" placeholder="" value={code} onChange={e => setCode(e.target.value)} />
               <button type="button" className="fp-code-btn" onClick={onSend} disabled={sending}>
                 {sending ? `重新获取(${cooldown}s)` : '获取手机验证码'}
               </button>

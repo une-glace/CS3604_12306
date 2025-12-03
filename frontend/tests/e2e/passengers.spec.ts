@@ -8,6 +8,49 @@ test.describe('常用乘车人管理', () => {
   });
 
   test('添加两名乘车人并删除其中一名', async ({ page }) => {
+    // Mock 乘车人接口
+    const mockPassengers: any[] = [];
+    await page.route('**/api/v1/passengers**', async route => {
+      const method = route.request().method();
+      if (method === 'GET') {
+        await route.fulfill({
+          status: 200,
+          contentType: 'application/json',
+          body: JSON.stringify({ success: true, data: mockPassengers })
+        });
+      } else if (method === 'POST') {
+        const postData = route.request().postDataJSON();
+        const newPassenger = { ...postData, id: Date.now(), type: postData.passengerType };
+        mockPassengers.push(newPassenger);
+        await route.fulfill({
+          status: 201,
+          contentType: 'application/json',
+          body: JSON.stringify({ success: true, data: newPassenger })
+        });
+      } else {
+        route.continue();
+      }
+    });
+
+    await page.route('**/api/v1/passengers/*', async route => {
+      const method = route.request().method();
+      if (method === 'DELETE') {
+        const url = route.request().url();
+        const id = Number(url.split('/').pop());
+        const idx = mockPassengers.findIndex(p => p.id === id);
+        if (idx !== -1) {
+          mockPassengers.splice(idx, 1);
+        }
+        await route.fulfill({
+          status: 200,
+          contentType: 'application/json',
+          body: JSON.stringify({ success: true })
+        });
+      } else {
+        route.continue();
+      }
+    });
+
     await page.getByRole('button', { name: '乘车人' }).click();
     await expect(page.getByRole('heading', { name: '乘车人管理' })).toBeVisible();
 

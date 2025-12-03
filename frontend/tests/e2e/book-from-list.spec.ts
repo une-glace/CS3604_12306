@@ -3,7 +3,7 @@ import { test, expect } from '@playwright/test';
 test.describe('从列表点击预订稳定用例', () => {
   test('点击预订进入订单页（有列表则点击，无列表则跳过）', async ({ page }) => {
     const apiRes = await page.request.post('http://127.0.0.1:3000/api/v1/auth/login', {
-      data: { username: 'newuser', password: 'mypassword' }
+      data: { username: 'newuser', password: 'my_password1' }
     });
     if (apiRes.status() === 200) {
       const data = await apiRes.json();
