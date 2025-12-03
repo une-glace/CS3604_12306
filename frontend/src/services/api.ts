@@ -1,4 +1,9 @@
-const API_BASE_URL = 'http://127.0.0.1:3000/api/v1';
+const API_BASE_URL = (() => {
+  if (typeof window !== 'undefined') {
+    return '/api/v1';
+  }
+  return 'http://localhost:3000/api/v1';
+})();
 
 // API请求配置
 const apiConfig = {
@@ -23,7 +28,9 @@ const request = async (url: string, options: RequestInit = {}) => {
   };
 
   try {
-    const response = await fetch(`${API_BASE_URL}${url}`, config);
+    const base = API_BASE_URL.replace(/\/+$/, '');
+    const path = url.startsWith('/') ? url : `/${url}`;
+    const response = await fetch(`${base}${path}`, config);
     const data = await response.json();
 
     if (!response.ok) {

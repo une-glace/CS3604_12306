@@ -8,8 +8,8 @@ const validateUsername = (username) => {
     return { isValid: false, message: '用户名长度必须在6-30位之间' };
   }
   
-  if (!/^[a-zA-Z][a-zA-Z0-9_ ]*$/.test(username)) {
-    return { isValid: false, message: '用户名必须以字母开头，只能包含字母、数字、空格和下划线' };
+  if (!/^[a-zA-Z][a-zA-Z0-9_]*$/.test(username)) {
+    return { isValid: false, message: '用户名必须以字母开头，只能包含字母、数字和下划线' };
   }
   
   return { isValid: true };

@@ -1,5 +1,6 @@
 import { defineConfig, devices } from '@playwright/test';
 
+const BASE = process.env.PW_BASE_URL || 'http://localhost:5174';
 const isWin = process.platform === 'win32';
 const startCommand = isWin
   ? 'npm run dev'
@@ -18,7 +19,7 @@ export default defineConfig({
     env: { VITE_E2E: 'true' }
   },
   use: {
-    baseURL: 'http://localhost:5174',
+    baseURL: BASE,
     trace: 'on-first-retry',
     screenshot: 'only-on-failure',
     video: 'retain-on-failure',

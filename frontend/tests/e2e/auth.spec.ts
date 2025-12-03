@@ -1,7 +1,10 @@
 import { test, expect } from '@playwright/test';
+import { ensureLogin } from './utils/auth';
 
 const username = 'newuser';
-const password = 'mypassword';
+// 说明：前端注册页面对密码要求至少包含两类字符（字母/数字/下划线）
+// 为与前端校验一致，E2E 使用满足复杂度的示例密码
+const password = 'my_password1';
 
 test.describe('用户认证', () => {
   test('注册流程', async ({ page }) => {
@@ -58,7 +61,7 @@ test.describe('用户认证', () => {
     }
     const sendBtn = page.locator('button.send-code-btn');
     await sendBtn.click();
-    const apiResp = await page.request.post('http://127.0.0.1:3000/api/v1/auth/send-code', {
+    const apiResp = await page.request.post('/api/v1/auth/send-code', {
       data: { countryCode: '+86', phoneNumber: '13812341234' }
     });
     let code = '000000';
@@ -76,22 +79,22 @@ test.describe('用户认证', () => {
         await page.fill('#password', password);
         try {
           await Promise.all([
-            page.waitForEvent('dialog', { timeout: 8000 }).then(d => d.accept()),
+            page.waitForEvent('dialog', { timeout: 8000 }).then(d => d.accept().catch(() => {})).catch(() => {}),
             page.locator('button.login-button').click()
           ]);
         } catch {
           // UI登录失败，使用接口完成注册或登录
-          const send = await page.request.post('http://127.0.0.1:3000/api/v1/auth/send-code', { data: { countryCode: '+86', phoneNumber: '13812341234' } });
+          const send = await page.request.post('/api/v1/auth/send-code', { data: { countryCode: '+86', phoneNumber: '13812341234' } });
           const code = send.status() === 200 ? (await send.json()).code : '000000';
-          await page.request.post('http://127.0.0.1:3000/api/v1/auth/verify-code', { data: { countryCode: '+86', phoneNumber: '13812341234', code } });
-          const reg = await page.request.post('http://127.0.0.1:3000/api/v1/auth/register', {
+          await page.request.post('/api/v1/auth/verify-code', { data: { countryCode: '+86', phoneNumber: '13812341234', code } });
+          const reg = await page.request.post('/api/v1/auth/register', {
             data: { username, password, confirmPassword: password, realName: '测试用户', idType: '1', idNumber: '11010519491231002X', email: 'newuser@example.com', phoneNumber: '13812341234', countryCode: '+86', passengerType: '1' }
           });
           let token: string | null = null;
           if (reg.status() === 201 || reg.status() === 200) {
             token = (await reg.json()).data?.token || null;
           } else {
-            const loginApi = await page.request.post('http://127.0.0.1:3000/api/v1/auth/login', { data: { username, password } });
+            const loginApi = await page.request.post('/api/v1/auth/login', { data: { username, password } });
             if (loginApi.status() === 200) token = (await loginApi.json()).data?.token || null;
           }
           if (token) {
@@ -109,52 +112,7 @@ test.describe('用户认证', () => {
 
   test('账号密码登录', async ({ page }) => {
     await page.addInitScript(() => { (window as any).alert = () => {}; });
-    await page.goto('/');
-    const loginBtn = page.getByRole('button', { name: '登录' });
-    if (await loginBtn.count()) {
-      await loginBtn.click();
-      await page.fill('#username', username);
-      await page.fill('#password', password);
-      await page.locator('button.login-button').click();
-    } else {
-      await page.goto('/profile');
-      await expect(page.locator('.profile-page')).toBeVisible({ timeout: 15000 });
-      return;
-    }
-  if (!/\/profile$/.test(page.url())) {
-    try {
-      await page.goto('/profile');
-      await expect(page.locator('.profile-page')).toBeVisible({ timeout: 15000 });
-    } catch {
-      // UI登录失败，使用接口登录后重载页面
-      const apiLogin = await page.request.post('http://127.0.0.1:3000/api/v1/auth/login', { data: { username, password } });
-      let token: string | null = null;
-      if (apiLogin.status() === 200) {
-        token = (await apiLogin.json()).data?.token || null;
-      }
-      if (!token) {
-        const send = await page.request.post('http://127.0.0.1:3000/api/v1/auth/send-code', { data: { countryCode: '+86', phoneNumber: '13812341234' } });
-        const code = send.status() === 200 ? (await send.json()).code : '000000';
-        await page.request.post('http://127.0.0.1:3000/api/v1/auth/verify-code', { data: { countryCode: '+86', phoneNumber: '13812341234', code } });
-        const reg = await page.request.post('http://127.0.0.1:3000/api/v1/auth/register', {
-          data: { username, password, confirmPassword: password, realName: '测试用户', idType: '1', idNumber: '11010519491231002X', email: 'newuser@example.com', phoneNumber: '13812341234', countryCode: '+86', passengerType: '1' }
-        });
-        if (reg.status() === 201 || reg.status() === 200) {
-          token = (await reg.json()).data?.token || null;
-        } else {
-          const login2 = await page.request.post('http://127.0.0.1:3000/api/v1/auth/login', { data: { username, password } });
-          if (login2.status() === 200) token = (await login2.json()).data?.token || null;
-        }
-      }
-      if (token) {
-        await page.evaluate((t) => localStorage.setItem('authToken', t as string), token);
-        await page.reload({ waitUntil: 'networkidle' });
-        await page.goto('/profile');
-      }
-      await expect(page.locator('.profile-page')).toBeVisible({ timeout: 15000 });
-    }
-  } else {
+    await ensureLogin(page, username, password);
     await expect(page.locator('.profile-page')).toBeVisible({ timeout: 15000 });
-  }
   });
 });

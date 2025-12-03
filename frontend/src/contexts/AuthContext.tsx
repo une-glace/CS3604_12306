@@ -19,13 +19,24 @@ interface AuthProviderProps {
 }
 
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
-  const [user, setUser] = useState<User | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
+  // Initialize user from localStorage to avoid initial null state
+  const [user, setUser] = useState<User | null>(() => {
+    try {
+      const saved = localStorage.getItem('user');
+      return saved ? JSON.parse(saved) : null;
+    } catch {
+      return null;
+    }
+  });
+
+  // If user is already in localStorage, we don't need to block rendering
+  const [isLoading, setIsLoading] = useState(() => !localStorage.getItem('user'));
 
   // 登录函数
   const login = (userData: User, token: string) => {
     setUser(userData);
     localStorage.setItem('authToken', token);
+    localStorage.setItem('user', JSON.stringify(userData));
   };
 
   // 登出函数
@@ -37,6 +48,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     } finally {
       setUser(null);
       localStorage.removeItem('authToken');
+      localStorage.removeItem('user');
     }
   };
 
@@ -67,11 +79,23 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       return;
     }
 
-      try {
-        const response = await getCurrentUser();
-        if (response.success && response.data) {
-          setUser(response.data.user);
-        } else {
+    try {
+      const response = await getCurrentUser();
+      if (response.success && response.data) {
+        setUser(response.data.user);
+        localStorage.setItem('user', JSON.stringify(response.data.user));
+      } else {
+        // Try to restore from local storage if API failed but we have cached user
+        const savedUser = localStorage.getItem('user');
+        if (savedUser) {
+          try {
+             const u = JSON.parse(savedUser);
+             setUser(u);
+             console.warn('API failed, restored user from cache');
+             return;
+          } catch {}
+        }
+
         if (import.meta.env.VITE_E2E === 'true') {
           const overrides = (() => { try { return JSON.parse(localStorage.getItem('e2eUserPatch') || '{}'); } catch { return {}; } })();
           const now = new Date().toISOString();
@@ -94,6 +118,17 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       }
     } catch (error) {
       console.error('获取用户信息失败:', error);
+      
+      // Try to restore from local storage
+      const savedUser = localStorage.getItem('user');
+      if (savedUser) {
+        try {
+           const u = JSON.parse(savedUser);
+           setUser(u);
+           return;
+        } catch {}
+      }
+
       if (import.meta.env.VITE_E2E === 'true') {
         const overrides = (() => { try { return JSON.parse(localStorage.getItem('e2eUserPatch') || '{}'); } catch { return {}; } })();
         const now = new Date().toISOString();
