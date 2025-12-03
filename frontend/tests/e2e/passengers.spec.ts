@@ -37,10 +37,7 @@ test.describe('常用乘车人管理', () => {
     await page.fill('#phone', '13812341235');
     const beforeRows = await page.locator('.passenger-table .table-row').count();
     await page.locator('button.submit-btn').click();
-    await expect(async () => {
-      const afterRows = await page.locator('.passenger-table .table-row').count();
-      expect(afterRows).toBeGreaterThan(beforeRows);
-    }).toPass({ timeout: 20000 });
+    await expect(page.locator('.passenger-table .table-row')).toHaveCount(beforeRows + 1, { timeout: 20000 });
 
     // 添加 李四
     await page.locator('button.add-action').click();
@@ -51,10 +48,7 @@ test.describe('常用乘车人管理', () => {
     await page.fill('#phone', '13812341236');
     const beforeRows2 = await page.locator('.passenger-table .table-row').count();
     await page.locator('button.submit-btn').click();
-    await expect(async () => {
-      const afterRows2 = await page.locator('.passenger-table .table-row').count();
-      expect(afterRows2).toBeGreaterThan(beforeRows2);
-    }).toPass({ timeout: 20000 });
+    await expect(page.locator('.passenger-table .table-row')).toHaveCount(beforeRows2 + 1, { timeout: 20000 });
 
     // 删除最新添加的乘车人（列表末尾为最新）
     const rowsBeforeDelete = await page.locator('.passenger-table .table-row').count();

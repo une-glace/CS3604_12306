@@ -48,9 +48,9 @@ const OrderConfirmModal: React.FC<OrderConfirmModalProps> = ({
   trainInfo,
   passengers,
   ticketInfos,
-  totalPrice,
   seatInfo
 }) => {
+  const [selectedCodes, setSelectedCodes] = useState<string[]>([]);
   if (!isOpen || !trainInfo) return null;
 
   const weekDay = (dateStr: string) => {
@@ -81,22 +81,34 @@ const OrderConfirmModal: React.FC<OrderConfirmModalProps> = ({
 
   const getPassengerById = (pid: string) => passengers.find(p => p.id === pid);
 
-  const buildStockText = () => {
-    if (!seatInfo || Object.keys(seatInfo).length === 0) return '';
-    const parts: string[] = [];
+  const buildStockNodes = () => {
+    if (!seatInfo || Object.keys(seatInfo).length === 0) return null;
+    const parts: React.ReactNode[] = [];
     Object.entries(seatInfo).forEach(([type, info]) => {
       if (typeof info.availableSeats === 'number') {
-        parts.push(`${type}余票${info.availableSeats}张`);
+        parts.push(
+          <span key={type}>
+            {type}余票<span className="stock-num">{info.availableSeats}</span>张
+          </span>
+        );
       } else if (info.isAvailable) {
-        parts.push(`${type}有票`);
+        parts.push(<span key={type}>{type}有票</span>);
       } else {
-        parts.push(`${type}无票`);
+        parts.push(<span key={type}>{type}无票</span>);
       }
     });
-    return parts.join('，') + '。';
+    return (
+      <>
+        {parts.map((node, i) => (
+          <React.Fragment key={i}>
+            {node}
+            {i < parts.length - 1 ? '，' : '。'}
+          </React.Fragment>
+        ))}
+      </>
+    );
   };
 
-  const [selectedCodes, setSelectedCodes] = useState<string[]>([]);
   const toggleSeat = (code: string) => {
     setSelectedCodes(prev => {
       if (prev.includes(code)) {
@@ -106,6 +118,7 @@ const OrderConfirmModal: React.FC<OrderConfirmModalProps> = ({
       return [...prev, code];
     });
   };
+  const hasStudentTicket = ticketInfos.some(t => t.ticketType === '学生票');
 
   return (
     <div className="order-confirm-overlay">
@@ -118,9 +131,19 @@ const OrderConfirmModal: React.FC<OrderConfirmModalProps> = ({
         <div className="modal-content">
           {/* 信息总览（日期 + 车次 + 区间 + 时间）*/}
           <div className="info-summary">
-            {trainInfo.date}（{weekDay(trainInfo.date)}）&nbsp;
-            {trainInfo.trainNumber}次&nbsp;
-            {trainInfo.from}（{trainInfo.departureTime}开） — {trainInfo.to}（{trainInfo.arrivalTime}到）
+            <span className="date-text">{trainInfo.date}（{weekDay(trainInfo.date)}）</span>
+            <span className="sp">&nbsp;</span>
+            <span className="train-strong">{trainInfo.trainNumber}</span>
+            <span className="text-small">次</span>
+            <span className="sp">&nbsp;</span>
+            <span className="station-strong">{trainInfo.from}</span>
+            <span className="sp">（</span>
+            <span className="depart-strong">{trainInfo.departureTime}</span>
+            <span className="sp">开） — </span>
+            <span className="station-strong">{trainInfo.to}</span>
+            <span className="sp">（</span>
+            <span className="arrival-small">{trainInfo.arrivalTime}</span>
+            <span className="sp">到）</span>
           </div>
 
           {/* 核对表格 */}
@@ -158,6 +181,7 @@ const OrderConfirmModal: React.FC<OrderConfirmModalProps> = ({
             </div>
             <div className="seat-pref-grid">
               <span className="muted">窗</span>
+              <span className="seat-sep" aria-hidden />
               <button
                 className={`seat-opt${selectedCodes.includes('A') ? ' selected' : ''}`}
                 onClick={() => toggleSeat('A')}
@@ -173,30 +197,31 @@ const OrderConfirmModal: React.FC<OrderConfirmModalProps> = ({
                 onClick={() => toggleSeat('C')}
                 disabled={selectedCodes.length >= ticketInfos.length && !selectedCodes.includes('C')}
               >C</button>
-              <span className="muted">过道</span>
+              <span className="seat-sep" aria-hidden />
+              <span className="muted aisle">过道</span>
+              <span className="seat-sep" aria-hidden />
               <button
                 className={`seat-opt${selectedCodes.includes('D') ? ' selected' : ''}`}
                 onClick={() => toggleSeat('D')}
                 disabled={selectedCodes.length >= ticketInfos.length && !selectedCodes.includes('D')}
               >D</button>
               <button
-                className={`seat-opt${selectedCodes.includes('E') ? ' selected' : ''}`}
-                onClick={() => toggleSeat('E')}
-                disabled={selectedCodes.length >= ticketInfos.length && !selectedCodes.includes('E')}
-              >E</button>
+                className={`seat-opt${selectedCodes.includes('F') ? ' selected' : ''}`}
+                onClick={() => toggleSeat('F')}
+                disabled={selectedCodes.length >= ticketInfos.length && !selectedCodes.includes('F')}
+              >F</button>
+              <span className="seat-sep" aria-hidden />
               <span className="muted">窗</span>
             </div>
             <div className="seat-selected">已选座 {selectedCodes.length}/{ticketInfos.length}</div>
           </div>
 
-          <div className="tip-red">*按现行规定，学生票购票区间必须与学生证上的乘车区间一致，否则车站将不予换票。</div>
-          <div className="stock-info">{`本次列车，${buildStockText()}`}</div>
+          {hasStudentTicket && (
+            <div className="tip-red">*按现行规定，学生票购票区间必须与学生证上的乘车区间一致，否则车站将不予换票。</div>
+          )}
+          <div className="stock-info">本次列车，{buildStockNodes()}</div>
 
-          {/* 金额展示 */}
-          <div className="price-inline">
-            <span>应付金额：</span>
-            <span className="total-amount">¥{totalPrice}</span>
-          </div>
+          
         </div>
 
         <div className="modal-footer">

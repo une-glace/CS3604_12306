@@ -39,7 +39,9 @@ const request = async (url: string, options: RequestInit = {}) => {
 
     return data;
   } catch (error) {
-    console.error('API请求错误:', error);
+    const msg = String((error as Error)?.message || '');
+    const isNotFound = msg.includes('订单不存在') || msg.includes('status: 404');
+    (isNotFound ? console.warn : console.error)('API请求错误:', error);
     throw error;
   }
 };
@@ -48,14 +50,14 @@ const request = async (url: string, options: RequestInit = {}) => {
 export const get = (url: string) => request(url, { method: 'GET' });
 
 // POST请求
-export const post = (url: string, data?: any) =>
+export const post = (url: string, data?: unknown) =>
   request(url, {
     method: 'POST',
     body: data ? JSON.stringify(data) : undefined,
   });
 
 // PUT请求
-export const put = (url: string, data?: any) =>
+export const put = (url: string, data?: unknown) =>
   request(url, {
     method: 'PUT',
     body: data ? JSON.stringify(data) : undefined,

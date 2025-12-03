@@ -5,11 +5,12 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { sendPhoneCode, verifyPhoneCode } from '../services/auth';
 import { useAuth } from '../contexts/AuthContext';
 import './HomePage.css';
+import Navbar from '../components/Navbar';
 
 const ForgotPasswordVerifyPage: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { isLoggedIn, logout } = useAuth();
+  const { user, isLoggedIn, logout } = useAuth();
   interface FPState { countryCode?: string; phone?: string; idNumber?: string }
   const routeState = (location.state as FPState) || {};
   const displayCountryCode = routeState.countryCode || '+86';
@@ -30,8 +31,9 @@ const ForgotPasswordVerifyPage: React.FC = () => {
         return;
       }
       setCooldown(60);
-    } catch (e: any) {
-      alert(e?.message || '发送验证码失败');
+    } catch (e: unknown) {
+      const msg = e instanceof Error ? e.message : '发送验证码失败';
+      alert(msg);
       setSending(false);
     }
   };
@@ -54,8 +56,9 @@ const ForgotPasswordVerifyPage: React.FC = () => {
       } else {
         alert(resp.message || '验证码校验失败');
       }
-    } catch (e: any) {
-      alert(e?.message || '验证码校验失败');
+    } catch (e: unknown) {
+      const msg = e instanceof Error ? e.message : '验证码校验失败';
+      alert(msg);
     } finally {
       setVerifying(false);
     }
@@ -85,7 +88,11 @@ const ForgotPasswordVerifyPage: React.FC = () => {
             <button className="link-btn" onClick={() => { if (isLoggedIn) { navigate('/profile'); } else { navigate('/login'); } }}>我的12306</button>
             <span className="sep">|</span>
             {isLoggedIn ? (
-              <button className="link-btn" onClick={async () => { if (window.confirm('确定要退出登录吗？')) { await logout(); window.location.reload(); } }}>退出</button>
+              <>
+                <button className="link-btn" onClick={() => navigate('/profile')}>您好，{user?.realName || '用户'}</button>
+                <span className="sep">|</span>
+                <button className="link-btn" onClick={async () => { if (window.confirm('确定要退出登录吗？')) { await logout(); window.location.reload(); } }}>退出</button>
+              </>
             ) : (
               <>
                 <button className="link-btn" onClick={() => navigate('/login')}>登录</button>
@@ -97,20 +104,7 @@ const ForgotPasswordVerifyPage: React.FC = () => {
         </div>
       </header>
 
-      <nav className="navbar">
-        <div className="nav-container">
-          <ul className="nav-links">
-            <li><a href="/" className="active">首页</a></li>
-            <li><a href="/train-list">车票</a></li>
-            <li><a href="#">团购服务</a></li>
-            <li><a href="#">会员服务</a></li>
-            <li><a href="#">站车服务</a></li>
-            <li><a href="#">商旅服务</a></li>
-            <li><a href="#">出行指南</a></li>
-            <li><a href="#">信息查询</a></li>
-          </ul>
-        </div>
-      </nav>
+      <Navbar active="home" />
       <div className="fp-container">
         <div className="fp-tabs">
           <div className="fp-tab">人脸找回</div>

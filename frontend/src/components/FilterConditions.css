@@ -1,33 +1,41 @@
 /* 横向筛选栏样式 */
 .filter-conditions.horizontal {
   background: #fff;
-  border: 1px solid #e5e5e5;
+  border: 1px solid #cfe1ff;
   border-radius: 4px;
-  margin: 16px 0 20px;
+  margin: 16px auto 0;
+  max-width: 1190px;
 }
 
 .filter-conditions.horizontal .date-strip {
   display: flex;
   align-items: center;
-  gap: 8px;
-  padding: 10px 16px;
-  border-bottom: 1px solid #e5e5e5;
+  gap: 0;
+  padding: 0 16px;
+  height: 28px;
+  border-bottom: 1px solid #cfe1ff;
   overflow-x: auto;
 }
 
 .filter-conditions.horizontal .date-item {
   border: 1px solid #dcdcdc;
-  background: #fafafa;
+  background: #f0f0f0;
   color: #333;
-  border-radius: 3px;
-  padding: 6px 10px;
+  border-radius: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  height: 28px;
+  padding: 0 8px;
   cursor: pointer;
-  min-width: 64px;
+  width: 74.5px;
+  box-sizing: border-box;
 }
 
 .filter-conditions.horizontal .date-item .date-label {
   font-size: 13px;
-  font-weight: 500;
+  font-weight: 400;
 }
 
 .filter-conditions.horizontal .date-item .date-weekday {
@@ -37,14 +45,25 @@
 
 .filter-conditions.horizontal .date-item.active {
   border-color: #0066cc;
-  background: #eef6ff;
+  background: #fff;
+  color: #0066cc;
+  width: 145px;
+  font-weight: 700;
+}
+
+.filter-conditions.horizontal .date-item.active .date-label,
+.filter-conditions.horizontal .date-item.active .date-weekday {
+  color: #0066cc;
 }
 
 .filter-conditions.horizontal .time-range {
-  margin-left: auto;
   display: flex;
   align-items: center;
   gap: 8px;
+}
+
+.filter-conditions.horizontal .time-range.in-line {
+  margin-left: auto;
 }
 
 .filter-conditions.horizontal .time-label {
@@ -53,8 +72,8 @@
 }
 
 .filter-conditions.horizontal .time-select {
-  height: 30px;
-  padding: 4px 8px;
+  height: 22px;
+  padding: 0 6px;
   border: 1px solid #dcdcdc;
   border-radius: 4px;
   background: #fff;
@@ -64,9 +83,10 @@
 .filter-conditions.horizontal .filter-line {
   display: flex;
   align-items: center;
-  padding: 10px 16px;
-  gap: 12px;
-  border-bottom: 1px solid #f0f0f0;
+  padding: 0 16px;
+  height: 22px;
+  gap: 8px;
+  border-bottom: none;
 }
 
 .filter-conditions.horizontal .filter-line:last-child {
@@ -83,6 +103,43 @@
   display: flex;
   flex-wrap: wrap;
   gap: 10px 14px;
+}
+
+.filter-conditions.horizontal .select-all-btn {
+  background: #8cbcf7;
+  color: #fff;
+  border: none;
+  border-radius: 4px;
+  height: 18px;
+  padding: 0 6px;
+  font-size: 11px;
+  cursor: pointer;
+}
+
+.filter-conditions.horizontal .select-all-btn:hover {
+  background: #74a8f2;
+}
+
+.filter-toggle-row {
+  display: flex;
+  justify-content: flex-end;
+  padding: 8px 16px;
+  border-top: 1px solid #cfe1ff;
+}
+
+.toggle-filter-btn {
+  background: #ff7f00;
+  color: #fff;
+  border: none;
+  border-radius: 4px;
+  height: 28px;
+  padding: 0 14px;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.toggle-filter-btn:hover {
+  background: #e86f00;
 }
 
 .filter-conditions.horizontal .line-option {

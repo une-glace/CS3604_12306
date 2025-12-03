@@ -9,6 +9,7 @@ interface FilterConditionsProps {
   availableDepartureStations?: string[];
   availableArrivalStations?: string[];
   onDateSelect?: (date: string) => void;
+  hasQuery?: boolean;
 }
 
 interface FilterState {
@@ -26,7 +27,8 @@ const FilterConditions: React.FC<FilterConditionsProps> = ({
   toStation,
   availableDepartureStations = [],
   availableArrivalStations = [],
-  onDateSelect
+  onDateSelect,
+  hasQuery = false
 }) => {
   const [filters, setFilters] = useState<FilterState>({
     departureTime: '00:00-24:00',
@@ -36,11 +38,11 @@ const FilterConditions: React.FC<FilterConditionsProps> = ({
     seatTypes: []
   });
 
-  const next14Days = useMemo(() => {
+  const next15Days = useMemo(() => {
     const days: { date: string; label: string; weekday: string }[] = [];
-    const start = new Date(currentDate);
+    const start = new Date();
     const weekdays = ['周日', '周一', '周二', '周三', '周四', '周五', '周六'];
-    for (let i = 0; i < 14; i++) {
+    for (let i = 0; i < 15; i++) {
       const d = new Date(start);
       d.setDate(start.getDate() + i);
       const yyyy = d.getFullYear();
@@ -52,10 +54,9 @@ const FilterConditions: React.FC<FilterConditionsProps> = ({
       days.push({ date, label, weekday });
     }
     return days;
-  }, [currentDate]);
+  }, []);
 
   const trainTypeOptions = [
-    { value: 'all', label: '全部' },
     { value: 'GC', label: 'GC-高铁/城际' },
     { value: 'D', label: 'D-动车' },
     { value: 'Z', label: 'Z-直达' },
@@ -92,35 +93,55 @@ const FilterConditions: React.FC<FilterConditionsProps> = ({
     onFiltersChange?.(merged);
   };
 
+  const [expanded, setExpanded] = useState(true);
+
+  const toggleAllTrainTypes = () => {
+    const allValues = trainTypeOptions.map(o => o.value);
+    const isAllSelected = filters.trainTypes.length === allValues.length;
+    emitChange({ trainTypes: isAllSelected ? [] : allValues });
+  };
+
+  const toggleAllDepartureStations = () => {
+    const allValues = availableDepartureStations;
+    const isAllSelected = filters.departureStations.length === allValues.length;
+    emitChange({ departureStations: isAllSelected ? [] : [...allValues] });
+  };
+
+  const toggleAllArrivalStations = () => {
+    const allValues = availableArrivalStations;
+    const isAllSelected = filters.arrivalStations.length === allValues.length;
+    emitChange({ arrivalStations: isAllSelected ? [] : [...allValues] });
+  };
+
+  const toggleAllSeatTypes = () => {
+    const allValues = seatTypeOptions.map(o => o.value);
+    const isAllSelected = filters.seatTypes.length === allValues.length;
+    emitChange({ seatTypes: isAllSelected ? [] : allValues });
+  };
+
   return (
     <div className="filter-conditions horizontal">
       <div className="date-strip">
-        {next14Days.map(d => (
-          <button
-            key={d.date}
-            className={`date-item ${d.date === currentDate ? 'active' : ''}`}
-            onClick={() => onDateSelect?.(d.date)}
-          >
-            <div className="date-label">{d.label}</div>
-            <div className="date-weekday">{d.weekday}</div>
-          </button>
-        ))}
-        <div className="time-range">
-          <label className="time-label">发车时间:</label>
-          <select
-            className="time-select"
-            value={filters.departureTime}
-            onChange={(e) => emitChange({ departureTime: e.target.value })}
-          >
-            {timeRangeOptions.map(r => (
-              <option key={r} value={r}>{r}</option>
-            ))}
-          </select>
-        </div>
+        {next15Days.map(d => {
+          const isActive = d.date === currentDate;
+          return (
+            <button
+              key={d.date}
+              className={`date-item ${isActive ? 'active' : ''}`}
+              onClick={() => onDateSelect?.(d.date)}
+            >
+              <div className="date-label">
+                {d.label}
+                {isActive && <span className="date-weekday">{d.weekday}</span>}
+              </div>
+            </button>
+          );
+        })}
       </div>
 
       <div className="filter-line">
         <span className="line-label">车次类型:</span>
+        <button className="select-all-btn" onClick={toggleAllTrainTypes}>全部</button>
         <div className="line-options">
           {trainTypeOptions.map(opt => (
             <label key={opt.value} className="line-option">
@@ -142,29 +163,25 @@ const FilterConditions: React.FC<FilterConditionsProps> = ({
             </label>
           ))}
         </div>
+        <div className="time-range in-line">
+          <label className="time-label">发车时间:</label>
+          <select
+            className="time-select"
+            value={filters.departureTime}
+            onChange={(e) => emitChange({ departureTime: e.target.value })}
+          >
+            {timeRangeOptions.map(r => (
+              <option key={r} value={r}>{r}</option>
+            ))}
+          </select>
+        </div>
       </div>
 
       {!!fromStation && availableDepartureStations.length > 0 && (
         <div className="filter-line">
           <span className="line-label">出发车站:</span>
+          <button className="select-all-btn" onClick={toggleAllDepartureStations}>全部</button>
           <div className="line-options">
-            <label className="line-option">
-              <input
-                type="checkbox"
-                checked={filters.departureStations.includes('all')}
-                onChange={(e) => {
-                  const checked = e.target.checked;
-                  const cur = new Set(filters.departureStations);
-                  if (checked) {
-                    cur.add('all');
-                  } else {
-                    cur.delete('all');
-                  }
-                  emitChange({ departureStations: Array.from(cur) });
-                }}
-              />
-              <span>全部</span>
-            </label>
             {availableDepartureStations.map(s => (
               <label key={s} className="line-option">
                 <input
@@ -188,27 +205,11 @@ const FilterConditions: React.FC<FilterConditionsProps> = ({
         </div>
       )}
 
-      {!!toStation && availableArrivalStations.length > 0 && (
+      {expanded && !!toStation && availableArrivalStations.length > 0 && (
         <div className="filter-line">
           <span className="line-label">到达车站:</span>
+          <button className="select-all-btn" onClick={toggleAllArrivalStations}>全部</button>
           <div className="line-options">
-            <label className="line-option">
-              <input
-                type="checkbox"
-                checked={filters.arrivalStations.includes('all')}
-                onChange={(e) => {
-                  const checked = e.target.checked;
-                  const cur = new Set(filters.arrivalStations);
-                  if (checked) {
-                    cur.add('all');
-                  } else {
-                    cur.delete('all');
-                  }
-                  emitChange({ arrivalStations: Array.from(cur) });
-                }}
-              />
-              <span>全部</span>
-            </label>
             {availableArrivalStations.map(s => (
               <label key={s} className="line-option">
                 <input
@@ -232,29 +233,38 @@ const FilterConditions: React.FC<FilterConditionsProps> = ({
         </div>
       )}
 
-      <div className="filter-line">
-        <span className="line-label">车次席别:</span>
-        <div className="line-options">
-          {seatTypeOptions.map(opt => (
-            <label key={opt.value} className="line-option">
-              <input
-                type="checkbox"
-                checked={filters.seatTypes.includes(opt.value)}
-                onChange={(e) => {
-                  const checked = e.target.checked;
-                  const cur = new Set(filters.seatTypes);
-                  if (checked) {
-                    cur.add(opt.value);
-                  } else {
-                    cur.delete(opt.value);
-                  }
-                  emitChange({ seatTypes: Array.from(cur) });
-                }}
-              />
-              <span>{opt.label}</span>
-            </label>
-          ))}
+      {expanded && (
+        <div className="filter-line">
+          <span className="line-label">车次席别:</span>
+          <button className="select-all-btn" onClick={toggleAllSeatTypes}>全部</button>
+          <div className="line-options">
+            {hasQuery && seatTypeOptions.map(opt => (
+              <label key={opt.value} className="line-option">
+                <input
+                  type="checkbox"
+                  checked={filters.seatTypes.includes(opt.value)}
+                  onChange={(e) => {
+                    const checked = e.target.checked;
+                    const cur = new Set(filters.seatTypes);
+                    if (checked) {
+                      cur.add(opt.value);
+                    } else {
+                      cur.delete(opt.value);
+                    }
+                    emitChange({ seatTypes: Array.from(cur) });
+                  }}
+                />
+                <span>{opt.label}</span>
+              </label>
+            ))}
+          </div>
         </div>
+      )}
+
+      <div className="filter-toggle-row">
+        <button className="toggle-filter-btn" onClick={() => setExpanded(!expanded)}>
+          筛选 {expanded ? '▴' : '▾'}
+        </button>
       </div>
     </div>
   );

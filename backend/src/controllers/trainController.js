@@ -57,41 +57,40 @@ const searchTrains = async (req, res) => {
 
     const trains = await Train.findAndCountAll({
       where: whereClause,
-      include: [{
-        model: TrainSeat,
-        as: 'seats',
-        where: {
-          date: departureDate
-        },
-        required: false
-      }],
       order: [['departureTime', 'ASC']],
       limit: parseInt(limit),
       offset: parseInt(offset)
     });
 
     // 处理返回数据，添加座位信息
+    // 独立查询当天座位信息并映射到每个车次
+    const trainNumbers = trains.rows.map(t => t.trainNumber);
+    const seatsOfDay = await TrainSeat.findAll({
+      where: { trainNumber: { [Op.in]: trainNumbers }, date: departureDate }
+    });
+    const seatMap = seatsOfDay.reduce((acc, s) => {
+      const key = s.trainNumber;
+      acc[key] = acc[key] || [];
+      acc[key].push(s);
+      return acc;
+    }, {});
     const trainsWithSeats = trains.rows.map(train => {
       const trainData = train.toJSON();
-      
-      // 整理座位信息
       const seatInfo = {};
-      if (trainData.seats) {
-        trainData.seats.forEach(seat => {
-          seatInfo[seat.seatType] = {
-            totalSeats: seat.totalSeats,
-            availableSeats: seat.availableSeats,
-            price: seat.price,
-            isAvailable: seat.availableSeats > 0
-          };
-        });
-      }
-      
-      return {
-        ...trainData,
-        seatInfo,
-        seats: undefined // 移除原始seats数据
-      };
+      const seats = seatMap[trainData.trainNumber] || [];
+      seats.forEach(seat => {
+        const t = seat.seatType === '特等座' ? '商务座' : seat.seatType;
+        const ex = seatInfo[t];
+        if (ex) {
+          const total = (ex.totalSeats || 0) + seat.totalSeats;
+          const avail = (ex.availableSeats || 0) + seat.availableSeats;
+          const price = Math.min(typeof ex.price === 'number' ? ex.price : seat.price, seat.price);
+          seatInfo[t] = { totalSeats: total, availableSeats: avail, price, isAvailable: avail > 0 };
+        } else {
+          seatInfo[t] = { totalSeats: seat.totalSeats, availableSeats: seat.availableSeats, price: seat.price, isAvailable: seat.availableSeats > 0 };
+        }
+      });
+      return { ...trainData, seatInfo };
     });
 
     res.json({
@@ -132,12 +131,7 @@ const getTrainDetail = async (req, res) => {
 
     const train = await Train.findOne({
       where: { trainNumber },
-      include: [{
-        model: TrainSeat,
-        as: 'seats',
-        where: { date },
-        required: false
-      }]
+      include: [{ model: TrainSeat, as: 'seats', where: { date }, required: false }]
     });
 
     if (!train) {
@@ -149,14 +143,34 @@ const getTrainDetail = async (req, res) => {
 
     // 整理座位信息
     const seatInfo = {};
-    if (train.seats) {
+    if (train.seats && train.seats.length > 0) {
       train.seats.forEach(seat => {
-        seatInfo[seat.seatType] = {
-          totalSeats: seat.totalSeats,
-          availableSeats: seat.availableSeats,
-          price: seat.price,
-          isAvailable: seat.availableSeats > 0
-        };
+        const t = seat.seatType === '特等座' ? '商务座' : seat.seatType;
+        const ex = seatInfo[t];
+        if (ex) {
+          const total = (ex.totalSeats || 0) + seat.totalSeats;
+          const avail = (ex.availableSeats || 0) + seat.availableSeats;
+          const price = Math.min(typeof ex.price === 'number' ? ex.price : seat.price, seat.price);
+          seatInfo[t] = { totalSeats: total, availableSeats: avail, price, isAvailable: avail > 0 };
+        } else {
+          seatInfo[t] = { totalSeats: seat.totalSeats, availableSeats: seat.availableSeats, price: seat.price, isAvailable: seat.availableSeats > 0 };
+        }
+      });
+    }
+    // 回退：若联表未取到座位信息，独立查询
+    if (Object.keys(seatInfo).length === 0) {
+      const fallback = await TrainSeat.findAll({ where: { trainNumber, date } });
+      fallback.forEach(seat => {
+        const t = seat.seatType === '特等座' ? '商务座' : seat.seatType;
+        const ex = seatInfo[t];
+        if (ex) {
+          const total = (ex.totalSeats || 0) + seat.totalSeats;
+          const avail = (ex.availableSeats || 0) + seat.availableSeats;
+          const price = Math.min(typeof ex.price === 'number' ? ex.price : seat.price, seat.price);
+          seatInfo[t] = { totalSeats: total, availableSeats: avail, price, isAvailable: avail > 0 };
+        } else {
+          seatInfo[t] = { totalSeats: seat.totalSeats, availableSeats: seat.availableSeats, price: seat.price, isAvailable: seat.availableSeats > 0 };
+        }
       });
     }
 

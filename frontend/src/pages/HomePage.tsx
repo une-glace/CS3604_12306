@@ -4,6 +4,7 @@ import { useAuth } from '../contexts/AuthContext';
 import Carousel from '../components/Carousel';
 import BookingForm from '../components/BookingForm';
 import './HomePage.css';
+import Navbar from '../components/Navbar';
 
 interface CarouselItem {
   id: number;
@@ -20,7 +21,7 @@ interface BookingData {
 
 const HomePage: React.FC = () => {
   const navigate = useNavigate();
-  const { isLoggedIn, logout } = useAuth();
+  const { user, isLoggedIn, logout } = useAuth();
 
   const carouselItems: CarouselItem[] = [
     { id: 1, image: '/homepage/Carousel/Carousel_1.jpg', title: '轮播一' },
@@ -104,7 +105,11 @@ const HomePage: React.FC = () => {
             <button className="link-btn" onClick={handleProfileClick}>我的12306</button>
             <span className="sep">|</span>
             {isLoggedIn ? (
-              <button className="link-btn" onClick={handleLogout}>退出</button>
+              <>
+                <button className="link-btn" onClick={handleProfileClick}>您好，{user?.realName || '用户'}</button>
+                <span className="sep">|</span>
+                <button className="link-btn" onClick={handleLogout}>退出</button>
+              </>
             ) : (
               <>
                 <button className="link-btn" onClick={handleLoginClick}>登录</button>
@@ -116,22 +121,7 @@ const HomePage: React.FC = () => {
         </div>
       </header>
 
-      {/* 导航栏 */}
-      <nav className="navbar">
-        <div className="nav-container">
-          <ul className="nav-links">
-            <li><a href="/" className="active">首页</a></li>
-            {/* 保持原“车票查询/车票预订”跳转关系，改为“车票” */}
-            <li><a href="/train-list">车票</a></li>
-            <li><a href="#">团购服务</a></li>
-            <li><a href="#">会员服务</a></li>
-            <li><a href="#">站车服务</a></li>
-            <li><a href="#">商旅服务</a></li>
-            <li><a href="#">出行指南</a></li>
-            <li><a href="#">信息查询</a></li>
-          </ul>
-        </div>
-      </nav>
+      <Navbar active="home" />
 
       {/* 主要内容 */}
       <main className="main-content">

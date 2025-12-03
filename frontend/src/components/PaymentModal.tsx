@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import './PaymentModal.css';
 
 interface PaymentModalProps {
@@ -25,48 +25,63 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
   const [paymentStatus, setPaymentStatus] = useState<'waiting' | 'processing' | 'success' | 'failed'>('waiting');
   const [countdown, setCountdown] = useState(900); // 15分钟倒计时
   const [qrCodeUrl, setQrCodeUrl] = useState('');
+  const intervalRef = useRef<number | null>(null);
+  const processingRef = useRef<number | null>(null);
+  const successRef = useRef<number | null>(null);
+  const navigateRef = useRef<number | null>(null);
+  const onSuccessRef = useRef(onPaymentSuccess);
+
+  useEffect(() => {
+    onSuccessRef.current = onPaymentSuccess;
+  }, [onPaymentSuccess]);
+
+  const clearTimers = useCallback(() => {
+    if (intervalRef.current !== null) { clearInterval(intervalRef.current); intervalRef.current = null; }
+    if (processingRef.current !== null) { clearTimeout(processingRef.current); processingRef.current = null; }
+    if (successRef.current !== null) { clearTimeout(successRef.current); successRef.current = null; }
+    if (navigateRef.current !== null) { clearTimeout(navigateRef.current); navigateRef.current = null; }
+  }, []);
+
+  const generateQRCode = useCallback(() => {
+    const mockQRData = `alipay://pay?orderId=${orderData.orderId}&amount=${orderData.totalPrice}`;
+    const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(mockQRData)}`;
+    setQrCodeUrl(qrUrl);
+  }, [orderData.orderId, orderData.totalPrice]);
+
+  const startFlow = useCallback(() => {
+    clearTimers();
+    setPaymentStatus('waiting');
+    setCountdown(900);
+    generateQRCode();
+    intervalRef.current = window.setInterval(() => {
+      setCountdown(prev => {
+        if (prev <= 1) {
+          clearTimers();
+          setPaymentStatus('failed');
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+    processingRef.current = window.setTimeout(() => {
+      setPaymentStatus('processing');
+    }, 2000);
+    successRef.current = window.setTimeout(() => {
+      setPaymentStatus('success');
+    }, 3000);
+    navigateRef.current = window.setTimeout(() => {
+      if (onSuccessRef.current) onSuccessRef.current();
+    }, 3500);
+  }, [clearTimers, generateQRCode]);
 
   useEffect(() => {
     if (isOpen) {
-      // 生成支付宝二维码URL（模拟）
-      generateQRCode();
-      
-      // 开始倒计时
-      const timer = setInterval(() => {
-        setCountdown(prev => {
-          if (prev <= 1) {
-            clearInterval(timer);
-            setPaymentStatus('failed');
-            return 0;
-          }
-          return prev - 1;
-        });
-      }, 1000);
-
-      // 模拟支付状态检查
-      const paymentTimer = setTimeout(() => {
-        setPaymentStatus('success');
-        setTimeout(() => {
-          onPaymentSuccess();
-        }, 500);
-      }, 3000);
-
-      return () => {
-        clearInterval(timer);
-        clearTimeout(paymentTimer);
-      };
+      startFlow();
+      return () => { clearTimers(); };
     }
-  }, [isOpen, onPaymentSuccess]);
+  }, [isOpen, startFlow, clearTimers]);
 
-  const generateQRCode = () => {
-    // 模拟生成支付宝二维码
-    // 实际项目中应该调用支付宝API生成真实的二维码
-    const mockQRData = `alipay://pay?orderId=${orderData.orderId}&amount=${orderData.totalPrice}`;
-    
-    // 使用在线二维码生成服务（仅用于演示）
-    const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(mockQRData)}`;
-    setQrCodeUrl(qrUrl);
-  };
+  
 
   const formatTime = (seconds: number) => {
     const minutes = Math.floor(seconds / 60);
@@ -75,9 +90,7 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
   };
 
   const handleRetryPayment = () => {
-    setPaymentStatus('waiting');
-    setCountdown(900);
-    generateQRCode();
+    startFlow();
   };
 
   if (!isOpen) return null;

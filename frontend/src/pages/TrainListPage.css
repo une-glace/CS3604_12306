@@ -1,6 +1,6 @@
 .train-list-page {
   min-height: 100vh;
-  background: #f5f5f5;
+  background: #fff;
 }
 
 .page-header {
@@ -10,7 +10,7 @@
 }
 
 .header-content {
-  max-width: 1200px;
+  max-width: 1190px;
   margin: 0 auto;
   padding: 0 20px;
   display: flex;
@@ -62,9 +62,9 @@
 }
 
 .main-content {
-  max-width: 1200px;
+  max-width: 1190px;
   margin: 0 auto;
-  padding: 20px;
+  padding: 0 0 20px;
   display: flex;
   gap: 20px;
   align-items: flex-start;
@@ -112,21 +112,25 @@
   background: #fff;
   border: 1px solid #e5e5e5;
   border-radius: 4px;
-  padding: 15px 20px;
-  margin-bottom: 20px;
+  height: 35px;
+  padding: 0;
+  width: 1190px;
+  margin-top: 0;
+  margin-bottom: 12px;
   display: flex;
-  justify-content: space-between;
+  justify-content: flex-start;
   align-items: center;
+  padding-left: 20px; /* 与页面左右留白保持一致 */
 }
 
 .result-count {
-  font-size: 14px;
-  color: #333;
+  font-size: 13px;
+  color: #000;
+  font-weight: 700;
 }
 
 .result-count strong {
   color: #0066cc;
-  font-size: 16px;
 }
 
 .result-tips {

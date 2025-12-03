@@ -22,12 +22,15 @@ describe('Login component', () => {
         </Routes>
       </MemoryRouter>
     );
-    await user.type(screen.getByPlaceholderText('请输入用户名或邮箱'), 'newuser');
+
+    // HEAD used '请输入用户名或邮箱', but Login.tsx uses '用户名/邮箱/手机号'
+    await user.type(screen.getByPlaceholderText('用户名/邮箱/手机号'), 'newuser');
     // 与前端密码校验保持一致（至少两类字符）
     await user.type(screen.getByPlaceholderText('请输入密码'), 'my_password1');
+
     const alertMock = vi.spyOn(window, 'alert').mockImplementation(() => {});
     await user.click(screen.getByRole('button', { name: '立即登录' }));
     alertMock.mockRestore();
-    expect(screen.getByTestId('profile')).toBeInTheDocument();
+    expect(await screen.findByTestId('profile')).toBeInTheDocument();
   });
 });

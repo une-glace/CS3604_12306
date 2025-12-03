@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import AddPassengerModal from '../components/AddPassengerModal';
@@ -8,6 +8,7 @@ import PaymentModal from '../components/PaymentModal';
 import Footer from '../components/Footer';
 import './OrderPage.css';
 import './HomePage.css';
+import Navbar from '../components/Navbar';
 
 interface TrainInfo {
   trainNumber: string;
@@ -46,6 +47,7 @@ interface OrderData {
   passengers: Passenger[];
   ticketInfos: TicketInfo[];
   selectedSeatCodes?: string[];
+  assignedSeats?: Array<{ passengerId: string; carriage: string | number; seatNumber: string }>;
 }
 
 const OrderPage: React.FC = () => {
@@ -108,7 +110,7 @@ const OrderPage: React.FC = () => {
         const passengerList = await getPassengers();
 
         // 若后端乘车人列表未包含“本人”，则前端注入，保持与个人中心一致
-        let normalized = passengerList.slice();
+        const normalized = passengerList.slice();
         if (user) {
           const hasSelf = normalized.some(p => p.isDefault || (p.name === user.realName && p.idCard === user.idNumber));
           if (!hasSelf) {
@@ -187,13 +189,13 @@ const OrderPage: React.FC = () => {
   }, [location, user]);
 
   // 刷新乘车人列表
-  const refreshPassengers = async () => {
+  const refreshPassengers = useCallback(async () => {
     try {
       const { getPassengers } = await import('../services/passengerService');
       const passengerList = await getPassengers();
 
       // 若后端乘车人列表未包含"本人"，则前端注入，保持与个人中心一致
-      let normalized = passengerList.slice();
+      const normalized = passengerList.slice();
       if (user) {
         const hasSelf = normalized.some(p => p.isDefault || (p.name === user.realName && p.idCard === user.idNumber));
         if (!hasSelf) {
@@ -225,7 +227,7 @@ const OrderPage: React.FC = () => {
     } catch (error) {
       console.error('刷新乘车人信息失败:', error);
     }
-  };
+  }, [user, selectedPassengers]);
 
   const handlePassengerSelect = (passengerId: string) => {
     const isSelected = selectedPassengers.includes(passengerId);
@@ -271,7 +273,7 @@ const OrderPage: React.FC = () => {
       document.removeEventListener('visibilitychange', handleVisibilityChange);
       window.removeEventListener('focus', handleFocus);
     };
-  }, []);
+  }, [refreshPassengers]);
   
   // 更新票种（成人/儿童/学生）
   const handleTicketTypeChange = (passengerId: string, ticketType: TicketInfo['ticketType']) => {
@@ -447,12 +449,29 @@ const OrderPage: React.FC = () => {
       return { ...info, seatType: validSeatType, price: resolvedPrice };
     });
 
+    // 分配席位（前端模拟）：按乘客顺序分配车厢与席位号
+    const seatLettersMap: Record<string, string[]> = {
+      '二等座': ['A','B','C','D','F'],
+      '一等座': ['A','C','D','F'],
+      '商务座': ['A','C','D','F']
+    };
+    const baseCarriage = String((Math.floor(Math.random() * 6) + 3)).padStart(2, '0'); // 03-08 号车厢
+    const baseRow = Math.floor(Math.random() * 10) + 8; // 8-17 排
+    const assignedSeats = normalizedTicketInfos.map((info, idx) => {
+      const letters = seatLettersMap[info.seatType] || ['A','B','C','D','F'];
+      const preferred = selectedSeatCodes[idx];
+      const letter = preferred && letters.includes(preferred) ? preferred : letters[idx % letters.length];
+      const seatNumber = `${String(baseRow + idx).padStart(2, '0')}${letter}`;
+      return { passengerId: info.passengerId, carriage: baseCarriage, seatNumber };
+    });
+
     const newOrderData: OrderData = {
       orderId: `ORDER_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
       totalPrice: getTotalPrice(),
       passengers: validPassengers,
       ticketInfos: normalizedTicketInfos,
-      selectedSeatCodes
+      selectedSeatCodes,
+      assignedSeats
     };
     
     setOrderData(newOrderData);
@@ -494,18 +513,45 @@ const OrderPage: React.FC = () => {
       console.log('后端响应数据:', response); // 添加调试日志
       
       if (response && response.data && response.data.id) {
-        // 更新订单数据，保存后端返回的订单ID
         setOrderData(prev => {
           if (!prev) return null;
           return {
             ...prev,
             orderId: response.data.orderId || prev.orderId,
-            backendOrderId: response.data.id // 保存后端订单ID用于后续支付状态更新
+            backendOrderId: response.data.id
           };
         });
-        
-        // 订单创建成功，打开支付模态框
-        setIsPaymentModalOpen(true);
+        try {
+          const keyByBackend = `orderSeatAssignments:${response.data.id}`;
+          const keyByNumber = `orderSeatAssignments:${response.data.orderId || orderData.orderId}`;
+          const seatPassengers = (orderData.passengers || []).map(p => {
+            const seat = (orderData.assignedSeats || []).find(s => s.passengerId === p.id);
+            const ti = (orderData.ticketInfos || []).find(t => t.passengerId === p.id);
+            return {
+              name: p.name,
+              seatNumber: seat?.seatNumber,
+              carriage: seat?.carriage,
+              seatType: ti?.seatType || ''
+            };
+          });
+          const payload = { orderNumber: response.data.orderId || orderData.orderId, passengers: seatPassengers };
+          localStorage.setItem(keyByBackend, JSON.stringify(payload));
+          localStorage.setItem(keyByNumber, JSON.stringify(payload));
+        } catch (e) {
+          console.warn('写入本地座位映射失败', e);
+        }
+        // 跳转到支付订单页面，并传递订单概要用于回退展示
+        navigate(`/pay-order?orderId=${encodeURIComponent(response.data.id)}`, {
+          state: {
+            backendOrderId: response.data.id,
+            orderId: response.data.orderId || orderData.orderId,
+            trainInfo,
+            passengers: orderData.passengers,
+            ticketInfos: orderData.ticketInfos,
+            totalPrice: orderData.totalPrice,
+            assignedSeats: orderData.assignedSeats || []
+          }
+        });
       } else {
         console.log('响应数据格式不正确:', response); // 添加调试日志
         alert('订单提交失败，请稍后重试');
@@ -608,7 +654,11 @@ const OrderPage: React.FC = () => {
             <button className="link-btn" onClick={handleProfileClick}>我的12306</button>
             <span className="sep">|</span>
             {isLoggedIn ? (
-              <button className="link-btn" onClick={handleLogout}>退出</button>
+              <>
+                <button className="link-btn" onClick={handleProfileClick}>您好，{user?.realName || '用户'}</button>
+                <span className="sep">|</span>
+                <button className="link-btn" onClick={handleLogout}>退出</button>
+              </>
             ) : (
               <>
                 <button className="link-btn" onClick={handleLoginClick}>登录</button>
@@ -620,31 +670,9 @@ const OrderPage: React.FC = () => {
         </div>
       </header>
 
-      {/* 导航栏：与首页一致，当前页高亮“车票” */}
-      <nav className="navbar">
-        <div className="nav-container">
-          <ul className="nav-links">
-            <li><a href="/">首页</a></li>
-            <li><a href="/train-list" className="active">车票</a></li>
-            <li><a href="#">团购服务</a></li>
-            <li><a href="#">会员服务</a></li>
-            <li><a href="#">站车服务</a></li>
-            <li><a href="#">商旅服务</a></li>
-            <li><a href="#">出行指南</a></li>
-            <li><a href="#">信息查询</a></li>
-          </ul>
-        </div>
-      </nav>
+      <Navbar active="tickets" />
 
       <div className="order-container">
-        <div className="order-header">
-          <h2>确认订单信息</h2>
-          <div className="breadcrumb">
-            <span>车票预订</span>
-            <span className="separator">&gt;</span>
-            <span className="current">确认订单</span>
-          </div>
-        </div>
 
         {/* 列车信息（以下余票信息仅供参考） */}
         <div className="train-info-section">
@@ -652,9 +680,9 @@ const OrderPage: React.FC = () => {
             <div className="train-summary-header">列车信息（以下余票信息仅供参考）</div>
             <div className="train-summary-body">
               <div className="train-summary-row">
-                {formatDateWithWeek(trainInfo.date)}，
-                {trainInfo.trainNumber}次 {trainInfo.from}站（{trainInfo.departureTime}开）—
-                {trainInfo.to}站（{trainInfo.arrivalTime}到）
+                <span className="summary-date">{formatDateWithWeek(trainInfo.date)}</span>，
+                <span className="summary-train-number">{trainInfo.trainNumber}</span><span className="summary-unit">次</span> {trainInfo.from}<span className="summary-unit">站</span>（<span className="summary-depart-time">{trainInfo.departureTime}</span>开）—
+                {trainInfo.to}<span className="summary-unit">站</span>（<span className="summary-arrive-time">{trainInfo.arrivalTime}</span><span className="summary-unit">到</span>）
               </div>
               <div className="train-summary-seats">
                 {(() => {
@@ -664,17 +692,21 @@ const OrderPage: React.FC = () => {
                     ...order.filter(t => types.includes(t)),
                     ...types.filter(t => !order.includes(t))
                   ];
-                  return orderedTypes.map((t) => (
-                    <div key={t} className="seat-item">
-                      <span className="seat-name">{t}</span>
-                      {getSeatDiscountText(t) && (
-                        <span className="seat-discount">{getSeatDiscountText(t)}</span>
-                      )}
-                      <span className={isSeatAvailable(t) ? 'seat-availability' : 'seat-unavailable'}>
-                        {getSeatAvailabilityText(t)}
-                      </span>
-                    </div>
-                  ));
+                  return orderedTypes.map((t) => {
+                    const price = typeof seatInfo?.[t]?.price === 'number' ? seatInfo![t]!.price : getSeatPrice(t);
+                    return (
+                      <div key={t} className="seat-item">
+                        <span className="seat-name">{t}</span>
+                        <span className="seat-price">（￥<span className="price-value">{price}元</span>）</span>
+                        {getSeatDiscountText(t) && (
+                          <span className="seat-discount">{getSeatDiscountText(t)}</span>
+                        )}
+                        <span className={isSeatAvailable(t) ? 'seat-availability' : 'seat-unavailable'}>
+                          {getSeatAvailabilityText(t)}
+                        </span>
+                      </div>
+                    );
+                  });
                 })()}
               </div>
               <div className="train-summary-note">

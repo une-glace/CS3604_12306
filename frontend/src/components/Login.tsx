@@ -118,8 +118,12 @@ const Login: React.FC<LoginProps> = ({ onNavigateToRegister }) => {
           alert(response.message || '登录失败，请重试');
         }
       }
-    } catch (error: any) {
-      alert(error?.message || '登录失败，请重试');
+    } catch (error: unknown) {
+      if (error instanceof Error) {
+        alert(error.message);
+      } else {
+        alert('登录失败，请重试');
+      }
     } finally {
       setIsLoading(false);
     }
@@ -129,8 +133,8 @@ const Login: React.FC<LoginProps> = ({ onNavigateToRegister }) => {
 
   // 登录页轮播图片（两张）
   const loginCarouselItems = [
-    { id: 1, image: '/homepage/Carousel/Carousel_1.png', title: '登录轮播一', objectPosition: '80% center' },
-    { id: 2, image: '/homepage/Carousel/Carousel_2.png', title: '登录轮播二', objectPosition: '70% center' }
+    { id: 1, image: '/banner-login-2.jpg', title: '登录轮播一', objectPosition: 'center center' },
+    { id: 2, image: '/login-banner-1.jpg', title: '登录轮播二', objectPosition: '70% center' }
   ];
 
   return (
@@ -172,20 +176,20 @@ const Login: React.FC<LoginProps> = ({ onNavigateToRegister }) => {
           {activeLoginTab === 'account' ? (
             <div className="login-card">
               <form className="login-form" onSubmit={handleSubmit}>
-                <div className="form-group">
+                <div className="form-group user">
                   <input
                     type="text"
                     id="username"
                     name="username"
                     value={formData.username}
                     onChange={handleInputChange}
-                    placeholder="请输入用户名或邮箱"
+                    placeholder="用户名/邮箱/手机号"
                     className={errors.username ? 'error' : ''}
                   />
                   {errors.username && <span className="error-message">{errors.username}</span>}
                 </div>
 
-                <div className="form-group">
+                <div className="form-group password">
                   <input
                     type="password"
                     id="password"

@@ -6,9 +6,11 @@ import { parseCityStationInput } from '../utils/cityStationMap';
 import FilterConditions from '../components/FilterConditions';
 import TrainList from '../components/TrainList';
 import LoginModal from '../components/LoginModal';
+import type { SearchTrainItem } from '../services/trainService';
 import Footer from '../components/Footer';
 import './TrainListPage.css';
 import './HomePage.css';
+import Navbar from '../components/Navbar';
 
 interface TrainInfo {
   trainNo: string;
@@ -45,7 +47,7 @@ interface TrainInfo {
 const TrainListPage: React.FC = () => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
-  const { isLoggedIn, logout } = useAuth();
+  const { user, isLoggedIn, logout } = useAuth();
   
   // 从URL参数获取查询条件
   const fromStation = searchParams.get('from') || '';
@@ -76,16 +78,26 @@ const TrainListPage: React.FC = () => {
   };
 
   // 后端查询映射函数
-  const mapToTrainInfo = (t: any): TrainInfo => {
+  const mapToTrainInfo = (t: SearchTrainItem): TrainInfo => {
     const seats: TrainInfo['seats'] = {};
-    const si = t.seatInfo || {};
-    if (si['商务座']) seats.business = si['商务座'].availableSeats > 0 ? '有' : '无';
-    if (si['一等座']) seats.firstClass = si['一等座'].availableSeats > 0 ? '有' : '无';
-    if (si['二等座']) seats.secondClass = si['二等座'].availableSeats > 0 ? '有' : '无';
-    if (si['硬座']) seats.hardSeat = si['硬座'].availableSeats > 0 ? '有' : '无';
-    if (si['硬卧']) seats.hardSleeper = si['硬卧'].availableSeats > 0 ? '有' : '无';
-    if (si['软卧']) seats.softSleeper = si['软卧'].availableSeats > 0 ? '有' : '无';
-    const canBook = Object.values(si).some((x: any) => x && x.availableSeats > 0);
+    const si: SearchTrainItem['seatInfo'] = t.seatInfo ?? {} as SearchTrainItem['seatInfo'];
+    const fmt = (item: SearchTrainItem['seatInfo'][string] | undefined) => {
+      if (!item) return undefined;
+      if (item.availableSeats > 0) return '有';
+      if (item.isAvailable === true) return '候补';
+      return '无';
+    };
+    if (si['商务座']) seats.business = fmt(si['商务座']);
+    if (si['特等座']) seats.firstClassPlus = fmt(si['特等座']);
+    if (si['优选一等座']) seats.firstClassPremium = fmt(si['优选一等座']);
+    if (si['一等座']) seats.firstClass = fmt(si['一等座']);
+    if (si['二等座']) seats.secondClass = fmt(si['二等座']);
+    if (si['硬座']) seats.hardSeat = fmt(si['硬座']);
+    if (si['硬卧']) seats.hardSleeper = fmt(si['硬卧']);
+    if (si['软卧']) seats.softSleeper = fmt(si['软卧']);
+    const canBook = Object.keys(si).length === 0
+      ? true
+      : Object.values(si).some((x) => x && x.availableSeats > 0);
     const isHighSpeed = t.trainType === 'G' || t.trainType === 'C';
     return {
       trainNo: t.trainNumber,
@@ -135,7 +147,13 @@ const TrainListPage: React.FC = () => {
           }
         }
 
-        const searchParams: any = {
+        const searchParams: {
+          fromStation: string;
+          toStation: string;
+          departureDate: string;
+          fromStations?: string[];
+          toStations?: string[];
+        } = {
           fromStation,
           toStation,
           departureDate: departDate,
@@ -165,7 +183,13 @@ const TrainListPage: React.FC = () => {
   }, [fromStation, toStation, departDate, fromStations, toStations]);
 
   // 处理筛选条件变化（横向筛选栏）
-  const handleFiltersChange = (filters: any) => {
+  const handleFiltersChange = (filters: {
+    departureTime?: string;
+    trainTypes?: string[];
+    departureStations?: string[];
+    arrivalStations?: string[];
+    seatTypes?: string[];
+  }) => {
     let filtered = [...trains];
 
     // 发车时间筛选（单选）
@@ -175,9 +199,10 @@ const TrainListPage: React.FC = () => {
     }
 
     // 车次类型筛选
-    if (Array.isArray(filters.trainTypes) && filters.trainTypes.length > 0 && !filters.trainTypes.includes('all')) {
+    if (Array.isArray(filters.trainTypes) && filters.trainTypes.length > 0) {
+      const trainTypes = filters.trainTypes as string[];
       filtered = filtered.filter(train => {
-        return filters.trainTypes.some((type: string) => {
+        return trainTypes.some((type: string) => {
           if (type === 'GC') return train.trainType === 'G' || train.trainType === 'C';
           if (type === 'D') return train.trainType === 'D';
           if (type === 'Z') return train.trainType === 'Z';
@@ -191,15 +216,23 @@ const TrainListPage: React.FC = () => {
     }
 
     // 出发车站筛选
-    if (Array.isArray(filters.departureStations) && filters.departureStations.length > 0 && !filters.departureStations.includes('all')) {
-      const set = new Set(filters.departureStations);
-      filtered = filtered.filter(train => set.has(train.fromStation));
+    if (Array.isArray(filters.departureStations) && filters.departureStations.length > 0) {
+      const allFrom = Array.from(new Set(trains.map(t => t.fromStation)));
+      const isAllSelected = filters.departureStations.length === allFrom.length;
+      if (!isAllSelected) {
+        const set = new Set(filters.departureStations);
+        filtered = filtered.filter(train => set.has(train.fromStation));
+      }
     }
 
     // 到达车站筛选
-    if (Array.isArray(filters.arrivalStations) && filters.arrivalStations.length > 0 && !filters.arrivalStations.includes('all')) {
-      const set = new Set(filters.arrivalStations);
-      filtered = filtered.filter(train => set.has(train.toStation));
+    if (Array.isArray(filters.arrivalStations) && filters.arrivalStations.length > 0) {
+      const allTo = Array.from(new Set(trains.map(t => t.toStation)));
+      const isAllSelected = filters.arrivalStations.length === allTo.length;
+      if (!isAllSelected) {
+        const set = new Set(filters.arrivalStations);
+        filtered = filtered.filter(train => set.has(train.toStation));
+      }
     }
 
     // 席别筛选
@@ -215,8 +248,9 @@ const TrainListPage: React.FC = () => {
         hard_sleeper: 'hardSleeper',
         hard_seat: 'hardSeat'
       };
+      const seatTypes = filters.seatTypes as string[];
       filtered = filtered.filter(train => {
-        return filters.seatTypes.some((st: string) => {
+        return seatTypes.some((st: string) => {
           const key = seatKeyMap[st];
           if (!key) return false;
           const v = train.seats[key];
@@ -229,7 +263,11 @@ const TrainListPage: React.FC = () => {
   };
 
   // 处理查询条件变化
-  const handleConditionsChange = (conditions: any) => {
+  const handleConditionsChange = (conditions: {
+    fromStation: string;
+    toStation: string;
+    departDate: string;
+  }) => {
     // 更新URL参数
     const newSearchParams = new URLSearchParams();
     newSearchParams.set('from', conditions.fromStation);
@@ -241,8 +279,6 @@ const TrainListPage: React.FC = () => {
 
   // 处理车次选择
   const handleTrainSelect = (train: TrainInfo) => {
-    console.log('选择车次:', train);
-    // 无论登录与否，均跳转到订单页面（测试要求）
     navigateToOrder(train);
   };
 
@@ -251,8 +287,8 @@ const TrainListPage: React.FC = () => {
     // 构建订单页面的查询参数
     const orderParams = new URLSearchParams({
       trainNumber: train.trainNo,
-      from: fromStation,
-      to: toStation,
+      from: train.fromStation,
+      to: train.toStation,
       departureTime: train.fromTime,
       arrivalTime: train.toTime,
       date: departDate,
@@ -322,7 +358,11 @@ const TrainListPage: React.FC = () => {
             <button className="link-btn" onClick={handleProfileClick}>我的12306</button>
             <span className="sep">|</span>
             {isLoggedIn ? (
-              <button className="link-btn" onClick={handleLogout}>退出</button>
+              <>
+                <button className="link-btn" onClick={handleProfileClick}>您好，{user?.realName || '用户'}</button>
+                <span className="sep">|</span>
+                <button className="link-btn" onClick={handleLogout}>退出</button>
+              </>
             ) : (
               <>
                 <button className="link-btn" onClick={handleLoginClick}>登录</button>
@@ -334,21 +374,7 @@ const TrainListPage: React.FC = () => {
         </div>
       </header>
 
-      {/* 导航栏：与首页一致，当前页高亮“车票” */}
-      <nav className="navbar">
-        <div className="nav-container">
-          <ul className="nav-links">
-            <li><a href="/">首页</a></li>
-            <li><a href="/train-list" className="active">车票</a></li>
-            <li><a href="#">团购服务</a></li>
-            <li><a href="#">会员服务</a></li>
-            <li><a href="#">站车服务</a></li>
-            <li><a href="#">商旅服务</a></li>
-            <li><a href="#">出行指南</a></li>
-            <li><a href="#">信息查询</a></li>
-          </ul>
-        </div>
-      </nav>
+      <Navbar active="tickets" />
 
       {/* 查询条件区域 */}
       <SearchConditions
@@ -373,6 +399,7 @@ const TrainListPage: React.FC = () => {
         availableArrivalStations={availableArrivalStations}
         onFiltersChange={handleFiltersChange}
         onDateSelect={handleDateSelect}
+        hasQuery={hasQuery}
       />
 
       {/* 主要内容区域 */}
@@ -390,13 +417,14 @@ const TrainListPage: React.FC = () => {
               <>
                 <div className="result-summary">
                   <span className="result-count">
-                    共找到 <strong>{filteredTrains.length}</strong> 趟车次
+                    {fromStation}{' --> '}{toStation} （{(() => {
+                      const d = new Date(departDate);
+                      const md = `${d.getMonth() + 1}月${d.getDate()}日`;
+                      const days = ['周日','周一','周二','周三','周四','周五','周六'];
+                      const wk = days[d.getDay()] || '';
+                      return `${md} ${wk}`;
+                    })()}）共计{filteredTrains.length}车次
                   </span>
-                  <div className="result-tips">
-                    <span className="tip-item">🟢 有票</span>
-                    <span className="tip-item">🟠 候补</span>
-                    <span className="tip-item">⚪ 无票</span>
-                  </div>
                 </div>
                 
                 <TrainList 

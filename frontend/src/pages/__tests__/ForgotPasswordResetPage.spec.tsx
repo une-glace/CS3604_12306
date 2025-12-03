@@ -1,14 +1,16 @@
-import { describe, test, expect } from 'vitest';
+import { describe, test, expect, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MemoryRouter, Routes, Route } from 'react-router-dom';
 import { AuthProvider } from '../../contexts/AuthContext';
 import ForgotPasswordResetPage from '../ForgotPasswordResetPage';
 import ForgotPasswordDonePage from '../ForgotPasswordDonePage';
+import * as Auth from '../../services/auth';
 
 describe('忘记密码-手机找回-第三步', () => {
   test('符合策略的新密码与确认提交后进入完成页', async () => {
     const user = userEvent.setup();
+    vi.spyOn(Auth, 'resetPassword').mockResolvedValue({ success: true, message: 'ok' } as unknown as Awaited<ReturnType<typeof Auth.resetPassword>>);
     render(
       <AuthProvider>
         <MemoryRouter initialEntries={["/forgot-password/reset"]}>

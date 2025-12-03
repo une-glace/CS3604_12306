@@ -1,7 +1,7 @@
 /* 个人中心页面样式 */
 .profile-page {
   min-height: 100vh;
-  background-color: #f5f5f5;
+  background-color: #fff;
   font-family: 'Microsoft YaHei', Arial, sans-serif;
 }
 
@@ -66,17 +66,19 @@
   max-width: 1200px;
   margin: 0 auto;
   padding: 20px;
-  display: flex;
+  display: grid;
+  grid-template-columns: 180px 1fr;
+  grid-template-rows: auto 1fr;
   gap: 20px;
   min-height: calc(100vh - 120px);
 }
 
 /* 左侧边栏 */
 .profile-sidebar {
-  width: 120px;
+  width: 180px;
   background: #fff;
   border-radius: 8px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  box-shadow: none;
   height: fit-content;
 }
 
@@ -118,6 +120,37 @@
   padding: 0;
 }
 
+.sidebar-breadcrumb {
+  padding: 8px 14px;
+  font-size: 12px;
+  background: #fff;
+  color: #666;
+  border-bottom: 1px solid #f0f0f0;
+  grid-column: 1 / -1;
+}
+
+.crumb-label {
+  color: #000;
+  font-family: 'SimHei', 'Microsoft YaHei', Arial, sans-serif;
+  font-weight: 700;
+}
+
+.crumb-link {
+  background: none;
+  border: none;
+  padding: 0;
+  margin: 0 2px;
+  color: #3399FF;
+  cursor: pointer;
+  font-family: 'SimHei', 'Microsoft YaHei', Arial, sans-serif;
+  font-weight: 700;
+}
+
+.crumb-sep {
+  margin: 0 6px;
+  color: #999;
+}
+
 .nav-group {
   border-bottom: 1px solid #f0f0f0;
 }
@@ -128,25 +161,36 @@
 
 .nav-group h4 {
   margin: 0;
-  padding: 15px 20px 10px;
-  font-size: 14px;
-  color: #666;
-  font-weight: 500;
-  background: #fafafa;
+  padding: 12px 14px 8px;
+  font-size: 15px;
+  color: #000;
+  font-weight: 700;
+  font-family: 'SimHei', 'Microsoft YaHei', Arial, sans-serif;
+  background: #fff;
+  border-radius: 0;
 }
 /* 分组标题可点击按钮（样式与h4一致） */
 .group-button {
   width: 100%;
-  background: none;
+  background: #fff;
   border: none;
   text-align: left;
   font-size: 14px;
-  color: #666;
+  color: #000;
+  font-family: 'SimHei', 'Microsoft YaHei', Arial, sans-serif;
+  font-weight: 700;
   cursor: pointer;
-  padding: 0;
+  padding: 12px 14px 8px;
 }
 .group-button:hover {
-  color: #E2422B;
+  background: #fff;
+  color: #3399FF;
+}
+
+.group-button[aria-pressed="true"] {
+  background: #3399FF;
+  color: #fff;
+  border-radius: 0;
 }
 
 .nav-group ul {
@@ -161,27 +205,68 @@
 
 .nav-group button {
   width: 100%;
-  padding: 12px 20px;
+  padding: 8px 8px 8px 22px;
   background: none;
   border: none;
   text-align: left;
   font-size: 14px;
-  color: #333;
+  color: #000;
+  font-family: 'SimHei', 'Microsoft YaHei', Arial, sans-serif;
+  font-weight: 700;
   cursor: pointer;
   transition: all 0.3s ease;
-  border-left: 3px solid transparent;
+  border-left: none;
 }
 
 .nav-group button:hover {
-  background: #f5f5f5;
-  color: #E2422B;
+  background: #fff;
+  color: #3399FF;
 }
 
 .nav-group button.active {
-  background: #fff5f4;
-  color: #E2422B;
-  border-left-color: #E2422B;
-  font-weight: 500;
+  background: #3399FF;
+  color: #fff;
+  font-weight: 700;
+  border-radius: 0;
+}
+
+.tree-group-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.tree-group-header span {
+  font-family: 'SimHei', 'Microsoft YaHei', Arial, sans-serif;
+  font-weight: 700;
+  color: #000;
+}
+
+.tree-toggle {
+  max-width: 7px;
+  max-height: 20px;
+  border: 1px solid #dcdcdc;
+  border-radius: 4px;
+  background: #fff;
+  color: #666;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  line-height: 1;
+  padding: 0;
+}
+
+.tree-list {
+  list-style: none;
+  margin: 0;
+  padding: 0 0 8px 16px;
+  border-left: 1px solid #e5e5e5;
+}
+
+.tree-list.collapsed {
+  display: none;
 }
 
 /* 禁用项目样式 */
@@ -205,6 +290,16 @@
   height: 100%;
 }
 
+.content-section.person-info {
+  margin: 0;
+  padding: 0;
+  border: 1px solid #000;
+}
+.content-section.person-info .info-section {
+  margin: 0;
+  border-radius: 0;
+}
+
 /* 欢迎面板样式 */
 .center-welcome {
   padding: 20px;
@@ -221,11 +316,14 @@
 }
 
 .megaphone-icon {
-  width: 32px;
-  height: 32px;
-  border-radius: 50%;
-  background: linear-gradient(135deg, #FFE7D6 0%, #FFD3C0 100%);
-  border: 1px solid #f5b08a;
+  width: 40px;
+  height: 40px;
+  border-radius: 0;
+  background-image: url('/megaphone.svg');
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: center;
+  border: none;
 }
 
 .greeting-text {
@@ -234,10 +332,15 @@
   font-weight: 500;
 }
 
+.greeting-name {
+  font-size: 24px;
+  font-weight: 300;
+}
+
 .notice-card {
   margin-top: 12px;
-  background: #fff;
-  border: 1px solid #e5e5e5;
+  background: #f0f7ff;
+  border: 1px solid #dceafe;
   border-radius: 8px;
   padding: 16px 20px;
   color: #444;
@@ -245,6 +348,9 @@
 
 .notice-card p {
   margin: 8px 0;
+}
+.notice-card p:nth-child(2) {
+  color: #ff0000;
 }
 
 .action-link {
@@ -389,7 +495,7 @@
 
 /* 乘车人管理 */
 .passengers-section {
-  padding: 30px;
+  padding: 12px 0 0;
 }
 
 /* ===== 乘车人表格布局 ===== */
@@ -435,35 +541,58 @@
   border-radius: 4px;
   cursor: pointer;
 }
+.search-btn:hover {
+  border-color: #fa8c16;
+  color: #fa8c16;
+  background: #fff;
+}
 
-.manage-bar {
+.table-action-row {
   display: flex;
   align-items: center;
   gap: 12px;
-  padding: 8px 16px;
-  background: #f7fbff;
-  border: 1px solid #e6f4ff;
-  margin: 0 12px 12px;
-  border-radius: 6px;
+  padding: 8px 12px;
+  background: #e6f4ff;
+  border-bottom: 1px solid #f0f0f0;
 }
 
 .add-action,
 .bulk-delete-action {
-  padding: 6px 12px;
+  padding: 0;
   border: none;
-  border-radius: 4px;
+  background: none;
   cursor: pointer;
   font-size: 14px;
+  color: #333;
+  font-weight: 700;
 }
 
-.add-action {
+.add-action::before {
+  content: '+';
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  margin-right: 8px;
+  border-radius: 50%;
   background: #52c41a;
   color: #fff;
+  font-size: 14px;
+  line-height: 1;
+  box-shadow: 0 0 0 1px rgba(0,0,0,0.06) inset;
 }
 
-.bulk-delete-action {
-  background: #ff4d4f;
-  color: #fff;
+.bulk-delete-action::before {
+  content: '🗑';
+  display: inline-block;
+  width: 20px;
+  height: 20px;
+  margin-right: 8px;
+  color: #E2422B;
+  font-size: 18px;
+  line-height: 20px;
+  text-align: center;
 }
 
 .passenger-table {
@@ -537,10 +666,11 @@
 
 .section-title {
   font-size: 16px;
-  color: #333;
-  font-weight: 500;
-  padding-bottom: 10px;
-  border-bottom: 2px solid #E2422B;
+  color: #000;
+  font-family: 'SimHei', 'Microsoft YaHei', Arial, sans-serif;
+  font-weight: 700;
+  padding-bottom: 0;
+  border-bottom: none;
   display: inline-block;
 }
 
@@ -548,8 +678,8 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding-bottom: 10px;
-  border-bottom: 2px solid #E2422B;
+  padding-bottom: 0;
+  border-bottom: none;
 }
 
 .section-toolbar {
@@ -692,16 +822,23 @@
 
 /* 订单管理 */
 .orders-section {
-  padding: 30px;
+  padding: 0 12px;
 }
 
-.order-filters {
-  display: flex;
-  gap: 15px;
-  margin-bottom: 20px;
-  padding-bottom: 20px;
-  border-bottom: 1px solid #f0f0f0;
-}
+/* 订单页签（三栏） */
+.order-tabs { display: flex; gap: 0; margin-bottom: 0; border: 1px solid #d9d9d9; border-radius: 0; overflow: hidden; font-size: 16px; min-height: 40px; align-items: stretch; width: 100%;}
+.tab-btn { flex: 1; padding: 8px 16px; background: #fff; border: none; color: #333; font-size: 16px; margin: 0; min-height: 40px; max-width: 130px;}
+.tab-btn + .tab-btn { border-left: 1px solid #d9d9d9; }
+.tab-btn.active { background: #f0f7ff; color: #427aea; font-weight: 700; }
+.tab-btn:hover { background: #fff; color: #333; }
+
+.order-filters { display: flex; gap: 12px; align-items: center; margin-bottom: 16px; padding-bottom: 12px; border-bottom: 1px solid #f0f0f0; }
+.order-filters.advanced .date-mode { min-width: 160px; }
+.order-filters.advanced { margin-top: 8px; margin-left: 12px; }
+.order-filters.advanced input, .order-filters.advanced select { border-radius: 0; }
+.order-filters.advanced .search-btn { border-radius: 0; }
+.order-filters .date-sep { color: #999; }
+.order-filters .search-input-wrap.small { width: 220px; }
 
 .filter-select, .date-filter {
   padding: 8px 12px;
@@ -717,10 +854,32 @@
   box-shadow: 0 0 0 2px rgba(226, 66, 43, 0.2);
 }
 
-.orders-list {
-  display: grid;
-  gap: 20px;
-}
+.orders-table { display: grid; gap: 12px; margin-top: 8px; width: 100%; min-width: 0; }
+.orders-table-header, .orders-table-row { display: grid; grid-template-columns: 1fr 1fr 1fr 120px 120px; align-items: center; }
+.orders-table-header { background: #f8f8f8; color: #555; height: 40px; padding: 0 12px; font-size: 15px; border: 1px solid #f0f0f0; border-radius: 0; align-items: center; box-sizing: border-box; width: 100%; }
+.orders-table-item { border: 1px solid #e6f0fc; border-radius: 6px; background: #fff; }
+.order-meta { background: #e6f4ff; color: #666; font-size: 14px; padding: 0 12px; height: 40px; border-bottom: 1px solid #f0f0f0; display: flex; align-items: center; gap: 12px; box-sizing: border-box; width: 100%; }
+.toggle-btn { width: 20px; height: 20px; border: 1px solid #dcdcdc; border-radius: 4px; background: #fff; color: #666; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; padding: 0; }
+.order-meta .meta-sep { margin-left: 12px; }
+.orders-table-row { height: auto; padding: 8px 12px; font-size: 14px; }
+.train-col .train-route { font-weight: 600; color: #333; font-size: 16px;}
+.train-col .train-no { color: #4a90e2; font-weight: 600; margin-left: 6px; }
+.train-col .train-time { color: #666; font-size: 12px; }
+.passenger-col .passenger-name { font-weight: 500; color: #333; font-size: 14px; display: inline-block; }
+.passenger-col .id-type { color: #666; font-size: 12px; }
+.link-btn.small { border: none; background: none; color: #1677ff; cursor: pointer; font-size: 12px; padding: 0; margin-left: 8px; }
+.seat-col div:first-child { font-weight: 500; font-size: 14px; align-items: center;}
+.price-col .price-val { color: #de8920; font-weight: 400; }
+.status-col { display: flex; align-items: center; gap: 8px; }
+.ticket-status.paid { color: #2f8f3b; }
+.ticket-status.unpaid { color: #fa8c16; }
+.ticket-status.completed { color: #1677ff; }
+.order-ops { display: flex; gap: 8px; padding: 8px 12px; border-top: 1px solid #f0f0f0; background: #fff; justify-content: flex-end; }
+.ops-btn { border: 1px solid #d9d9d9; background: #fff; color: #000; border-radius: 4px; padding: 4px 10px; cursor: pointer; }
+.order-ops .detail-btn { background: #fa8c16; color: #fff; border: 1px solid #fa8c16; border-radius: 4px; padding: 6px 14px; }
+.order-ops .detail-btn:hover { background: #ff9f40; border-color: #ff9f40; }
+.order-ops .ops-btn:hover:not(:disabled) { background: #f5f5f5; }
+.order-ops .ops-btn:disabled { color: #666; border-color: #e5e5e5; cursor: not-allowed; opacity: 0.6; }
 
 .order-card {
   border: 1px solid #f0f0f0;
@@ -806,9 +965,8 @@
 
 .detail-btn, .refund-btn {
   padding: 6px 16px;
-  border: 1px solid #ddd;
   border-radius: 4px;
-  background: #fff;
+  background: #e67f11;
   font-size: 12px;
   cursor: pointer;
   transition: all 0.3s ease;

@@ -1,0 +1,132 @@
+import React from 'react';
+import { useLocation } from 'react-router-dom';
+
+interface NavbarProps {
+  active?: 'home' | 'tickets';
+}
+
+const Navbar: React.FC<NavbarProps> = ({ active }) => {
+  const [isTicketOpen, setIsTicketOpen] = React.useState(false);
+  const ticketTimerRef = React.useRef<number | null>(null);
+  const ticketOpenTimerRef = React.useRef<number | null>(null);
+  const [isBizOpen, setIsBizOpen] = React.useState(false);
+  const bizTimerRef = React.useRef<number | null>(null);
+  const bizOpenTimerRef = React.useRef<number | null>(null);
+  const location = useLocation();
+
+  const handleTicketEnter = () => {
+    if (active === 'tickets') return;
+    if (ticketTimerRef.current) {
+      clearTimeout(ticketTimerRef.current);
+      ticketTimerRef.current = null;
+    }
+    if (ticketOpenTimerRef.current) {
+      clearTimeout(ticketOpenTimerRef.current);
+      ticketOpenTimerRef.current = null;
+    }
+    ticketOpenTimerRef.current = window.setTimeout(() => {
+      setIsTicketOpen(true);
+      ticketOpenTimerRef.current = null;
+    }, 220);
+  };
+
+  const handleTicketLeave = () => {
+    if (ticketTimerRef.current) {
+      clearTimeout(ticketTimerRef.current);
+    }
+    if (ticketOpenTimerRef.current) {
+      clearTimeout(ticketOpenTimerRef.current);
+      ticketOpenTimerRef.current = null;
+    }
+    ticketTimerRef.current = window.setTimeout(() => {
+      setIsTicketOpen(false);
+      ticketTimerRef.current = null;
+    }, 180);
+  };
+
+  const handleBizEnter = () => {
+    if (bizTimerRef.current) {
+      clearTimeout(bizTimerRef.current);
+      bizTimerRef.current = null;
+    }
+    if (bizOpenTimerRef.current) {
+      clearTimeout(bizOpenTimerRef.current);
+      bizOpenTimerRef.current = null;
+    }
+    bizOpenTimerRef.current = window.setTimeout(() => {
+      setIsBizOpen(true);
+      bizOpenTimerRef.current = null;
+    }, 220);
+  };
+
+  const handleBizLeave = () => {
+    if (bizTimerRef.current) {
+      clearTimeout(bizTimerRef.current);
+    }
+    if (bizOpenTimerRef.current) {
+      clearTimeout(bizOpenTimerRef.current);
+      bizOpenTimerRef.current = null;
+    }
+    bizTimerRef.current = window.setTimeout(() => {
+      setIsBizOpen(false);
+      bizTimerRef.current = null;
+    }, 180);
+  };
+
+  React.useEffect(() => {
+    setIsTicketOpen(false);
+    setIsBizOpen(false);
+  }, [location]);
+
+  return (
+    <nav className="navbar">
+      <div className="nav-container">
+        <ul className="nav-links">
+          <li><a href="/" className={active === 'home' ? 'active' : undefined}>首页</a></li>
+          <li className="ticket-nav" onMouseEnter={handleTicketEnter} onMouseLeave={handleTicketLeave}>
+            <a href="/train-list" className={active === 'tickets' ? 'active' : undefined}>车票</a>
+            <div className={`ticket-dropdown ${isTicketOpen ? 'open' : ''}`} role="menu" aria-label="车票" onMouseEnter={handleTicketEnter} onMouseLeave={handleTicketLeave}>
+              <div className="ticket-grid">
+                <div className="ticket-col">
+                  <div className="col-title">购买</div>
+                  <a href="/train-list?type=single" className="ticket-item">单程</a>
+                  <a href="#" className="ticket-item">往返</a>
+                  <a href="#" className="ticket-item">中转换乘</a>
+                  <a href="#" className="ticket-item">计次•定期票</a>
+                </div>
+                <div className="ticket-col">
+                  <div className="col-title">变更</div>
+                  <a href="#" className="ticket-item">退票</a>
+                  <a href="#" className="ticket-item">改签</a>
+                  <a href="#" className="ticket-item">变更到站</a>
+                </div>
+                <div className="ticket-col">
+                  <div className="col-title">更多</div>
+                  <a href="#" className="ticket-item">中铁银通卡</a>
+                  <a href="#" className="ticket-item">国际列车</a>
+                </div>
+              </div>
+            </div>
+          </li>
+          <li><a href="#">团购服务</a></li>
+          <li><a href="#">会员服务</a></li>
+          <li><a href="#">站车服务</a></li>
+          <li className="biz-nav" onMouseEnter={handleBizEnter} onMouseLeave={handleBizLeave}>
+            <a href="#">商旅服务</a>
+            <div className={`biz-dropdown ${isBizOpen ? 'open' : ''}`} role="menu" aria-label="商旅服务" onMouseEnter={handleBizEnter} onMouseLeave={handleBizLeave}>
+              <div className="biz-grid">
+                <a href="/catering" className="biz-item">餐饮•特产</a>
+                <a href="#" className="biz-item">保险</a>
+                <a href="#" className="biz-item">雪具快运</a>
+              </div>
+            </div>
+          </li>
+          <li><a href="#">出行指南</a></li>
+          <li><a href="#">信息查询</a></li>
+        </ul>
+      </div>
+    </nav>
+  );
+};
+
+export default Navbar;

@@ -59,8 +59,9 @@ const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose, onLoginSuccess
       } else {
         setError(response.message || '登录失败，请重试');
       }
-    } catch (err: any) {
-      setError(err.message || '登录失败，请重试');
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : '登录失败，请重试';
+      setError(msg);
     } finally {
       setIsLoading(false);
     }

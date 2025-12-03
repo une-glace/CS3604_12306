@@ -45,8 +45,9 @@ export const registerUser = async (userData: RegisterData): Promise<ApiResponse<
     }
     
     return response;
-  } catch (error: any) {
-    throw new Error(error.message || '注册失败');
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : '注册失败';
+    throw new Error(message);
   }
 };
 
@@ -60,8 +61,9 @@ export const loginUser = async (loginData: LoginData): Promise<ApiResponse<AuthR
     }
     
     return response;
-  } catch (error: any) {
-    throw new Error(error.message || '登录失败');
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : '登录失败';
+    throw new Error(message);
   }
 };
 
@@ -70,8 +72,9 @@ export const getCurrentUser = async (): Promise<ApiResponse<{ user: User }>> => 
   try {
     const response = await get('/auth/me');
     return response;
-  } catch (error: any) {
-    throw new Error(error.message || '获取用户信息失败');
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : '获取用户信息失败';
+    throw new Error(message);
   }
 };
 
@@ -80,8 +83,9 @@ export const updateProfile = async (payload: { email?: string; phoneNumber?: str
   try {
     const response = await put('/auth/profile', payload);
     return response;
-  } catch (error: any) {
-    throw new Error(error.message || '更新个人信息失败');
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : '更新个人信息失败';
+    throw new Error(message);
   }
 };
 
@@ -110,8 +114,9 @@ export const validateResetAccount = async (payload: { countryCode?: string; phon
   try {
     const response = await post('/auth/forgot/validate', payload);
     return response;
-  } catch (error: any) {
-    throw new Error(error.message || '账户校验失败');
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : '账户校验失败';
+    throw new Error(message);
   }
 };
 
@@ -120,8 +125,9 @@ export const resetPassword = async (payload: { countryCode?: string; phoneNumber
   try {
     const response = await post('/auth/forgot/reset', payload);
     return response;
-  } catch (error: any) {
-    throw new Error(error.message || '密码重置失败');
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : '密码重置失败';
+    throw new Error(message);
   }
 };
 

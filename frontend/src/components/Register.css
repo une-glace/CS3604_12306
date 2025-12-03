@@ -1,9 +1,12 @@
 /* 注册页面样式 */
 .register-container {
   min-height: 100vh;
-  background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+  background: #ffffff;
   font-family: 'Microsoft YaHei', Arial, sans-serif;
 }
+
+/* 覆盖全站头部在注册页的阴影效果 */
+.register-container .header { box-shadow: none; }
 
 /* 头部样式 */
 .register-header {
@@ -73,14 +76,20 @@
   margin: 40px auto;
   gap: 60px;
   padding: 0 20px;
+  justify-content: center;
 }
 
 .register-form-container {
   flex: 2;
   background: #fff;
-  border-radius: 12px;
-  padding: 40px;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+  border: 1px solid #8bb4ff;
+  border-radius: 0;
+  padding: 0;
+  box-shadow: none;
+  max-width: 980px;
+  height: 574.5px;
+  box-sizing: border-box;
+
 }
 
 .register-form-header {
@@ -181,10 +190,17 @@
 }
 
 .step-content h3 {
-  font-size: 20px;
-  color: #333;
-  margin-bottom: 24px;
+  font-size: 14px;
+  color: #fff;
+  margin: 0;
   font-weight: 600;
+  width: 980px;
+  height: 32px;
+  line-height: 32px;
+  display: block;
+  padding: 0 12px;
+  background: #2d87c6;
+  border-bottom: 1px solid #8bb4ff;
 }
 
 .form-group {
@@ -255,6 +271,12 @@
   margin: 0;
   color: #1890ff;
   font-size: 14px;
+}
+
+.verification-group {
+  width: 100%;
+  max-width: 700px;
+  margin: 0 auto;
 }
 
 .verification-group .verification-input {
@@ -357,7 +379,7 @@
 /* ===== 网格布局（账户信息） ===== */
 .register-form-grid {
   display: grid;
-  grid-template-columns: 150px 420px 1fr;
+  grid-template-columns: 150px 210px 1fr;
   column-gap: 16px;
   row-gap: 16px;
 }
@@ -388,12 +410,12 @@
 .grid-input input[type="email"],
 .grid-input input[type="tel"],
 .grid-input select {
-  width: 100%;
-  height: 40px;
+  width: 200px;
+  height: 30px;
   padding: 0 12px;
-  border: 2px solid #e8e8e8;
-  border-radius: 6px;
-  font-size: 14px;
+  border: 1px solid #d9d9d9;
+  border-radius: 0;
+  font-size: 12px;
   transition: all 0.3s;
   box-sizing: border-box;
 }
@@ -451,17 +473,33 @@
 }
 
 .country-select {
-  width: 140px;
-  height: 40px;
+  width: 200px;
+  height: 30px;
   padding: 0 12px;
-  border: 2px solid #e8e8e8;
-  border-radius: 6px;
-  font-size: 14px;
+  border: 1px solid #d9d9d9;
+  border-radius: 0;
+  font-size: 12px;
   background: #fff;
 }
 
+/* 手机号行：精确控制国家区号与手机号输入宽度 */
+.phone-row .country-select { width: 95px; }
+.phone-row input[type="tel"] { width: 95.5px; }
+
+/* 缩小账户信息网格整体字体至10px */
+.register-form-grid { font-size: 12px; }
+.register-form-grid .grid-label { font-size: 12px; }
+.register-form-grid .grid-hint { font-size: 12px; color: #ff8c00; }
+.register-form-grid .agreement-label { font-size: 12px; }
+.register-form-grid .rule-link { font-size: 12px; }
+
 .agreement-row .agreement-label {
   align-items: center;
+  white-space: nowrap;
+  width: 100%;
+}
+.agreement-row .grid-input {
+  grid-column: 2 / 4;
 }
 
 /* 右侧提示链接样式 */
@@ -499,16 +537,21 @@
 
 .next-btn,
 .submit-btn {
-  background: linear-gradient(135deg, #1890ff 0%, #096dd9 100%);
-  color: white;
-  margin-left: auto;
+  background: #ff9f1a;
+  color: #fff;
 }
 
 .next-btn:hover,
 .submit-btn:hover:not(:disabled) {
-  background: linear-gradient(135deg, #096dd9 0%, #0050b3 100%);
-  transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(24, 144, 255, 0.3);
+  background: #ff8c00;
+}
+
+/* 调整“下一步”按钮高度并居中显示 */
+.next-btn {
+  height: 30px;
+  line-height: 30px;
+  padding: 0 20px;
+  font-size: 12px;
 }
 
 .submit-btn:disabled {
@@ -527,10 +570,10 @@
 
 .info-section {
   background: #fff;
-  border-radius: 12px;
+  border-radius: 0;
   padding: 24px;
   margin-bottom: 24px;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+  box-shadow: none;
 }
 
 .info-section h3 {

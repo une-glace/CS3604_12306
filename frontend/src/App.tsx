@@ -6,6 +6,9 @@ import HomePage from './pages/HomePage'
 import TrainListPage from './pages/TrainListPage'
 import OrderPage from './pages/OrderPage'
 import ProfilePage from './pages/ProfilePage'
+import CateringPage from './pages/CateringPage'
+import CateringBookingPage from './pages/CateringBookingPage'
+import CateringVendorPage from './pages/CateringVendorPage'
 import OrderDetailPage from './pages/OrderDetailPage'
 import Login from './components/Login'
 import ForgotPasswordPage from './pages/ForgotPasswordPage'
@@ -13,6 +16,7 @@ import ForgotPasswordVerifyPage from './pages/ForgotPasswordVerifyPage'
 import ForgotPasswordResetPage from './pages/ForgotPasswordResetPage'
 import ForgotPasswordDonePage from './pages/ForgotPasswordDonePage'
 import Register from './components/Register'
+import PayOrderPage from './pages/PayOrderPage'
 
 function App() {
   return (
@@ -24,8 +28,12 @@ function App() {
             <Route path="/" element={<HomePage />} />
             <Route path="/train-list" element={<TrainListPage />} />
             <Route path="/order" element={<OrderPage />} />
+            <Route path="/pay-order" element={<PayOrderPage />} />
             <Route path="/order-detail/:orderId" element={<OrderDetailPage />} />
             <Route path="/profile" element={<ProfilePage />} />
+            <Route path="/catering" element={<CateringPage />} />
+            <Route path="/catering/book" element={<CateringBookingPage />} />
+            <Route path="/catering/vendor" element={<CateringVendorPage />} />
             <Route path="/forgot-password" element={<ForgotPasswordPage />} />
             <Route path="/forgot-password/verify" element={<ForgotPasswordVerifyPage />} />
             <Route path="/forgot-password/reset" element={<ForgotPasswordResetPage />} />

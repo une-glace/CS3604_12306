@@ -44,7 +44,7 @@ export interface Order {
 }
 
 // 创建订单
-export const createOrder = async (orderData: OrderData): Promise<{ success: boolean; message: string; data: { id: string; orderId: string; order: any } }> => {
+export const createOrder = async (orderData: OrderData): Promise<{ success: boolean; message: string; data: { id: string; orderId: string; order: unknown } }> => {
   try {
     const response = await post('/orders', {
       trainInfo: orderData.trainInfo,
@@ -99,9 +99,12 @@ export const getUserOrders = async (page = 1, limit = 10, status?: string): Prom
 export const getOrderDetail = async (orderId: string): Promise<Order> => {
   try {
     const response = await get(`/orders/${orderId}`);
-    return response.data;
-  } catch (error) {
-    console.error('获取订单详情失败:', error);
+    const data = (response && response.data && (response.data.order || response.data)) || response;
+    return data as unknown as Order;
+  } catch (error: unknown) {
+    const msg = String((error as Error)?.message || '');
+    const isNotFound = msg.includes('订单不存在') || msg.includes('status: 404');
+    (isNotFound ? console.warn : console.error)('获取订单详情失败:', error);
     throw error;
   }
 };
@@ -115,4 +118,93 @@ export const cancelOrder = async (orderId: string): Promise<{ success: boolean }
     console.error('取消订单失败:', error);
     throw error;
   }
+};
+
+// 为页面提供格式化后的订单列表（纯函数式映射）
+export interface FormattedOrder {
+  id: string;
+  orderNumber: string;
+  trainNumber: string;
+  departure: string;
+  arrival: string;
+  departureTime: string;
+  arrivalTime: string;
+  date: string;
+  bookDate?: string;
+  tripDate?: string;
+  passenger: string;
+  seat: string;
+  passengers?: Array<{ name: string; seatNumber?: string; seatType?: string; carriage?: string | number }>;
+  price: number;
+  status: 'paid' | 'unpaid' | 'cancelled' | 'refunded' | 'completed';
+}
+
+export const fetchUserOrdersFormatted = async (page = 1, limit = 10, status?: string): Promise<{ orders: FormattedOrder[]; pagination: { page: number; limit: number; total: number; totalPages: number } }> => {
+  const data = await getUserOrders(page, limit, status);
+  const formatted: FormattedOrder[] = (data.orders || []).map((order: unknown) => {
+    const o = order as {
+      id?: string;
+      orderId?: string;
+      orderNumber?: string;
+      trainNumber?: string;
+      fromStation?: string;
+      toStation?: string;
+      departure?: string;
+      arrival?: string;
+      departureTime?: string;
+      arrivalTime?: string;
+      departureDate?: string;
+      date?: string;
+      orderDate?: string;
+      bookDate?: string;
+      createdAt?: unknown;
+      passengers?: Array<{ passengerName?: string; name?: string; seatNumber?: string; seatType?: string; carriage?: string | number }>;
+      seat?: string;
+      totalPrice?: number;
+      price?: number;
+      passenger?: string;
+      status?: string;
+    };
+    return {
+      id: o.id || '',
+      orderNumber: o.orderId || o.orderNumber || '',
+      trainNumber: o.trainNumber || '',
+      departure: o.fromStation || o.departure || '',
+      arrival: o.toStation || o.arrival || '',
+      departureTime: o.departureTime || '',
+      arrivalTime: o.arrivalTime || '',
+      date: o.departureDate || o.date || '',
+      bookDate: o.orderDate || o.bookDate || (o.createdAt ? String(o.createdAt).slice(0, 10) : undefined),
+      tripDate: o.departureDate || o.date || '',
+      passenger: (o.passengers && o.passengers[0]?.passengerName) ? String(o.passengers[0]!.passengerName) : (o.passenger || '未知'),
+      seat: (o.passengers && o.passengers[0]?.seatNumber) ? String(o.passengers[0]!.seatNumber) : (o.seat || '待分配'),
+      passengers: Array.isArray(o.passengers)
+        ? o.passengers.map(p => ({
+            name: p.passengerName || p.name || '未知',
+            seatNumber: p.seatNumber,
+            seatType: p.seatType,
+            carriage: p.carriage,
+          }))
+        : undefined,
+      price: o.totalPrice ?? o.price ?? 0,
+      status: (
+        o.status === 'unpaid' ? 'unpaid' :
+        o.status === 'paid' ? 'paid' :
+        o.status === 'cancelled' ? 'cancelled' :
+        o.status === 'refunded' ? 'refunded' :
+        o.status === 'completed' ? 'completed' : 'unpaid'
+      ) as FormattedOrder['status']
+    };
+  });
+  const total = (data.pagination?.total ?? formatted.length);
+  const lim = (data.pagination?.limit ?? limit);
+  return {
+    orders: formatted,
+    pagination: {
+      page: data.pagination?.page ?? page,
+      limit: lim,
+      total,
+      totalPages: Math.ceil(total / lim)
+    }
+  };
 };

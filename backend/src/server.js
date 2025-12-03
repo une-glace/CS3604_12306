@@ -17,6 +17,18 @@ const PORT = process.env.PORT || 3000;
       if (process.env.NODE_ENV === 'development' || process.env.NODE_ENV === 'test') {
         await syncDatabase(false);
         await seedData();
+      } else {
+        await syncDatabase(false);
+        try {
+          const todayStr = new Date().toISOString().split('T')[0];
+          const seatCount = await TrainSeat.count({ where: { date: todayStr } });
+          if (seatCount === 0) {
+            console.log('⚠️ 检测到当日座位数据为空，自动初始化种子数据');
+            await seedData();
+          }
+        } catch (e) {
+          console.warn('座位数据检测/初始化失败:', e.message);
+        }
       }
       const ttlMs = parseInt(process.env.ORDER_UNPAID_TTL_MS || '120000', 10);
       const intervalMs = parseInt(process.env.ORDER_CLEANUP_INTERVAL_MS || '30000', 10);

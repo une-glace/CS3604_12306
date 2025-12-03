@@ -6,35 +6,39 @@
 
 .search-main {
   display: grid;
-  grid-template-columns: 120px 2fr 1fr 1fr 1fr auto;
-  align-items: end;
+  grid-template-columns: 60px 2fr 1fr 1fr 80px auto;
+  align-items: center;
   width: 100%;
-  padding: 12px 24px;
-  gap: 20px;
+  max-width: 1190px;
+  margin: 0 auto;
+  padding: 8px 24px;
+  gap: 12px;
   background: #eef6ff; /* 淡蓝背景 */
   border: 1px solid #cfe1ff;
   border-radius: 6px;
+  height: auto;
 }
 
 .trip-type-column {
   display: flex;
   flex-direction: column;
-  gap: 8px;
-  padding-right: 16px;
+  gap: 4px;
+  padding-right: 8px;
   border-right: 1px solid #d5e7ff;
 }
 
 .trip-type-item {
   display: flex;
   align-items: center;
-  gap: 6px;
-  font-size: 14px;
+  gap: 4px;
+  font-size: 12px;
+  line-height: 16px;
   color: #333;
 }
 
 .station-selector {
   display: grid;
-  grid-template-columns: 1fr 40px 1fr;
+  grid-template-columns: 1fr 1fr;
   align-items: end;
   gap: 12px;
   width: 100%;
@@ -42,14 +46,46 @@
 
 .station-item {
   display: flex;
+  flex-direction: row;
+  align-items: flex-start;
+  gap: 8px;
+  position: relative;
+}
+
+.hot-cities {
+  display: flex;
   flex-direction: column;
-  gap: 5px;
+  gap: 6px;
+}
+.hot-cities-title {
+  font-size: 12px;
+  color: #666;
+}
+.hot-cities-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.hot-city-item {
+  padding: 4px 8px;
+  font-size: 12px;
+  border: 1px solid #d9d9d9;
+  border-radius: 16px;
+  background: #fff;
+  color: #333;
+  cursor: pointer;
+}
+.hot-city-item:hover,
+.hot-city-item:focus {
+  border-color: #0066cc;
+  color: #0066cc;
 }
 
 .station-item label {
   font-size: 12px;
   color: #666;
   font-weight: normal;
+  width: 42px;
 }
 
 .station-name {
@@ -74,8 +110,9 @@
   font-size: 16px;
   font-weight: 500;
   color: #333;
-  width: 150px; /* 与日期输入统一宽度 */
-  padding: 8px 12px;
+  width: 122px;
+  height: 30px;
+  padding: 0 8px;
   background: #fff;
   border: 1px solid #ddd;
   border-radius: 4px;
@@ -120,8 +157,9 @@
 
 .date-selector {
   display: flex;
-  flex-direction: column;
-  gap: 5px;
+  flex-direction: row;
+  align-items: center;
+  gap: 8px;
 }
 
 .date-selector label {
@@ -131,7 +169,8 @@
 }
 
 .date-input {
-  padding: 10px 12px;
+  height: 30px;
+  padding: 0 8px;
   border: 1px solid #d9d9d9;
   border-radius: 6px;
   font-size: 14px;
@@ -157,8 +196,10 @@
 .passenger-type-selector,
 .train-type-selector {
   display: flex;
-  flex-direction: column;
-  gap: 8px;
+  flex-direction: row;
+  align-items: center;
+  gap: 10px;
+  width: 80px;
 }
 
 .passenger-type-selector label:first-child,
@@ -170,7 +211,8 @@
 
 .radio-group {
   display: flex;
-  gap: 15px;
+  flex-direction: row;
+  gap: 10px;
 }
 
 .passenger-type-selector .radio-group {
@@ -182,7 +224,7 @@
   display: flex;
   align-items: center;
   gap: 5px;
-  font-size: 14px;
+  font-size: 12px;
   color: #333;
   cursor: pointer;
 }
@@ -197,7 +239,8 @@
   color: white;
   border: none;
   border-radius: 4px;
-  padding: 10px 18px;
+  height: 30px;
+  padding: 0 18px;
   font-size: 14px;
   font-weight: 500;
   cursor: pointer;
@@ -333,4 +376,93 @@
     padding: 10px 20px;
     font-size: 14px;
   }
+}
+.station-dropdown {
+  position: absolute;
+  top: 36px;
+  left: 42px;
+  width: 860px;
+  background: #fff;
+  box-shadow: 0 6px 24px rgba(0,0,0,0.12);
+  border: 1px solid #ccd6e3;
+  border-radius: 8px;
+  z-index: 1000;
+}
+.dropdown-inner {
+  display: grid;
+  grid-template-columns: 160px 1fr;
+}
+.scope-column {
+  background: #f5f7fb;
+  border-right: 1px solid #e5eaf3;
+  padding: 12px;
+}
+.scope-btn {
+  display: block;
+  width: 100%;
+  padding: 10px 0;
+  margin-bottom: 10px;
+  border: 1px solid #d5e7ff;
+  border-radius: 6px;
+  background: #fff;
+  color: #2a76ff;
+  cursor: pointer;
+}
+.scope-btn.active {
+  background: #2a76ff;
+  color: #fff;
+}
+.dropdown-main {
+  padding: 12px 12px 16px 12px;
+}
+.dropdown-header {
+  font-size: 12px;
+  color: #666;
+  margin-bottom: 8px;
+}
+.dropdown-tabs {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  border-bottom: 1px solid #e5e5e5;
+  padding-bottom: 8px;
+}
+.dropdown-tab {
+  padding: 6px 12px;
+  border-radius: 4px;
+  background: #2a76ff;
+  color: #fff;
+  border: none;
+  cursor: pointer;
+  font-size: 12px;
+}
+.dropdown-tab.active {
+  filter: brightness(1.05);
+}
+.dropdown-close {
+  margin-left: auto;
+  background: transparent;
+  border: none;
+  font-size: 16px;
+  color: #999;
+  cursor: pointer;
+}
+.dropdown-content {
+  padding-top: 10px;
+}
+.city-grid {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 8px 16px;
+}
+.city-item {
+  background: transparent;
+  border: none;
+  color: #333;
+  text-align: left;
+  cursor: pointer;
+  padding: 4px 6px;
+}
+.city-item:hover {
+  color: #2a76ff;
 }

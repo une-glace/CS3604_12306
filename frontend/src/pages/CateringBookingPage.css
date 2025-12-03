@@ -1,0 +1,152 @@
+.booking-main {
+  width: 1190px;
+  margin: 0 auto;
+}
+.filter-row {
+  margin: 12px 0;
+}
+.booking-filter {
+  width: 1200px;
+  height: 111.55px;
+  margin: 0 auto;
+  background: #eef5ff;
+  border: 1px solid #cfe1ff;
+  border-radius: 8px;
+  box-sizing: border-box;
+  padding: 10px 12px 10px 12px;
+}
+.booking-filter { padding-top: 0; }
+.filter-top {
+  display: grid;
+  grid-template-columns: 248px 224px 236px 236px 104px;
+  align-items: center;
+  gap: 12px;
+  height: 70px;
+}
+.field { display: flex; align-items: center; gap: 8px; }
+.field-label { color: #666; font-size: 14px; white-space: nowrap; }
+.field-date .field-label { width: 64px; }
+.field-train .field-label { width: 36px; }
+.field-from .field-label { width: 60px; }
+.field-to .field-label { width: 48px; }
+.filter-input {
+  height: 30px;
+  background: #fff;
+  border: 1px solid #e0e9ff;
+  border-radius: 0;
+  padding: 0 10px;
+  color: #333;
+  flex: 1;
+}
+.btn-query {
+  height: 30px;
+  background: #ff9f1a;
+  color: #fff;
+  border: none;
+  border-radius: 0;
+  cursor: pointer;
+  font-weight: 600;
+}
+.filter-divider {
+  height: 0;
+  border-top: 2px dashed #2a76ff;
+  margin: 0 0 6px 0;
+}
+.filter-bottom {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: center;
+  height: 40.55px;
+}
+.bottom-left { display: flex; align-items: center; gap: 12px; font-size: 14px; }
+.bottom-right { display: flex; align-items: center; gap: 12px; }
+.label { color: #666; font-size: 14px; line-height: 24px; }
+.chip-all {
+  width: 50px;
+  height: 24px;
+  background: #8aa8d6;
+  color: #fff;
+  border: none;
+  padding: 0;
+  border-radius: 4px;
+  cursor: pointer;
+  line-height: 24px;
+  text-align: center;
+}
+.station-check { color: #333; font-size: 14px; display: inline-flex; align-items: center; height: 24px; gap: 6px; }
+.station-check input { margin: 0; }
+.filter-ops { display: flex; align-items: center; justify-content: flex-end; gap: 12px; }
+.btn-back {
+  padding: 6px 12px;
+  border: 1px solid #ddd;
+  background: #fff;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.section-title {
+  margin: 16px 0 8px;
+  font-size: 16px;
+  color: #2a76ff;
+  font-weight: 600;
+}
+.goods-section .section-title { color: #ff9f1a; font-weight: 1000; margin-bottom: 4px; }
+.goods-divider { height: 0; border-top: 2px solid #ff9f1a; margin: 2px 0 8px; }
+.section-sub { color: #999; font-weight: 400; font-size: 12px; }
+
+.goods-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 384px);
+  gap: 10px;
+}
+.good-card {
+  width: 384px;
+  height: 140px;
+  background: #fff;
+  border: 1px solid #e9edf2;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  overflow: hidden;
+}
+.good-img { width: 210px; height: 140px; object-fit: cover; }
+.good-content { flex: 1; display: flex; flex-direction: column; justify-content: center; text-align: right; margin: 0px 15px;}
+.good-name { margin: 0px 0px 6px; color: #000; font-weight: 600;}
+.good-price { color: #000; font-weight: 600; }
+
+.vendor-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 385px);
+  gap: 10px;
+}
+.vendor-card {
+  position: relative;
+  width: 385px;
+  height: 130px;
+  background: #fff;
+  border: 1px solid #e9edf2;
+  border-radius: 6px;
+  padding: 10px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  cursor: pointer;
+}
+.vendor-card:hover { border-color: #c8d4e7; box-shadow: 0 2px 6px rgba(0,0,0,0.04); }
+.vendor-thumb { width: 80px; height: 80px; object-fit: cover; border-radius: 4px; }
+.vendor-content { flex: 1; }
+.vendor-name { color: #333; font-weight: 600; }
+.vendor-meta { color: #666; font-size: 12px; }
+.status-badge {
+  position: absolute;
+  right: 10px;
+  top: 10px;
+  padding: 4px 8px;
+  border-radius: 12px;
+  font-size: 12px;
+}
+.status-badge.open { background: #e6f5e6; color: #0a7f0a; }
+.status-badge.closed { background: #f7f7f7; color: #999; }
+.vendors-section .section-title { font-weight: 700; }
+.vendors-divider { height: 0; border-top: 2px solid #2a76ff; margin: 0px 0 0px; }
