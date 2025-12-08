@@ -1,0 +1,14 @@
+{
+  "id": "local",
+  "name": "local",
+  "environmentVariables": {
+    "12306_PASSWORD": "testtest",
+    "12306_USERNAME": "minhnguyen",
+    "12306_URL": "localhost:5174",
+    "CTRIP_PHONE_NUMBER": "PLACEHOLDER",
+    "CTRIP_PASSWORD": "PLACEHOLDER",
+    "CTRIP_URL": "localhost:5174"
+  },
+  "createdAt": "2025-11-04T17:06:35.483Z",
+  "updatedAt": "2025-12-02T16:21:27.885Z"
+}

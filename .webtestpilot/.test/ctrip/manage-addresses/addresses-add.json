@@ -1,0 +1,49 @@
+{
+  "id": "2.3.1 添加常用地址",
+  "name": "2.3.1 添加常用地址",
+  "url": "${CTRIP_URL}",
+  "actions": [
+    {
+      "action": "首页右上角点击“尊贵的用户”",
+      "expectedResult": ""
+    },
+    {
+      "action": "侧边栏点击“常用信息”，展开后点击“常用地址”",
+      "expectedResult": ""
+    },
+    {
+      "action": "点击“新增”",
+      "expectedResult": "显示新增地址表单"
+    },
+    {
+      "action": "收件人姓名输入User",
+      "expectedResult": ""
+    },
+    {
+      "action": "'请选择左侧的省份下拉菜单，然后从下拉菜单中选择上海。",
+      "expectedResult": ""
+    },
+    {
+      "action": "请选择城市下拉菜单，然后从下拉菜单中选择上海。",
+      "expectedResult": ""
+    },
+    {
+      "action": "请选择区/县下拉菜单，然后从下拉菜单中选择闵行区。",
+      "expectedResult": ""
+    },
+    {
+      "action": "详细地址填写SJTU",
+      "expectedResult": ""
+    },
+    {
+      "action": "手机号码输入15512341234",
+      "expectedResult": ""
+    },
+    {
+      "action": "点击“保存”",
+      "expectedResult": "显示“新常用地址成功!”"
+    }
+  ],
+  "createdAt": "2025-12-05T00:00:00.000Z",
+  "updatedAt": "2025-12-06T01:54:00.906Z"
+}
