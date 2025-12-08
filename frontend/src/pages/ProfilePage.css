@@ -473,6 +473,14 @@
   border-radius: 8px;
 }
 
+.address-section { padding: 30px; }
+.address-table {
+  margin: 0 12px;
+  background: #fff;
+  border: 1px solid #f0f0f0;
+  border-radius: 8px;
+}
+
 .table-header,
 .table-row {
   display: grid;
