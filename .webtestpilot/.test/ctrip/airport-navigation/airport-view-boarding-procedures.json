@@ -1,0 +1,25 @@
+{
+  "id": "2.1.2 查看乘机流程",
+  "name": "2.1.2 查看乘机流程",
+  "url": "${CTRIP_URL}",
+  "actions": [
+    {
+      "action": "点击首页上的“航班”",
+      "expectedResult": "出现航班搜索框"
+    },
+    {
+      "action": "点击“更多服务”",
+      "expectedResult": "出现“机场攻略”按钮"
+    },
+    {
+      "action": "点击“机场攻略”",
+      "expectedResult": "应该出现登机流程按钮"
+    },
+    {
+      "action": "点击“登机流程”",
+      "expectedResult": "应该显示国内出发的登机流程"
+    }
+  ],
+  "createdAt": "2025-12-05T00:00:00.000Z",
+  "updatedAt": "2025-12-05T00:00:00.000Z"
+}
