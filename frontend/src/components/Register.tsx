@@ -54,6 +54,8 @@ const Register: React.FC<RegisterProps> = () => {
   const [isPasswordValid, setIsPasswordValid] = useState<boolean | null>(null);
   const [isConfirmValid, setIsConfirmValid] = useState<boolean | null>(null);
   const [passwordStrength, setPasswordStrength] = useState<number>(0);
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   // 证件类型选项
   const idTypeOptions = [
@@ -600,7 +602,7 @@ const Register: React.FC<RegisterProps> = () => {
                     <label className="grid-label"><span className="required-star">*</span> 登录密码：</label>
                     <div className="grid-input">
                       <input
-                        type="password"
+                        type={showPassword ? 'text' : 'password'}
                         id="password"
                         name="password"
                         value={formData.password}
@@ -609,7 +611,26 @@ const Register: React.FC<RegisterProps> = () => {
                         placeholder="长度≥6，仅字母、数字和下划线，至少包含两类"
                         className={errors.password ? 'error' : ''}
                       />
-                      {isPasswordValid && !errors.password ? <span className="valid-icon">✓</span> : null}
+                      <button 
+                        type="button" 
+                        className="password-toggle-btn" 
+                        onClick={() => setShowPassword(!showPassword)}
+                        tabIndex={-1}
+                        title={showPassword ? "隐藏密码" : "显示密码"}
+                      >
+                        {showPassword ? (
+                          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1 2.16 3.19m-6.72-1.07-2.33-2.33 13.84-13.84 2.33 2.33" />
+                            <line x1="1" y1="1" x2="23" y2="23" />
+                          </svg>
+                        ) : (
+                          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+                            <circle cx="12" cy="12" r="3" />
+                          </svg>
+                        )}
+                      </button>
+                      {isPasswordValid && !errors.password ? <span className="valid-icon with-toggle">✓</span> : null}
                       {passwordStrength > 0 && (
                         <div className="strength-indicator">
                           <span className={`strength-bar ${passwordStrength >= 1 ? 'active weak' : ''}`} />
@@ -627,7 +648,7 @@ const Register: React.FC<RegisterProps> = () => {
                     <label className="grid-label"><span className="required-star">*</span> 确认密码：</label>
                     <div className="grid-input">
                       <input
-                        type="password"
+                        type={showConfirmPassword ? 'text' : 'password'}
                         id="confirmPassword"
                         name="confirmPassword"
                         value={formData.confirmPassword}
@@ -636,7 +657,26 @@ const Register: React.FC<RegisterProps> = () => {
                         placeholder="再次输入您的登录密码"
                         className={errors.confirmPassword ? 'error' : ''}
                       />
-                      {isConfirmValid && !errors.confirmPassword ? <span className="valid-icon">✓</span> : null}
+                      <button 
+                        type="button" 
+                        className="password-toggle-btn" 
+                        onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                        tabIndex={-1}
+                        title={showConfirmPassword ? "隐藏密码" : "显示密码"}
+                      >
+                        {showConfirmPassword ? (
+                          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1 2.16 3.19m-6.72-1.07-2.33-2.33 13.84-13.84 2.33 2.33" />
+                            <line x1="1" y1="1" x2="23" y2="23" />
+                          </svg>
+                        ) : (
+                          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+                            <circle cx="12" cy="12" r="3" />
+                          </svg>
+                        )}
+                      </button>
+                      {isConfirmValid && !errors.confirmPassword ? <span className="valid-icon with-toggle">✓</span> : null}
                       {errors.confirmPassword && <span className="error-message">{errors.confirmPassword}</span>}
                     </div>
                     <div className="grid-hint">再次输入您的登录密码</div>

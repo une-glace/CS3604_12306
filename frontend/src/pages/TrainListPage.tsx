@@ -168,7 +168,23 @@ const TrainListPage: React.FC = () => {
         }
         
         const list = await searchTrains(searchParams);
-        const mapped = list.map(mapToTrainInfo);
+        let mapped = list.map(mapToTrainInfo);
+
+        // 过滤掉已发车的车次（仅当查询日期为今天时）
+        const now = new Date();
+        const year = now.getFullYear();
+        const month = String(now.getMonth() + 1).padStart(2, '0');
+        const day = String(now.getDate()).padStart(2, '0');
+        const todayStr = `${year}-${month}-${day}`;
+
+        if (departDate === todayStr) {
+          const currentHours = String(now.getHours()).padStart(2, '0');
+          const currentMinutes = String(now.getMinutes()).padStart(2, '0');
+          const currentTime = `${currentHours}:${currentMinutes}`;
+          
+          mapped = mapped.filter(t => t.fromTime > currentTime);
+        }
+
         setTrains(mapped);
         setFilteredTrains(mapped);
       } catch (e) {
@@ -279,6 +295,11 @@ const TrainListPage: React.FC = () => {
 
   // 处理车次选择
   const handleTrainSelect = (train: TrainInfo) => {
+    if (!isLoggedIn) {
+      setSelectedTrain(train);
+      setShowLoginModal(true);
+      return;
+    }
     navigateToOrder(train);
   };
 
@@ -430,6 +451,8 @@ const TrainListPage: React.FC = () => {
                 <TrainList 
                   trains={filteredTrains}
                   onTrainSelect={handleTrainSelect}
+                  fromStation={fromStation}
+                  toStation={toStation}
                 />
               </>
             )

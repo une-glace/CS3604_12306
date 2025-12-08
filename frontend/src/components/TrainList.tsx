@@ -36,12 +36,14 @@ interface TrainInfo {
 interface TrainListProps {
   trains: TrainInfo[];
   onTrainSelect?: (train: TrainInfo) => void;
+  fromStation?: string;
+  toStation?: string;
 }
 
 type SortType = 'departure' | 'arrival' | 'duration' | 'trainNo';
 type SortOrder = 'asc' | 'desc';
 
-const TrainList: React.FC<TrainListProps> = ({ trains, onTrainSelect }) => {
+const TrainList: React.FC<TrainListProps> = ({ trains, onTrainSelect, fromStation, toStation }) => {
   const [sortType, setSortType] = useState<SortType>('departure');
   const [sortOrder, setSortOrder] = useState<SortOrder>('asc');
 
@@ -321,9 +323,17 @@ const TrainList: React.FC<TrainListProps> = ({ trains, onTrainSelect }) => {
 
       {sortedTrains.length === 0 && (
         <div className="empty-state">
-          <div className="empty-icon">🚄</div>
-          <div className="empty-text">暂无符合条件的车次</div>
-          <div className="empty-hint">请尝试调整筛选条件或更换日期</div>
+          <div className="empty-icon-wrapper">
+            <span className="empty-icon-symbol">!</span>
+          </div>
+          <div className="empty-content">
+            <div className="empty-message">
+              很抱歉，按您的查询条件，当前未找到从<span className="station-highlight">{fromStation || '出发地'}</span> 到<span className="station-highlight">{toStation || '目的地'}</span> 的列车。
+            </div>
+            <div className="empty-suggestion">
+              您可以使用<span className="transfer-link">中转换乘</span> 功能，查询途中换乘一次的部分列车余票情况。
+            </div>
+          </div>
         </div>
       )}
     </div>
