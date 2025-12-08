@@ -27,10 +27,4 @@ gui-test /ctrip/manage-addresses --env local
 You might need to make changes to the steps and expectations to fit your website's navigation.
 
 # 5.upgrades:
-<<<<<<< HEAD
 uv tool upgrade ieee-gui 
-
-test 
-=======
-uv tool upgrade ieee-gui
->>>>>>> 7f68b883e7e9bb5e3711d22fb9919e29001ec299
