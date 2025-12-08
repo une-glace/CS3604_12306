@@ -624,8 +624,9 @@ const cancelOrder = async (req, res) => {
     }
 
     // 更新订单状态
+    const newStatus = order.status === 'paid' ? 'refunded' : 'cancelled';
     await order.update({
-      status: 'cancelled'
+      status: newStatus
     }, { transaction });
 
     await transaction.commit();

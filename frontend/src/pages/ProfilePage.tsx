@@ -4,6 +4,7 @@ import { useAuth } from '../contexts/AuthContext';
 import AddPassengerModal from '../components/AddPassengerModal';
 import { getPassengers as apiGetPassengers, addPassenger as apiAddPassenger, updatePassenger as apiUpdatePassenger, deletePassenger as apiDeletePassenger, type PassengerFormData } from '../services/passengerService';
 import PaymentModal from '../components/PaymentModal';
+import RefundConfirmModal from '../components/RefundConfirmModal';
 import './ProfilePage.css';
 import './HomePage.css';
 import Navbar from '../components/Navbar';
@@ -80,6 +81,9 @@ const ProfilePage: React.FC = () => {
 
   const [isChangeTicketModalOpen, setIsChangeTicketModalOpen] = useState(false);
   const [orderToChange, setOrderToChange] = useState<Order | null>(null);
+
+  const [isRefundModalOpen, setIsRefundModalOpen] = useState(false);
+  const [refundOrder, setRefundOrder] = useState<Order | null>(null);
 
   const handleChangeTicketClick = (order: Order) => {
     setOrderToChange(order);
@@ -646,34 +650,54 @@ const ProfilePage: React.FC = () => {
     navigate(`/order-detail/${orderId}`);
   };
 
-  const handleRefund = async (orderId: string) => {
-    if (window.confirm('确定要申请退票吗？退票可能产生手续费。')) {
-      try {
-        const token = localStorage.getItem('authToken');
-        const response = await fetch(`http://localhost:3000/api/v1/orders/${orderId}/cancel`, {
-          method: 'PUT', // 修改为PUT方法，与后端路由一致
-          headers: {
-            'Authorization': `Bearer ${token}`,
-            'Content-Type': 'application/json'
-          }
-        });
+  const handleRefund = (order: Order) => {
+    setRefundOrder(order);
+    setIsRefundModalOpen(true);
+  };
 
-        if (response.ok) {
-          const data = await response.json();
-          if (data.success) {
-            alert('退票申请成功！');
-            // 重新加载订单列表
-            fetchOrders(orderPagination.page);
-          } else {
-            alert(data.message || '退票申请失败');
-          }
-        } else {
-          alert('退票申请失败，请稍后重试');
+  const handleConfirmRefund = async (refundFee: number, refundAmount: number) => {
+    if (!refundOrder) return;
+    
+    try {
+      const token = localStorage.getItem('authToken');
+      // 使用后端API取消订单
+      const response = await fetch(`http://localhost:3000/api/v1/orders/${refundOrder.id}/cancel`, {
+        method: 'PUT',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
         }
-      } catch (error) {
-        console.error('退票申请错误:', error);
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        if (data.success) {
+          setIsRefundModalOpen(false);
+
+          // 跳转到退票成功页面
+          navigate('/refund-success', {
+            state: {
+              orderId: refundOrder.orderNumber,
+              refundAmount: refundAmount,
+              refundFee: refundFee,
+              ticketPrice: refundOrder.price,
+              trainNumber: refundOrder.trainNumber,
+              departureDate: refundOrder.date,
+              departureTime: refundOrder.departureTime
+            }
+          });
+          
+          // 刷新订单列表
+          fetchOrders(orderPagination.page);
+        } else {
+          alert(data.message || '退票申请失败');
+        }
+      } else {
         alert('退票申请失败，请稍后重试');
       }
+    } catch (error) {
+      console.error('退票申请错误:', error);
+      alert('退票申请失败，请稍后重试');
     }
   };
 
@@ -1392,7 +1416,7 @@ const ProfilePage: React.FC = () => {
                             <div className="status-col">
                               <div className={`ticket-status ${getStatusClass(order.status)}`}>{getStatusText(order.status)}</div>
                               {order.status === 'paid' && (
-                                <button className="link-btn small" onClick={() => handleRefund(order.id)}>退票</button>
+                                <button className="link-btn small" onClick={() => handleRefund(order)}>退票</button>
                               )}
                               {order.status === 'unpaid' && (
                                 <button className="link-btn small pay-btn" onClick={() => handlePayOpen(order)}>去支付</button>
@@ -1495,6 +1519,21 @@ const ProfilePage: React.FC = () => {
             </div>
           </div>
         </div>
+      )}
+
+      {refundOrder && (
+        <RefundConfirmModal
+          isOpen={isRefundModalOpen}
+          onClose={() => setIsRefundModalOpen(false)}
+          onConfirm={handleConfirmRefund}
+          ticketInfo={{
+            trainNumber: refundOrder.trainNumber,
+            departureDate: refundOrder.date,
+            departureTime: refundOrder.departureTime,
+            price: refundOrder.price,
+            orderId: refundOrder.orderNumber
+          }}
+        />
       )}
 
       {paymentOrderData && (
