@@ -56,6 +56,9 @@ const Register: React.FC<RegisterProps> = () => {
   const [passwordStrength, setPasswordStrength] = useState<number>(0);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  
+  // 提交级错误提示（全局）
+  const [submitError, setSubmitError] = useState<string>('');
 
   // 证件类型选项
   const idTypeOptions = [
@@ -347,7 +350,22 @@ const Register: React.FC<RegisterProps> = () => {
   const validateCurrentStep = (): boolean => {
     const newErrors: Record<string, string> = {};
     if (currentStep === 1) {
-      const pwd = formData.password || '';
+        // 验证用户名
+        const u = (formData.username || '').trim();
+        const usernamePattern = /^[a-zA-Z][a-zA-Z0-9_]*$/;
+        if (!u) {
+          newErrors.username = '请输入用户名';
+        } else if (u.length < 6) {
+          newErrors.username = '用户名长度不能少于6个字符！';
+        } else if (u.length > 30) {
+          newErrors.username = '用户名长度不能超过30个字符！';
+        } else if (!usernamePattern.test(u)) {
+          newErrors.username = '用户名只能由字母、数字和_组成，须以字母开头！';
+        } else if (isUsernameAvailable === false) {
+           newErrors.username = '该用户名已经占用，请重新选择用户名！';
+        }
+
+        const pwd = formData.password || '';
       const cpwd = formData.confirmPassword || '';
       const name = (formData.realName || '').trim();
       const allowed = /^[A-Za-z\u4e00-\u9fa5\. ]+$/;
@@ -384,11 +402,21 @@ const Register: React.FC<RegisterProps> = () => {
       if (!formData.agreementAccepted) {
         newErrors.agreementAccepted = '请确定服务条款!';
       }
+      
+      const email = (formData.email || '').trim();
+      // 简单邮箱校验
+      if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+        newErrors.email = '请正确填写邮箱地址';
+      }
+
+      const phone = (formData.phoneNumber || '').trim();
+      if (!phone) {
+        newErrors.phoneNumber = '请输入手机号码';
+      } else if (!/^\d{11}$/.test(phone)) {
+        newErrors.phoneNumber = '您输入的手机号码不是有效的格式！';
+      }
     }
     if (currentStep === 2) {
-      if (!verificationCodeSent) {
-        newErrors.phoneVerificationCode = '请先发送验证码';
-      }
       if (!formData.phoneVerificationCode || formData.phoneVerificationCode.length !== 6) {
         newErrors.phoneVerificationCode = '请输入6位验证码';
       }
@@ -416,6 +444,7 @@ const Register: React.FC<RegisterProps> = () => {
 
   // 提交注册
   const handleSubmit = async () => {
+    setSubmitError('');
     if (!validateCurrentStep()) {
       return;
     }
@@ -425,16 +454,19 @@ const Register: React.FC<RegisterProps> = () => {
       const usernamePattern = /^[a-zA-Z][a-zA-Z0-9_]*$/;
       if (!formData.username || formData.username.length < 6) {
         setErrors(prev => ({ ...prev, username: '用户名长度不能少于6个字符！' }));
+        setSubmitError('用户名长度不能少于6个字符！');
         setIsLoading(false);
         return;
       }
       if (formData.username.length > 30) {
         setErrors(prev => ({ ...prev, username: '用户名长度不能超过30个字符！' }));
+        setSubmitError('用户名长度不能超过30个字符！');
         setIsLoading(false);
         return;
       }
       if (!usernamePattern.test(formData.username)) {
         setErrors(prev => ({ ...prev, username: '用户名只能由字母、数字和_组成，须以字母开头！' }));
+        setSubmitError('用户名只能由字母、数字和_组成，须以字母开头！');
         setIsLoading(false);
         return;
       }
@@ -489,6 +521,7 @@ const Register: React.FC<RegisterProps> = () => {
               }
             } catch {}
           }
+          setSubmitError(response.message || '注册失败，请重试');
         } else {
           const msg = response.message || '';
           if (isVerified && /用户名已存在|该用户名已被注册/.test(msg)) {
@@ -503,11 +536,14 @@ const Register: React.FC<RegisterProps> = () => {
             } catch {}
           }
           alert(msg || '注册失败，请重试');
+          setSubmitError(msg || '注册失败，请重试');
         }
       }
     } catch (error: any) {
       console.error('注册失败:', error);
-      alert(error?.message || '注册失败，请重试');
+      const emsg = error?.message || '注册失败，请重试';
+      alert(emsg);
+      setSubmitError(emsg);
     } finally {
       setIsLoading(false);
     }
@@ -894,6 +930,9 @@ const Register: React.FC<RegisterProps> = () => {
             {/* 两步流程，移除原第3步内容 */}
 
             <div className="form-actions">
+              {submitError && (
+                <div className="error-message" role="alert" aria-live="polite">{submitError}</div>
+              )}
               {currentStep > 1 && (
                 <button
                   type="button"

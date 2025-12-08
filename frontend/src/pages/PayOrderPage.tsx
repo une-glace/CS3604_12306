@@ -12,11 +12,11 @@ import './OrderPage.css';
 type TrainInfo = { trainNumber: string; from: string; to: string; departureTime: string; arrivalTime: string; date: string };
 type Passenger = { id: string; name?: string; idType?: string; idCard?: string };
 type TicketInfo = { passengerId: string; ticketType: string; seatType: string; price: number };
-type RouteState = { backendOrderId?: string; orderId?: string; trainInfo?: TrainInfo; passengers?: Passenger[]; ticketInfos?: TicketInfo[]; totalPrice?: number; assignedSeats?: Array<{ passengerId: string; carriage: string | number; seatNumber: string }> };
+type RouteState = { backendOrderId?: string; orderId?: string; trainInfo?: TrainInfo; passengers?: Passenger[]; ticketInfos?: TicketInfo[]; totalPrice?: number; assignedSeats?: Array<{ passengerId: string; carriage: string | number; seatNumber: string }>; isChangeMode?: boolean };
 type OrderPassenger = { name?: string; idType: string; idCard: string; ticketType: string; seatType: string; carriage?: string | number; seatNumber?: string; price: number };
-type OrderDetail = { id: string; orderNumber: string; trainNumber: string; departure: string; arrival: string; departureTime: string; arrivalTime: string; date: string; price: number; passengers: OrderPassenger[] };
+type OrderDetail = { id: string; orderNumber: string; trainNumber: string; departure: string; arrival: string; departureTime: string; arrivalTime: string; date: string; price: number; passengers: OrderPassenger[]; status?: string };
 type RawPassenger = { passengerName?: string; name?: string; idType?: string; idCard?: string; idNumber?: string; ticketType?: string; seatType?: string; seatNumber?: string; carriage?: string | number; price?: number };
-type RawOrder = { id?: string; orderId?: string; trainNumber?: string; fromStation?: string; toStation?: string; departureStation?: string; arrivalStation?: string; departureTime?: string; arrivalTime?: string; departureDate?: string; date?: string; totalPrice?: number; price?: number; passengers?: RawPassenger[] };
+type RawOrder = { id?: string; orderId?: string; trainNumber?: string; fromStation?: string; toStation?: string; departureStation?: string; arrivalStation?: string; departureTime?: string; arrivalTime?: string; departureDate?: string; date?: string; totalPrice?: number; price?: number; passengers?: RawPassenger[]; status?: string };
 
 const PayOrderPage: React.FC = () => {
   const location = useLocation();
@@ -35,7 +35,7 @@ const PayOrderPage: React.FC = () => {
         const s = (routeState.assignedSeats || []).find((as) => as.passengerId === ti.passengerId);
         return {
           name: p?.name || '',
-          idType: p?.idType ? (p.idType === '1' ? '居民身份证' : p.idType) : '居民身份证',
+          idType: p?.idType ? (p.idType === '1' ? '居民身份证' : (p.idType === '2' ? '外国人永久居留身份证' : (p.idType === '3' ? '港澳台居民居住证' : p.idType))) : '居民身份证',
           idCard: p?.idCard || '',
           ticketType: ti.ticketType,
           seatType: ti.seatType,
@@ -54,7 +54,8 @@ const PayOrderPage: React.FC = () => {
         arrivalTime: t.arrivalTime,
         date: t.date,
         price: routeState.totalPrice ?? 0,
-        passengers
+        passengers,
+        status: 'unpaid'
       };
     } catch {
       return null;
@@ -113,6 +114,7 @@ const PayOrderPage: React.FC = () => {
                   arrivalTime: f.arrivalTime as string,
                   departureDate: ((f.departureDate ?? f.date) as string),
                   price: ((f.totalPrice ?? f.price) as number),
+                  status: f.status as string,
                   passengers: Array.isArray(f.passengers) ? (f.passengers as Record<string, unknown>[]).map((p) => ({
                     passengerName: (p.passengerName ?? p.name) as string,
                     idType: p.idType as string,
@@ -154,12 +156,14 @@ const PayOrderPage: React.FC = () => {
           arrivalTime: raw?.arrivalTime || '',
           date: raw?.departureDate || raw?.date || '',
           price: typeof raw?.totalPrice === 'number' ? raw.totalPrice : (typeof raw?.price === 'number' ? raw.price : 0),
+          status: raw?.status,
           passengers: Array.isArray(raw?.passengers) ? raw.passengers.map((p: RawPassenger) => {
             const seat = normalizeSeat(p?.carriage, p?.seatNumber);
+            const routePassenger = routeState?.passengers?.find(rp => (rp.name || '').trim() === (p.passengerName || p.name || '').trim());
             return {
               name: p?.passengerName || p?.name || '',
-              idType: p?.idType ? (p.idType === '1' ? '居民身份证' : String(p.idType)) : '居民身份证',
-              idCard: p?.idCard || p?.idNumber || '',
+              idType: p?.idType ? (p.idType === '1' ? '居民身份证' : (String(p.idType) === '2' ? '外国人永久居留身份证' : (String(p.idType) === '3' ? '港澳台居民居住证' : String(p.idType)))) : '居民身份证',
+              idCard: routePassenger?.idCard || p?.idCard || p?.idNumber || '',
               ticketType: p?.ticketType || '成人票',
               seatType: p?.seatType || '',
               carriage: seat.carriage,
@@ -218,16 +222,21 @@ const PayOrderPage: React.FC = () => {
                 arrivalTime: t.arrivalTime || '',
                 date: t.date || '',
                 price: routeState?.totalPrice ?? 0,
-                passengers: lp.map((p) => ({
-                  name: p.name || '',
-                  idType: '居民身份证',
-                  idCard: '',
-                  ticketType: p.seatType || '成人票',
-                  seatType: p.seatType || '',
-                  carriage: p.carriage,
-                  seatNumber: p.seatNumber,
-                  price: routeState?.totalPrice ?? 0
-                }))
+                status: 'unpaid',
+                passengers: lp.map((p) => {
+                  const rp = (routeState?.passengers || []).find(pp => (pp.name || '').trim() === (p.name || '').trim());
+                  const idTypeLabel = rp?.idType ? (rp.idType === '1' ? '居民身份证' : (rp.idType === '2' ? '外国人永久居留身份证' : (rp.idType === '3' ? '港澳台居民居住证' : rp.idType))) : '居民身份证';
+                  return {
+                    name: p.name || '',
+                    idType: idTypeLabel,
+                    idCard: rp?.idCard || '',
+                    ticketType: p.seatType || '成人票',
+                    seatType: p.seatType || '',
+                    carriage: p.carriage,
+                    seatNumber: p.seatNumber,
+                    price: routeState?.totalPrice ?? 0
+                  };
+                })
               };
             }
           }
@@ -447,35 +456,45 @@ const PayOrderPage: React.FC = () => {
         onClose={() => setIsPaymentOpen(false)}
         onPaymentSuccess={useCallback(() => {
           const id = orderDetail?.id || routeState?.backendOrderId || orderId || '';
+          
+          // 检查订单状态
+          if (orderDetail && ['cancelled', 'refunded', 'changed'].includes(orderDetail.status || '')) {
+            alert(`订单状态为 ${orderDetail.status === 'changed' ? '已改签' : (orderDetail.status === 'refunded' ? '已退款' : '已取消')}，无法支付`);
+            return;
+          }
+
           (async () => {
             try {
               const { updateOrderStatus } = await import('../services/orderService');
               await updateOrderStatus(String(id), 'paid', 'alipay');
-            } catch (e) {
+              
+              const detail = {
+                orderId: (orderDetail?.orderNumber || '') || id,
+                trainNumber: orderDetail?.trainNumber || '',
+                fromStation: orderDetail?.departure || '',
+                toStation: orderDetail?.arrival || '',
+                departureDate: orderDetail?.date || '',
+                departureTime: orderDetail?.departureTime || '',
+                arrivalTime: orderDetail?.arrivalTime || '',
+                status: 'paid',
+                totalPrice: orderDetail?.price || 0,
+                passengers: (orderDetail?.passengers || []).map(p => ({
+                  passengerName: p.name || '',
+                  idType: p.idType,
+                  idCard: p.idCard,
+                  ticketType: p.ticketType,
+                  seatType: p.seatType,
+                  carriage: p.carriage,
+                  seatNumber: p.seatNumber,
+                  price: p.price
+                }))
+              };
+              navigate(`/order-detail/${encodeURIComponent(id)}`, { state: { detail, isChangeSuccess: !!routeState?.isChangeMode } });
+            } catch (e: any) {
               console.warn('支付后更新订单状态失败', e);
+              const msg = e.response?.data?.message || e.message || '未知错误';
+              alert(`支付失败：${msg}`);
             }
-            const detail = {
-              orderId: (orderDetail?.orderNumber || '') || id,
-              trainNumber: orderDetail?.trainNumber || '',
-              fromStation: orderDetail?.departure || '',
-              toStation: orderDetail?.arrival || '',
-              departureDate: orderDetail?.date || '',
-              departureTime: orderDetail?.departureTime || '',
-              arrivalTime: orderDetail?.arrivalTime || '',
-              status: 'paid',
-              totalPrice: orderDetail?.price || 0,
-              passengers: (orderDetail?.passengers || []).map(p => ({
-                passengerName: p.name || '',
-                idType: p.idType,
-                idCard: p.idCard,
-                ticketType: p.ticketType,
-                seatType: p.seatType,
-                carriage: p.carriage,
-                seatNumber: p.seatNumber,
-                price: p.price
-              }))
-            };
-            navigate(`/order-detail/${encodeURIComponent(id)}`, { state: { detail } });
           })();
         }, [navigate, orderDetail, routeState, orderId])}
         orderData={{

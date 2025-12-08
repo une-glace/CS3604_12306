@@ -53,6 +53,7 @@ export const searchTrains = async (
     limit?: number;
     fromStations?: string[]; // 支持多车站查询
     toStations?: string[];   // 支持多车站查询
+    minDepartureTime?: string; // 最小出发时间（格式 HH:mm）
   }
 ): Promise<SearchTrainItem[]> => {
   const qs = new URLSearchParams();
@@ -77,6 +78,7 @@ export const searchTrains = async (
   
   qs.set('departureDate', params.departureDate);
   if (params.trainType) qs.set('trainType', params.trainType);
+  if (params.minDepartureTime) qs.set('minDepartureTime', params.minDepartureTime);
   if (params.page) qs.set('page', String(params.page));
   if (params.limit) qs.set('limit', String(params.limit));
   const resp = await get(`/trains/search?${qs.toString()}`);

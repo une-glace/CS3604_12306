@@ -164,8 +164,7 @@ const createOrder = async (req, res) => {
     for (const [seatType, indices] of bySeatType.entries()) {
       const prefs = indices.map(i => {
         const raw = selectedSeats?.[i];
-        // 将可能的 'F' 映射为题设中的 'E'
-        return raw === 'F' ? 'E' : raw;
+        return raw || null;
       });
 
       const seatsForGroup = await allocateSeatsForGroup(
@@ -281,10 +280,14 @@ const allocateSeatsForGroup = async (trainNumber, date, seatType, count, prefere
     where: { seatType },
     transaction
   });
-  const occupied = new Set(existingSeats.map(s => s.seatNumber));
+  const normalizeSeatCode = (code) => {
+    const s = String(code || '');
+    return /E$/u.test(s) ? s.replace(/E$/u, 'F') : s;
+  };
+  const occupied = new Set(existingSeats.map(s => normalizeSeatCode(s.seatNumber)));
 
   // 生成全量座位（排序：car->row->letter）
-  const letters = ['A','B','C','D','E'];
+  const letters = ['A','B','C','D','F'];
   const cars = Array.from({length:8}, (_,i)=>i+1);
   const rows = Array.from({length:16}, (_,i)=>i+1);
   const universe = [];
@@ -306,14 +309,14 @@ const allocateSeatsForGroup = async (trainNumber, date, seatType, count, prefere
     });
     return Array.from(map.entries()).map(([key, seats]) => {
       const [car,row] = key.split('-').map(n=>parseInt(n,10));
-      // 保持 ABCDE 顺序
+      // 保持 ABCDF 顺序
       seats.sort((a,b)=>letters.indexOf(a.letter)-letters.indexOf(b.letter));
       return { car, row, seats };
     });
   };
 
   const leftBlock = new Set(['A','B','C']);
-  const rightBlock = new Set(['D','E']);
+  const rightBlock = new Set(['D','F']);
 
   const pickWithPreferences = (availCodes, prefs, need) => {
     const chosen = [];
@@ -448,6 +451,17 @@ const allocateSeatsForGroup = async (trainNumber, date, seatType, count, prefere
     }
     if (updates.length > 0) await Promise.all(updates);
 
+    try {
+      orders.rows.forEach(o => {
+        if (o.passengers && Array.isArray(o.passengers)) {
+          o.passengers.forEach(p => {
+            if (p && typeof p.seatNumber === 'string') {
+              p.seatNumber = /E$/u.test(p.seatNumber) ? p.seatNumber.replace(/E$/u, 'F') : p.seatNumber;
+            }
+          });
+        }
+      });
+    } catch {}
     res.json({
       success: true,
       data: {
@@ -502,6 +516,15 @@ const getOrderDetail = async (req, res) => {
       });
     }
 
+    try {
+      if (order && order.passengers && Array.isArray(order.passengers)) {
+        order.passengers.forEach(p => {
+          if (p && typeof p.seatNumber === 'string') {
+            p.seatNumber = /E$/u.test(p.seatNumber) ? p.seatNumber.replace(/E$/u, 'F') : p.seatNumber;
+          }
+        });
+      }
+    } catch {}
     res.json({
       success: true,
       data: { order }
@@ -657,6 +680,7 @@ const updateOrderStatus = async (req, res) => {
 
     // 验证状态转换是否合法
     if (order.status === 'cancelled' || order.status === 'refunded') {
+      console.warn(`[updateOrderStatus] Order ${order.id} (${order.orderId}) status is ${order.status}, preventing update.`);
       await transaction.rollback();
       return res.status(400).json({
         success: false,
@@ -693,10 +717,206 @@ const updateOrderStatus = async (req, res) => {
   }
 };
 
+// 改签订单
+const changeOrder = async (req, res) => {
+  const transaction = await Order.sequelize.transaction();
+  
+  try {
+    const { oldOrderId, newTrainInfo, passengers, totalPrice, selectedSeats = [] } = req.body;
+    
+    // 1. 查找并验证原订单
+    const oldOrder = await Order.findByPk(oldOrderId, { transaction });
+    if (!oldOrder) {
+      await transaction.rollback();
+      return res.status(404).json({ success: false, message: '原订单不存在' });
+    }
+
+    if (oldOrder.userId !== req.user.id) {
+      await transaction.rollback();
+      return res.status(403).json({ success: false, message: '无权操作此订单' });
+    }
+
+    // 2. 将原订单状态改为"changed"
+    await oldOrder.update({ status: 'changed' }, { transaction });
+
+    // 3. 释放原订单座位
+    const oldOrderPassengers = await OrderPassenger.findAll({
+      where: { orderId: oldOrder.id },
+      transaction
+    });
+
+    const releasedSeatCounts = {};
+    oldOrderPassengers.forEach(p => {
+      const key = `${p.seatType}`;
+      releasedSeatCounts[key] = (releasedSeatCounts[key] || 0) + 1;
+    });
+
+    for (const [seatType, count] of Object.entries(releasedSeatCounts)) {
+      const trainSeat = await TrainSeat.findOne({
+        where: {
+          trainNumber: oldOrder.trainNumber,
+          date: oldOrder.departureDate,
+          seatType
+        },
+        transaction
+      });
+
+      if (trainSeat) {
+        await trainSeat.update({
+          availableSeats: trainSeat.availableSeats + count
+        }, { transaction });
+      }
+    }
+
+    // 4. 创建新订单
+    // 验证新车次信息
+    const train = await Train.findOne({
+      where: { trainNumber: newTrainInfo.trainNumber }
+    });
+
+    if (!train) {
+      await transaction.rollback();
+      return res.status(404).json({ success: false, message: '新车次信息不存在' });
+    }
+
+    // 检查并预留新座位
+    const ticketInfos = passengers.map(p => ({
+      seatType: p.seatType,
+      price: p.price,
+      ticketType: p.ticketType
+    }));
+
+    const seatTypeCount = {};
+    ticketInfos.forEach(ticketInfo => {
+      seatTypeCount[ticketInfo.seatType] = (seatTypeCount[ticketInfo.seatType] || 0) + 1;
+    });
+
+    const seatReservations = [];
+    for (const [seatType, count] of Object.entries(seatTypeCount)) {
+      const trainSeat = await TrainSeat.findOne({
+        where: {
+          trainNumber: String(newTrainInfo.trainNumber),
+          date: String(newTrainInfo.date),
+          seatType: seatType
+        },
+        transaction
+      });
+
+      if (!trainSeat) {
+        await transaction.rollback();
+        return res.status(400).json({ success: false, message: `${seatType}座位信息不存在` });
+      }
+
+      if (trainSeat.availableSeats < count) {
+        await transaction.rollback();
+        return res.status(400).json({ success: false, message: `${seatType}余票不足` });
+      }
+
+      await trainSeat.update({
+        availableSeats: trainSeat.availableSeats - count
+      }, { transaction });
+    }
+
+    // 生成新订单号
+    const newOrderId = generateOrderId();
+
+    // 创建新订单记录
+    const newOrder = await Order.create({
+      orderId: newOrderId,
+      userId: req.user.id,
+      trainNumber: newTrainInfo.trainNumber,
+      fromStation: newTrainInfo.from || newTrainInfo.fromStation,
+      toStation: newTrainInfo.to || newTrainInfo.toStation,
+      departureDate: newTrainInfo.date,
+      departureTime: newTrainInfo.departureTime,
+      arrivalTime: newTrainInfo.arrivalTime,
+      duration: newTrainInfo.duration,
+      totalPrice,
+      status: 'unpaid', // 改签后通常需要补差价，这里先设为unpaid，或者如果平价/退款则直接paid？为了简单先unpaid
+      paymentMethod: null,
+      paymentTime: null
+    }, { transaction });
+
+    // 创建新乘客信息
+    // 使用 allocateSeatsForGroup 进行座位分配（与 createOrder 保持一致）
+    
+    // 按座位类型分组乘客
+    const bySeatType = new Map();
+    passengers.forEach((p, index) => {
+      if (!bySeatType.has(p.seatType)) {
+        bySeatType.set(p.seatType, []);
+      }
+      bySeatType.get(p.seatType).push(index);
+    });
+
+    // 为每种座位类型分配座位
+    const assignedSeats = new Array(passengers.length).fill(null);
+    
+    for (const [seatType, indices] of bySeatType.entries()) {
+      const prefs = indices.map(i => {
+        const raw = selectedSeats?.[i];
+        return raw || null;
+      });
+      
+      const seatsForGroup = await allocateSeatsForGroup(
+        newTrainInfo.trainNumber,
+        newTrainInfo.date,
+        seatType,
+        indices.length,
+        prefs,
+        transaction
+      );
+
+      indices.forEach((idx, k) => {
+        assignedSeats[idx] = seatsForGroup[k];
+      });
+    }
+
+    // 创建乘客记录
+    for (let i = 0; i < passengers.length; i++) {
+      const p = passengers[i];
+      const seatInfo = assignedSeats[i];
+
+      await OrderPassenger.create({
+        orderId: newOrder.id,
+        passengerName: p.name,
+        idCard: p.idCard || p.id || '',
+        phone: p.phone || '',
+        passengerType: '成人',
+        seatType: p.seatType,
+        seatNumber: seatInfo,
+        ticketType: p.ticketType || '成人票',
+        price: p.price
+      }, { transaction });
+    }
+
+    await transaction.commit();
+
+    res.json({
+      success: true,
+      message: '改签成功',
+      data: {
+        newOrderId: newOrder.orderId
+      }
+    });
+
+  } catch (error) {
+    if (transaction && !transaction.finished) {
+      await transaction.rollback();
+    }
+    console.error('改签订单错误:', error);
+    res.status(500).json({
+      success: false,
+      message: '改签失败: ' + error.message
+    });
+  }
+};
+
 module.exports = {
   createOrder,
   getUserOrders,
   getOrderDetail,
   cancelOrder,
-  updateOrderStatus
+  updateOrderStatus,
+  changeOrder
 };

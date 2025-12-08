@@ -256,6 +256,64 @@
   margin: 16px auto;
 }
 
+/* 原票信息（改签模式） */
+.original-ticket-section {
+  width: 980px;
+  margin: 12px auto;
+  border: 1px solid #3399FF;
+  background: #fff;
+  border-radius: 0px;
+}
+.original-ticket-header {
+  height: 32px;
+  display: flex;
+  align-items: center;
+  padding: 0 12px;
+  background: #3399FF;
+  color: #fff;
+  font-size: 14px;
+  font-weight: 600;
+}
+.original-ticket-table {
+  border-top: 1px solid #e6f0fc;
+}
+.original-ticket-table-header, .original-ticket-table-row {
+  display: grid;
+  grid-template-columns: 60px 260px 240px 260px 160px;
+  align-items: center;
+}
+.original-ticket-table-header {
+  height: 25.5px;
+  padding: 0 12px;
+  background: #f8f8f8;
+  color: #555;
+  font-size: 13px;
+}
+.original-ticket-table-row {
+  height: 46.5px;
+  padding: 0 12px;
+  border-top: 1px solid #f0f0f0;
+  font-size: 14px;
+}
+.original-ticket-table-row > div { 
+  text-align: left; 
+  justify-self: start;
+}
+.ot-train-cell, .ot-seat-cell, .ot-passenger-cell, .ot-price-cell {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 2px;
+}
+.ot-train-time { font-weight: 600; color: #333; }
+.ot-train-route { color: #333; }
+.ot-seat-type { color: #333; }
+.ot-seat-number { color: #666; }
+.ot-passenger-name { color: #333; }
+.ot-passenger-id { color: #666; }
+.ot-ticket-type { color: #666; }
+.ot-price-value { color: #ff8c00; font-weight: 700; }
+
 .passenger-header-row {
   display: flex;
   justify-content: space-between;
@@ -938,6 +996,9 @@
   grid-template-columns: 80px 140px 180px 160px 180px 1fr;
   align-items: center;
 }
+.passenger-table-header.change-mode, .passenger-table-row.change-mode {
+  grid-template-columns: 50px 140px 180px 160px 180px 1fr 80px;
+}
 .passenger-table-header {
   background: #f8f8f8;
   color: #555;
@@ -949,6 +1010,18 @@
   height: 38.5px;
   padding: 0 12px;
   border-top: 1px solid #f0f0f0;
+}
+.col-change {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+}
+.change-checkbox {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: #333;
 }
 .passenger-table-row select {
   width: 90%;

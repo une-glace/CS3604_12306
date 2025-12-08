@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useSearchParams, useNavigate } from 'react-router-dom';
+import { useSearchParams, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import SearchConditions from '../components/SearchConditions';
 import { parseCityStationInput } from '../utils/cityStationMap';
@@ -47,11 +47,20 @@ interface TrainInfo {
 const TrainListPage: React.FC = () => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
+  const location = useLocation();
   const { user, isLoggedIn, logout } = useAuth();
   
   // 从URL参数获取查询条件
-  const fromStation = searchParams.get('from') || '';
-  const toStation = searchParams.get('to') || '';
+  const changeState = location.state as ({ isChangeMode?: boolean; changeOrder?: { departure?: string; arrival?: string; fromStation?: string; toStation?: string } } | null);
+  const isChangeMode = !!(changeState && changeState.isChangeMode);
+  const changeOrder = (changeState && changeState.changeOrder) || null;
+
+  const urlFromStation = searchParams.get('from') || '';
+  const urlToStation = searchParams.get('to') || '';
+  const lockedFromStation = isChangeMode && changeOrder ? (changeOrder.departure || changeOrder.fromStation || '') : '';
+  const lockedToStation = isChangeMode && changeOrder ? (changeOrder.arrival || changeOrder.toStation || '') : '';
+  const fromStation = lockedFromStation || urlFromStation;
+  const toStation = lockedToStation || urlToStation;
   const departDate = searchParams.get('date') || new Date().toISOString().split('T')[0];
   
   const [trains, setTrains] = useState<TrainInfo[]>([]);
@@ -128,6 +137,19 @@ const TrainListPage: React.FC = () => {
       try {
         const { searchTrains } = await import('../services/trainService');
         
+        const searchParams: {
+          fromStation: string;
+          toStation: string;
+          departureDate: string;
+          fromStations?: string[];
+          toStations?: string[];
+          minDepartureTime?: string;
+        } = {
+          fromStation,
+          toStation,
+          departureDate: departDate,
+        };
+        
         // 智能解析：如果首页传入的是城市名，展开为城市内所有车站
         let effectiveFromStations = fromStations;
         let effectiveToStations = toStations;
@@ -146,18 +168,6 @@ const TrainListPage: React.FC = () => {
             setToStations(parsed.stations);
           }
         }
-
-        const searchParams: {
-          fromStation: string;
-          toStation: string;
-          departureDate: string;
-          fromStations?: string[];
-          toStations?: string[];
-        } = {
-          fromStation,
-          toStation,
-          departureDate: departDate,
-        };
         
         // 如果有多车站筛选，添加到查询参数
         if (effectiveFromStations.length > 0) {
@@ -166,9 +176,6 @@ const TrainListPage: React.FC = () => {
         if (effectiveToStations.length > 0) {
           searchParams.toStations = effectiveToStations;
         }
-        
-        const list = await searchTrains(searchParams);
-        let mapped = list.map(mapToTrainInfo);
 
         // 过滤掉已发车的车次（仅当查询日期为今天时）
         const now = new Date();
@@ -181,9 +188,11 @@ const TrainListPage: React.FC = () => {
           const currentHours = String(now.getHours()).padStart(2, '0');
           const currentMinutes = String(now.getMinutes()).padStart(2, '0');
           const currentTime = `${currentHours}:${currentMinutes}`;
-          
-          mapped = mapped.filter(t => t.fromTime > currentTime);
+          searchParams.minDepartureTime = currentTime;
         }
+        
+        const list = await searchTrains(searchParams);
+        let mapped = list.map(mapToTrainInfo);
 
         setTrains(mapped);
         setFilteredTrains(mapped);
@@ -286,11 +295,14 @@ const TrainListPage: React.FC = () => {
   }) => {
     // 更新URL参数
     const newSearchParams = new URLSearchParams();
-    newSearchParams.set('from', conditions.fromStation);
-    newSearchParams.set('to', conditions.toStation);
+    // 改签模式下固定出发/到达站，仅允许修改日期
+    const nextFrom = isChangeMode ? fromStation : conditions.fromStation;
+    const nextTo = isChangeMode ? toStation : conditions.toStation;
+    newSearchParams.set('from', nextFrom);
+    newSearchParams.set('to', nextTo);
     newSearchParams.set('date', conditions.departDate);
     
-    navigate(`/train-list?${newSearchParams.toString()}`, { replace: true });
+    navigate(`/train-list?${newSearchParams.toString()}`, { replace: true, state: location.state });
   };
 
   // 处理车次选择
@@ -318,8 +330,17 @@ const TrainListPage: React.FC = () => {
       price: '553' // 默认价格，实际应该根据座位类型计算
     });
     
-    // 跳转到订单页面
-    navigate(`/order?${orderParams.toString()}`);
+    // 检查是否处于改签模式
+    if (location.state && location.state.isChangeMode && location.state.changeOrder) {
+      navigate(`/order?${orderParams.toString()}`, {
+        state: {
+          ...location.state, // 传递改签相关状态
+          selectedTrain: train
+        }
+      });
+    } else {
+      navigate(`/order?${orderParams.toString()}`);
+    }
   };
 
   // 登录成功后的处理
@@ -341,7 +362,7 @@ const TrainListPage: React.FC = () => {
     newSearchParams.set('from', fromStation);
     newSearchParams.set('to', toStation);
     newSearchParams.set('date', date);
-    navigate(`/train-list?${newSearchParams.toString()}`, { replace: true });
+    navigate(`/train-list?${newSearchParams.toString()}`, { replace: true, state: location.state });
   };
 
   return (
@@ -409,6 +430,7 @@ const TrainListPage: React.FC = () => {
           setFromStations(filters.fromStations || []);
           setToStations(filters.toStations || []);
         }}
+        readOnlyStations={isChangeMode}
       />
 
       {/* 横向筛选栏：置于查询栏下方 */}

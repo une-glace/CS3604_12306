@@ -11,6 +11,7 @@ const searchTrains = async (req, res) => {
       toStations,   // 支持多到达站
       departureDate,
       trainType,
+      minDepartureTime,
       page = 1,
       limit = 20
     } = req.query;
@@ -53,6 +54,13 @@ const searchTrains = async (req, res) => {
     // 如果指定了车次类型，添加过滤条件
     if (trainType) {
       whereClause.trainType = trainType;
+    }
+
+    // 如果指定了最小出发时间，添加过滤条件
+    if (minDepartureTime) {
+      whereClause.departureTime = {
+        [Op.gte]: minDepartureTime
+      };
     }
 
     const trains = await Train.findAndCountAll({

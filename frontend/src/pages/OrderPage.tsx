@@ -3,6 +3,7 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import AddPassengerModal from '../components/AddPassengerModal';
 import OrderConfirmModal from '../components/OrderConfirmModal';
+import ChangeTicketConfirmModal from '../components/ChangeTicketConfirmModal';
 import OrderProcessing from '../components/OrderProcessing';
 import PaymentModal from '../components/PaymentModal';
 import Footer from '../components/Footer';
@@ -65,6 +66,11 @@ const OrderPage: React.FC = () => {
   const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
   const [orderData, setOrderData] = useState<OrderData | null>(null);
   const [seatInfo, setSeatInfo] = useState<Record<string, { price: number; availableSeats: number; totalSeats: number; isAvailable: boolean }>>({});
+  
+  // 改签相关状态
+  const [isChangeConfirmModalOpen, setIsChangeConfirmModalOpen] = useState(false);
+  const [changeOrderData, setChangeOrderData] = useState<any>(null);
+  const isChangeMode = location.state && (location.state as any).isChangeMode;
 
   // 顶部导航交互：与首页保持一致
   const handleProfileClick = () => {
@@ -127,6 +133,34 @@ const OrderPage: React.FC = () => {
         }
 
         setPassengers(normalized);
+
+        // 处理改签模式下的乘客预选
+        const state = location.state as any;
+        if (state?.isChangeMode && state?.changeOrder) {
+          setChangeOrderData(state.changeOrder);
+          const oldOrder = state.changeOrder;
+          const oldPassengerNames = oldOrder.passengers && oldOrder.passengers.length > 0
+            ? oldOrder.passengers.map((p: any) => p.name)
+            : [oldOrder.passenger];
+            
+          const matchedPassengers = normalized.filter(p => oldPassengerNames.includes(p.name));
+          
+          if (matchedPassengers.length > 0) {
+            setSelectedPassengers(matchedPassengers.map(p => p.id));
+            if (trainData) {
+              const newTicketInfos = matchedPassengers.map(p => ({
+                passengerId: p.id,
+                passengerName: p.name,
+                seatType: trainData.seatType,
+                ticketType: p.passengerType === '成人' ? '成人票' : p.passengerType === '儿童' ? '儿童票' : '学生票',
+                price: trainData.price
+              }));
+              setTicketInfos(newTicketInfos as TicketInfo[]);
+            }
+            return; // 改签模式下处理完毕，跳过默认选择
+          }
+        }
+
         if (normalized.length > 0) {
           const first = normalized[0];
           setSelectedPassengers([first.id]);
@@ -417,7 +451,11 @@ const OrderPage: React.FC = () => {
     }
 
     // 显示确认模态框
-    setIsConfirmModalOpen(true);
+    if (isChangeMode) {
+      setIsChangeConfirmModalOpen(true);
+    } else {
+      setIsConfirmModalOpen(true);
+    }
   };
 
   const handleConfirmOrder = async (selectedSeatCodes: string[] = []) => {
@@ -449,21 +487,8 @@ const OrderPage: React.FC = () => {
       return { ...info, seatType: validSeatType, price: resolvedPrice };
     });
 
-    // 分配席位（前端模拟）：按乘客顺序分配车厢与席位号
-    const seatLettersMap: Record<string, string[]> = {
-      '二等座': ['A','B','C','D','F'],
-      '一等座': ['A','C','D','F'],
-      '商务座': ['A','C','D','F']
-    };
-    const baseCarriage = String((Math.floor(Math.random() * 6) + 3)).padStart(2, '0'); // 03-08 号车厢
-    const baseRow = Math.floor(Math.random() * 10) + 8; // 8-17 排
-    const assignedSeats = normalizedTicketInfos.map((info, idx) => {
-      const letters = seatLettersMap[info.seatType] || ['A','B','C','D','F'];
-      const preferred = selectedSeatCodes[idx];
-      const letter = preferred && letters.includes(preferred) ? preferred : letters[idx % letters.length];
-      const seatNumber = `${String(baseRow + idx).padStart(2, '0')}${letter}`;
-      return { passengerId: info.passengerId, carriage: baseCarriage, seatNumber };
-    });
+    // 分配席位（前端暂不分配，等待后端返回真实席位）
+    const assignedSeats: Array<{ passengerId: string; carriage: string | number; seatNumber: string }> = [];
 
     const newOrderData: OrderData = {
       orderId: `ORDER_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
@@ -512,20 +537,56 @@ const OrderPage: React.FC = () => {
       const response = await createOrder(orderPayload);
       console.log('后端响应数据:', response); // 添加调试日志
       
-      if (response && response.data && response.data.id) {
+      // 根据 createOrder 的类型定义，response.data 已经是正确的数据结构
+      const responseData = response.data;
+      
+      if (responseData && responseData.id) {
+        const BackendPassengersType = {} as { passengers?: Array<{ idCard?: string; seatNumber?: string }> };
+        const backendOrder = (responseData.order as typeof BackendPassengersType) || {};
+        const realAssignedSeats: Array<{ passengerId: string; carriage: string | number; seatNumber: string }> = [];
+        
+        const backendPassengers = Array.isArray(backendOrder.passengers) ? backendOrder.passengers : [];
+        backendPassengers.forEach((p: { idCard?: string; seatNumber?: string }) => {
+          // 后端 seatNumber 格式如 "1车1A"
+          const match = String(p.seatNumber || '').match(/^(\d+)车(\d+[A-Z])$/);
+          // 尝试匹配 passengerId，这里假设后端没有改变乘客顺序，或者我们可以通过身份证/姓名匹配
+          // 由于我们发送了 passengers 数组，后端也是按顺序处理的，或者我们可以通过身份证号匹配
+          const originalPassenger = orderData.passengers.find(op => op.idCard === p.idCard);
+          
+          if (originalPassenger) {
+            if (match) {
+              realAssignedSeats.push({
+                passengerId: originalPassenger.id,
+                carriage: match[1],
+                seatNumber: match[2]
+              });
+            } else {
+               // 处理可能没有匹配到的情况，或者格式不一样
+               realAssignedSeats.push({
+                 passengerId: originalPassenger.id,
+                 carriage: '',
+                 seatNumber: p.seatNumber || ''
+               });
+              }
+            }
+          });
+        
+
         setOrderData(prev => {
           if (!prev) return null;
           return {
             ...prev,
-            orderId: response.data.orderId || prev.orderId,
-            backendOrderId: response.data.id
+            orderId: responseData.orderId || prev.orderId,
+            backendOrderId: responseData.id,
+            assignedSeats: realAssignedSeats
           };
         });
+        
         try {
-          const keyByBackend = `orderSeatAssignments:${response.data.id}`;
-          const keyByNumber = `orderSeatAssignments:${response.data.orderId || orderData.orderId}`;
+          const keyByBackend = `orderSeatAssignments:${responseData.id}`;
+          const keyByNumber = `orderSeatAssignments:${responseData.orderId || orderData.orderId}`;
           const seatPassengers = (orderData.passengers || []).map(p => {
-            const seat = (orderData.assignedSeats || []).find(s => s.passengerId === p.id);
+            const seat = realAssignedSeats.find(s => s.passengerId === p.id);
             const ti = (orderData.ticketInfos || []).find(t => t.passengerId === p.id);
             return {
               name: p.name,
@@ -534,22 +595,22 @@ const OrderPage: React.FC = () => {
               seatType: ti?.seatType || ''
             };
           });
-          const payload = { orderNumber: response.data.orderId || orderData.orderId, passengers: seatPassengers };
+          const payload = { orderNumber: responseData.orderId || orderData.orderId, passengers: seatPassengers };
           localStorage.setItem(keyByBackend, JSON.stringify(payload));
           localStorage.setItem(keyByNumber, JSON.stringify(payload));
         } catch (e) {
           console.warn('写入本地座位映射失败', e);
         }
         // 跳转到支付订单页面，并传递订单概要用于回退展示
-        navigate(`/pay-order?orderId=${encodeURIComponent(response.data.id)}`, {
+        navigate(`/pay-order?orderId=${encodeURIComponent(responseData.id)}`, {
           state: {
-            backendOrderId: response.data.id,
-            orderId: response.data.orderId || orderData.orderId,
+            backendOrderId: responseData.id,
+            orderId: responseData.orderId || orderData.orderId,
             trainInfo,
             passengers: orderData.passengers,
             ticketInfos: orderData.ticketInfos,
             totalPrice: orderData.totalPrice,
-            assignedSeats: orderData.assignedSeats || []
+            assignedSeats: realAssignedSeats
           }
         });
       } else {
@@ -561,6 +622,74 @@ const OrderPage: React.FC = () => {
       console.error('订单提交错误:', error);
       alert('订单提交失败，请稍后重试');
       return;
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleConfirmChange = async (selectedSeatCodes: string[] = []) => {
+    setIsChangeConfirmModalOpen(false);
+    try {
+      setIsSubmitting(true);
+      if (!changeOrderData || !trainInfo) return;
+      const { changeOrder } = await import('../services/orderService');
+
+      const payload = {
+        oldOrderId: changeOrderData.id,
+        newTrainInfo: {
+          trainNumber: trainInfo.trainNumber,
+          from: trainInfo.from,
+          to: trainInfo.to,
+          departureTime: trainInfo.departureTime,
+          arrivalTime: trainInfo.arrivalTime,
+          date: trainInfo.date,
+          duration: trainInfo.duration
+        },
+        passengers: (() => {
+          const map = new Map(passengers.map(p => [p.id, p]));
+          return ticketInfos.map(t => {
+            const p = map.get(t.passengerId);
+            return {
+              name: t.passengerName,
+              id: t.passengerId,
+              idCard: p?.idCard || '',
+              phone: p?.phone || '',
+              seatType: t.seatType,
+              ticketType: t.ticketType,
+              price: t.price
+            };
+          });
+        })(),
+        totalPrice: getTotalPrice(),
+        selectedSeats: selectedSeatCodes
+      };
+
+      const result = await changeOrder(payload);
+      const newOrderId = result?.newOrderId;
+      if (!newOrderId) {
+        alert('改签成功！');
+        navigate('/profile');
+        return;
+      }
+
+      const validPassengers = selectedPassengers
+        .map(id => passengers.find(p => p.id === id))
+        .filter((p): p is Passenger => p !== undefined);
+
+      navigate(`/pay-order?orderId=${encodeURIComponent(String(newOrderId))}` as string, {
+        state: {
+          orderId: String(newOrderId),
+          trainInfo,
+          passengers: validPassengers,
+          ticketInfos,
+          totalPrice: getTotalPrice(),
+          assignedSeats: [],
+          isChangeMode: true
+        }
+      });
+    } catch (error) {
+      console.error('改签失败', error);
+      alert('改签失败，请重试');
     } finally {
       setIsSubmitting(false);
     }
@@ -713,11 +842,94 @@ const OrderPage: React.FC = () => {
                 *显示的价格均为实际活动折扣后票价，供您参考，查看公布票价 。具体票价以您确认支付时实际购买的铺别票价为准。
               </div>
             </div>
+        </div>
+      </div>
+
+      {/* 原票信息（仅改签模式显示） */}
+      {isChangeMode && changeOrderData && (
+        <div className="original-ticket-section">
+          <div className="original-ticket-header">原票信息</div>
+          <div className="original-ticket-table">
+            <div className="original-ticket-table-header">
+              <div>序号</div>
+              <div>车次信息</div>
+              <div>席别信息</div>
+              <div>旅客信息</div>
+              <div>票款金额</div>
+            </div>
+            {(() => {
+              const trainNo = String(changeOrderData.trainNumber || '');
+              const depart = String(changeOrderData.departure || '');
+              const arrive = String(changeOrderData.arrival || '');
+              const departTime = String(changeOrderData.departureTime || '');
+              const date = String(changeOrderData.date || '');
+              
+              const passengerList = Array.isArray(changeOrderData.passengers) && changeOrderData.passengers.length > 0 
+                ? changeOrderData.passengers 
+                : [{
+                    name: changeOrderData.passenger,
+                    seatType: changeOrderData.seat ? changeOrderData.seat.replace(/\d{1,2}车.*$/u, '') : '二等座',
+                    seatNumber: changeOrderData.seat,
+                    // 尝试从 seat 字符串解析 carriage，如 "01车01A号"
+                    carriage: (changeOrderData.seat || '').match(/^(\d{1,2})车/)?.[1]
+                  }];
+
+              return passengerList.map((p: { name?: string; passengerName?: string; seatNumber?: string | number; seatType?: string; carriage?: string | number; price?: number }, idx: number) => {
+                const seatType = p.seatType || (changeOrderData.seat || '').replace(/\d{1,2}车.*$/u, '') || '二等座';
+                // 优先使用 carriage 字段，其次从 seatNumber 解析
+                let carriage = p.carriage ? String(p.carriage).padStart(2, '0') : '';
+                const seatNumber = p.seatNumber ? String(p.seatNumber) : '';
+                
+                // 如果没有 carriage 但 seatNumber 包含车厢信息（如 "1车1A"），尝试解析
+                if (!carriage && seatNumber && seatNumber.includes('车')) {
+                  const m = seatNumber.match(/^(\d+)车/);
+                  if (m) carriage = m[1].padStart(2, '0');
+                }
+                
+                // 清理 seatNumber 显示（移除“号”字，移除车厢前缀如果只显示座位号）
+                // 如果 seatNumber 是 "1车1A"，我们只显示 "1A号" 或者保持原样？
+                // 根据 UI 习惯，如果单独显示了车厢，座位号通常只显示 "1A"
+                const seatNumberClean = seatNumber.replace(/号$/u, '').replace(/^\d+车/, '');
+                
+                const passengerName = p.name || p.passengerName || '—';
+                const idTypeLabel = '居民身份证'; // 这里简化处理，实际应从 p.idType 获取或默认
+                const ticketTypeLabel = '成人票'; // 简化处理
+                // 价格平摊或独立显示
+                const priceVal = typeof p.price === 'number' ? p.price : (
+                  typeof changeOrderData.price === 'number' 
+                    ? (changeOrderData.price / passengerList.length).toFixed(1) 
+                    : 0
+                );
+
+                return (
+                  <div className="original-ticket-table-row" key={idx}>
+                    <div>{idx + 1}</div>
+                    <div className="ot-train-cell">
+                      <div className="ot-train-time">{date} {departTime}开</div>
+                      <div className="ot-train-route">{trainNo}{depart}—{arrive}</div>
+                    </div>
+                    <div className="ot-seat-cell">
+                      <div className="ot-seat-type">{seatType}{carriage ? ` ${carriage}车厢` : ''}</div>
+                      <div className="ot-seat-number">{seatNumberClean ? `${seatNumberClean}号` : '待分配'}</div>
+                    </div>
+                    <div className="ot-passenger-cell">
+                      <div className="ot-passenger-name">{passengerName}</div>
+                      <div className="ot-passenger-id">{idTypeLabel}</div>
+                    </div>
+                    <div className="ot-price-cell">
+                      <div className="ot-ticket-type">{ticketTypeLabel}</div>
+                      <div className="ot-price-value">{priceVal}元</div>
+                    </div>
+                  </div>
+                );
+              });
+            })()}
           </div>
         </div>
+      )}
 
-        {/* 乘客信息（截图布局） */}
-        <div className="passenger-section">
+      {/* 乘客信息（截图布局） */}
+      <div className="passenger-section">
           <div className="passenger-header-row">
             <div className="passenger-header-title">乘客信息（填写说明）</div>
             <div className="passenger-search">
@@ -754,19 +966,22 @@ const OrderPage: React.FC = () => {
 
           {/* 票表：序号 票种 席别 姓名 证件类型 证件号码 */}
           <div className="passenger-table">
-            <div className="passenger-table-header">
+            <div className={`passenger-table-header ${isChangeMode ? 'change-mode' : ''}`}>
               <div className="col-index">序号</div>
               <div className="col-ticket-type">票种</div>
               <div className="col-seat-type">席别</div>
               <div className="col-name">姓名</div>
               <div className="col-id-type">证件类型</div>
               <div className="col-id-number">证件号码</div>
+              {isChangeMode && (
+                <div className="col-change">改签</div>
+              )}
             </div>
             {ticketInfos.map((info, idx) => {
               const p = passengers.find(pp => pp.id === info.passengerId);
               const idTypeLabel = getIdTypeLabel(p?.idType);
               return (
-                <div key={info.passengerId} className="passenger-table-row">
+                <div key={info.passengerId} className={`passenger-table-row ${isChangeMode ? 'change-mode' : ''}`}>
                   <div className="col-index">{idx + 1}</div>
                   <div className="col-ticket-type">
                     <select 
@@ -803,6 +1018,18 @@ const OrderPage: React.FC = () => {
                     </select>
                   </div>
                   <div className="col-id-number">{p?.idCard || ''}</div>
+                  {isChangeMode && (
+                    <div className="col-change">
+                      <label className="change-checkbox">
+                        <input 
+                          type="checkbox" 
+                          checked={selectedPassengers.includes(info.passengerId)}
+                          onChange={() => handlePassengerSelect(info.passengerId)}
+                        />
+                        <span>改签</span>
+                      </label>
+                    </div>
+                  )}
                 </div>
               );
             })}
@@ -860,7 +1087,7 @@ const OrderPage: React.FC = () => {
               onClick={handleSubmitOrder}
               disabled={isSubmitting}
             >
-              {isSubmitting ? '提交中...' : '提交订单'}
+              {isSubmitting ? '提交中...' : (isChangeMode ? '提交订单' : '提交订单')}
             </button>
           </div>
         </div>
@@ -886,6 +1113,19 @@ const OrderPage: React.FC = () => {
         totalPrice={getTotalPrice()}
         seatInfo={seatInfo}
       />
+
+      {/* 改签确认模态框 */}
+      {trainInfo && changeOrderData && ticketInfos.length > 0 && (
+        <ChangeTicketConfirmModal
+          isOpen={isChangeConfirmModalOpen}
+          onClose={() => setIsChangeConfirmModalOpen(false)}
+          onConfirm={handleConfirmChange}
+          newTrainInfo={trainInfo}
+          passengers={passengers}
+          ticketInfos={ticketInfos}
+          seatInfo={seatInfo}
+        />
+      )}
       
       {/* 订单处理界面 */}
       <OrderProcessing

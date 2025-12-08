@@ -33,7 +33,7 @@ interface Order {
   seat: string;
   passengers?: Array<{ name: string; seatNumber?: string; seatType?: string; carriage?: string | number }>;
   price: number;
-  status: 'paid' | 'unpaid' | 'cancelled' | 'refunded' | 'completed';
+  status: 'paid' | 'unpaid' | 'cancelled' | 'refunded' | 'completed' | 'changed';
 }
 
 const ProfilePage: React.FC = () => {
@@ -77,6 +77,26 @@ const ProfilePage: React.FC = () => {
   const [emailInput, setEmailInput] = useState('');
   const [phoneInput, setPhoneInput] = useState('');
   const [countryCodeInput, setCountryCodeInput] = useState('+86');
+
+  const [isChangeTicketModalOpen, setIsChangeTicketModalOpen] = useState(false);
+  const [orderToChange, setOrderToChange] = useState<Order | null>(null);
+
+  const handleChangeTicketClick = (order: Order) => {
+    setOrderToChange(order);
+    setIsChangeTicketModalOpen(true);
+  };
+
+  const confirmChangeTicket = () => {
+    if (orderToChange) {
+      setIsChangeTicketModalOpen(false);
+      navigate('/train-list', { 
+        state: { 
+          changeOrder: orderToChange,
+          isChangeMode: true 
+        } 
+      });
+    }
+  };
 
   // 检查登录状态
   useEffect(() => {
@@ -165,11 +185,11 @@ const ProfilePage: React.FC = () => {
     }
   }, [user]);
 
-  const fetchOrders = React.useCallback(async (page = 1, status = orderFilter) => {
+  const fetchOrders = React.useCallback(async (page = 1) => {
     try {
       setIsLoadingOrders(true);
       const { fetchUserOrdersFormatted, getOrderDetail } = await import('../services/orderService');
-      const data = await fetchUserOrdersFormatted(page, orderPagination.limit, status);
+      const data = await fetchUserOrdersFormatted(page, orderPagination.limit, 'all');
       const formattedOrders = data.orders;
       setOrders(formattedOrders);
       setOrderPagination(data.pagination);
@@ -247,14 +267,13 @@ const ProfilePage: React.FC = () => {
       try {
         const token = localStorage.getItem('authToken');
         const params = new URLSearchParams({ page: String(page), limit: String(orderPagination.limit) });
-        if (status && status !== 'all') params.append('status', status);
         const response = await fetch(`http://localhost:3000/api/v1/orders?${params}`, { headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' } });
         if (response.ok) {
           const data = await response.json();
           if (data.success) {
             const formattedOrders = data.data.orders.map((order: unknown) => {
               const o = order as { id?: string; orderId?: string; trainNumber?: string; fromStation?: string; toStation?: string; departureTime?: string; arrivalTime?: string; departureDate?: string; orderDate?: string; bookDate?: string; createdAt?: unknown; passengers?: Array<{ passengerName?: string; name?: string; seatNumber?: string; seatType?: string; carriage?: string | number }>; totalPrice?: number; status?: string };
-              return ({ id: o.id || '', orderNumber: o.orderId || '', trainNumber: o.trainNumber || '', departure: o.fromStation || '', arrival: o.toStation || '', departureTime: o.departureTime || '', arrivalTime: o.arrivalTime || '', date: o.departureDate || '', bookDate: o.orderDate || o.bookDate || (o.createdAt ? String(o.createdAt).slice(0,10) : undefined), tripDate: o.departureDate || '', passenger: (o.passengers && o.passengers[0]?.passengerName) ? String(o.passengers[0]!.passengerName) : '未知', seat: (o.passengers && o.passengers[0]?.seatNumber) ? String(o.passengers[0]!.seatNumber) : '待分配', passengers: Array.isArray(o.passengers) ? o.passengers.map(p => ({ name: p.passengerName || p.name || '未知', seatNumber: p.seatNumber, seatType: p.seatType, carriage: p.carriage })) : undefined, price: o.totalPrice || 0, status: (o.status === 'unpaid' ? 'unpaid' : o.status === 'paid' ? 'paid' : o.status === 'cancelled' ? 'cancelled' : o.status === 'refunded' ? 'refunded' : o.status === 'completed' ? 'completed' : 'unpaid') });
+              return ({ id: o.id || '', orderNumber: o.orderId || '', trainNumber: o.trainNumber || '', departure: o.fromStation || '', arrival: o.toStation || '', departureTime: o.departureTime || '', arrivalTime: o.arrivalTime || '', date: o.departureDate || '', bookDate: o.orderDate || o.bookDate || (o.createdAt ? String(o.createdAt).slice(0,10) : undefined), tripDate: o.departureDate || '', passenger: (o.passengers && o.passengers[0]?.passengerName) ? String(o.passengers[0]!.passengerName) : '未知', seat: (o.passengers && o.passengers[0]?.seatNumber) ? String(o.passengers[0]!.seatNumber) : '待分配', passengers: Array.isArray(o.passengers) ? o.passengers.map(p => ({ name: p.passengerName || p.name || '未知', seatNumber: p.seatNumber, seatType: p.seatType, carriage: p.carriage })) : undefined, price: o.totalPrice || 0, status: (o.status === 'unpaid' ? 'unpaid' : o.status === 'paid' ? 'paid' : o.status === 'cancelled' ? 'cancelled' : o.status === 'refunded' ? 'refunded' : o.status === 'completed' ? 'completed' : o.status === 'changed' ? 'changed' : 'unpaid') });
             });
             setOrders(formattedOrders);
             setOrderPagination({ page: data.data.pagination.page, limit: data.data.pagination.limit, total: data.data.pagination.total, totalPages: data.data.pagination.totalPages });
@@ -336,14 +355,14 @@ const ProfilePage: React.FC = () => {
     } finally {
       setIsLoadingOrders(false);
     }
-  }, [orderFilter, orderPagination.limit]);
+  }, [orderPagination.limit]);
 
   // 监听订单筛选变化 - 必须在条件渲染之前声明
   useEffect(() => {
     if (activeSection === 'orders') {
       // 延迟调用fetchOrders，确保函数已定义
       const timer = setTimeout(() => {
-        fetchOrders(1, orderFilter);
+        fetchOrders(1);
       }, 0);
       return () => clearTimeout(timer);
     }
@@ -612,9 +631,10 @@ const ProfilePage: React.FC = () => {
       unpaid: '未支付',
       cancelled: '已取消',
       refunded: '已退票',
-      completed: '已出行'
+      completed: '已出行',
+      changed: '已改签'
     };
-    return statusMap[status];
+    return statusMap[status] || status;
   };
 
   const getStatusClass = (status: Order['status']) => {
@@ -643,7 +663,7 @@ const ProfilePage: React.FC = () => {
           if (data.success) {
             alert('退票申请成功！');
             // 重新加载订单列表
-            fetchOrders(orderPagination.page, orderFilter);
+            fetchOrders(orderPagination.page);
           } else {
             alert(data.message || '退票申请失败');
           }
@@ -681,12 +701,12 @@ const ProfilePage: React.FC = () => {
       await updateOrderStatus(paymentOrderBackendId, 'paid', 'alipay');
       setIsPaymentModalOpen(false);
       alert('支付成功！');
-      fetchOrders(orderPagination.page, orderFilter);
+      fetchOrders(orderPagination.page);
     } catch (error) {
       console.warn('支付状态更新失败', error);
       setIsPaymentModalOpen(false);
       alert('支付成功，但状态更新稍后刷新');
-      fetchOrders(orderPagination.page, orderFilter);
+      fetchOrders(orderPagination.page);
     }
   };
 
@@ -697,13 +717,31 @@ const ProfilePage: React.FC = () => {
   // 处理分页
   const handlePageChange = (newPage: number) => {
     if (newPage >= 1 && newPage <= orderPagination.totalPages) {
-      fetchOrders(newPage, orderFilter);
+      fetchOrders(newPage);
     }
   };
 
   // 筛选订单
   const filteredOrders = orders.filter(order => {
-    const statusMatch = orderFilter ? order.status === orderFilter : true;
+    const isChanged = order.status === 'changed';
+    const departDateStr = order.tripDate || order.date;
+    const departTimeStr = order.departureTime || '00:00';
+    let departDT: Date | null = null;
+    if (departDateStr) {
+      const iso = `${departDateStr}T${departTimeStr.length === 5 ? departTimeStr : '00:00'}:00`;
+      const d = new Date(iso);
+      departDT = isNaN(d.getTime()) ? new Date(departDateStr) : d;
+    }
+    const now = new Date();
+    const departed = departDT ? (departDT.getTime() <= now.getTime()) : false;
+    let statusMatch = true;
+    if (orderFilter === 'unpaid') {
+      statusMatch = order.status === 'unpaid';
+    } else if (orderFilter === 'paid') {
+      statusMatch = order.status === 'paid' || (isChanged && !departed);
+    } else if (orderFilter === 'completed') {
+      statusMatch = order.status === 'completed' || (isChanged && departed);
+    }
     const selectedDate = dateMode === 'book' ? (order.bookDate || order.date) : (order.tripDate || order.date);
     const dateMatch = (!dateStart || (selectedDate && selectedDate >= dateStart)) && (!dateEnd || (selectedDate && selectedDate <= dateEnd));
     const kw = keyword.trim();
@@ -715,6 +753,15 @@ const ProfilePage: React.FC = () => {
   const formatSeatText = (carriage?: string | number, seatNumber?: string, fallback?: string): string => {
     const pad2 = (val: string | number) => String(val).padStart(2, '0');
     const cleanSeat = (s: string) => s.replace(/号$/u, '');
+    
+    // 如果 seatNumber 包含车厢信息（如 "1车1A"），优先解析它
+    if (seatNumber && seatNumber.match(/^\d+车/)) {
+      const m = seatNumber.match(/^(\d+)车(.*)$/);
+      if (m) {
+        return `${pad2(m[1])}车${cleanSeat(m[2])}`;
+      }
+    }
+
     if (carriage !== undefined && carriage !== null && String(carriage).trim() !== '' && seatNumber) {
       return `${pad2(carriage)}车${cleanSeat(String(seatNumber))}`;
     }
@@ -729,9 +776,12 @@ const ProfilePage: React.FC = () => {
 
   const resolveSeatText = (order: Order): string => {
     const first = order.passengers && order.passengers[0];
-    if (first && first.carriage !== undefined && first.seatNumber) {
+    // 只要有 seatNumber 就可以尝试显示，不强制要求 carriage
+    if (first && first.seatNumber) {
       return formatSeatText(first.carriage, first.seatNumber);
     }
+    
+    // 尝试从本地缓存读取（兼容旧数据或离线场景）
     try {
       const keyById = `orderSeatAssignments:${order.id}`;
       const keyByNum = `orderSeatAssignments:${order.orderNumber}`;
@@ -1315,7 +1365,7 @@ const ProfilePage: React.FC = () => {
                         <div>车票状态</div>
                       </div>
                       {filteredOrders.map(order => (
-                        <div key={order.id} className="order-card">
+                        <div key={order.id} className={`order-card ${order.status === 'changed' ? 'changed-order' : ''}`}>
                           <div className="order-meta">
                             <button className="toggle-btn" aria-expanded={!collapsedMap[order.id]} onClick={() => toggleOrderCollapse(order.id)}>{collapsedMap[order.id] ? '▸' : '▾'}</button>
                             <span>订票日期：{order.bookDate || order.date}</span><span className="meta-sep">订单号：{order.orderNumber}</span>
@@ -1354,7 +1404,7 @@ const ProfilePage: React.FC = () => {
                             <button className="detail-btn" onClick={() => handleOrderDetail(order.orderNumber)}>订单详情</button>
                             <button className="ops-btn" disabled>添加免费乘车儿童</button>
                             <button className="ops-btn" disabled>购/赔/退保险</button>
-                            <button className="ops-btn" disabled>改签</button>
+                            <button className="ops-btn" disabled={order.status === 'changed' || order.status === 'cancelled' || order.status === 'refunded' || order.status === 'completed'} onClick={() => handleChangeTicketClick(order)}>改签</button>
                             <button className="ops-btn" disabled>变更到站</button>
                             <button className="ops-btn" onClick={() => navigate('/train-list')}>餐饮•特产</button>
                           </div>
@@ -1369,8 +1419,25 @@ const ProfilePage: React.FC = () => {
                       )}
                     </>
                   ) : (
-                    <div className="empty-state">
-                      <p>暂无订单记录</p>
+                    <div className="empty-state custom-empty-state">
+                      <div className="empty-icon">
+                        <svg width="64" height="64" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+                          <rect x="12" y="8" width="40" height="48" rx="4" stroke="#8EBDFE" strokeWidth="2" fill="#EBF4FF" />
+                          <line x1="20" y1="20" x2="44" y2="20" stroke="#8EBDFE" strokeWidth="2" />
+                          <line x1="20" y1="28" x2="44" y2="28" stroke="#8EBDFE" strokeWidth="2" />
+                          <line x1="20" y1="36" x2="30" y2="36" stroke="#8EBDFE" strokeWidth="2" />
+                          <circle cx="38" cy="42" r="8" stroke="#5C9DFF" strokeWidth="2" fill="white" />
+                          <line x1="44" y1="48" x2="50" y2="54" stroke="#5C9DFF" strokeWidth="2" strokeLinecap="round" />
+                          <path d="M10 14h-2a2 2 0 0 0-2 2v2" stroke="#8EBDFE" strokeWidth="2" strokeLinecap="round" />
+                          <circle cx="10" cy="12" r="1" fill="#8EBDFE" />
+                          <circle cx="56" cy="24" r="2" stroke="#8EBDFE" strokeWidth="1.5" fill="none" />
+                          <path d="M54 26 l2 2" stroke="#8EBDFE" strokeWidth="1.5" />
+                        </svg>
+                      </div>
+                      <div className="empty-text">
+                        <p>您没有对应的订单内容哦~</p>
+                        <p>您可以通过<a href="/train-list" onClick={(e) => { e.preventDefault(); navigate('/train-list'); }}>车票预订</a>功能，来制定出行计划。</p>
+                      </div>
                     </div>
                   )}
                 </div>
@@ -1398,6 +1465,37 @@ const ProfilePage: React.FC = () => {
           </div>
         </div>
       </footer>
+
+      {isChangeTicketModalOpen && (
+        <div className="modal-overlay">
+          <div className="modal-content change-ticket-modal">
+            <div className="modal-header">
+              <h3>提示</h3>
+              <button className="close-btn" onClick={() => setIsChangeTicketModalOpen(false)}>×</button>
+            </div>
+            <div className="modal-body">
+              <div className="warning-icon-container">
+                <svg width="30" height="30" viewBox="0 0 40 40" fill="none">
+                  <circle cx="20" cy="20" r="20" fill="#FF9900"/>
+                  <path d="M19 11h2v14h-2V11zm0 16h2v2h-2v-2z" fill="white"/>
+                </svg>
+              </div>
+              <div className="warning-text">
+                <p className="main-warning">您确认要办理改签吗？如有订餐饮或特产，请按规定到网站自行办理退订。</p>
+                <p className="sub-warning">
+                  本次改签将收取您<span className="highlight-red">0元</span>的手续费，
+                  改签后车票将无法再次办理改签，更多改签规则请查看
+                  <a href="#" className="link-blue">《退改说明》</a>。
+                </p>
+              </div>
+            </div>
+            <div className="modal-footer">
+              <button className="btn-cancel" onClick={() => setIsChangeTicketModalOpen(false)}>取消</button>
+              <button className="btn-confirm-orange" onClick={confirmChangeTicket}>确认</button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {paymentOrderData && (
         <PaymentModal

@@ -4,7 +4,8 @@ const {
   getUserOrders, 
   getOrderDetail, 
   cancelOrder,
-  updateOrderStatus
+  updateOrderStatus,
+  changeOrder
 } = require('../controllers/orderController');
 const { authenticateToken } = require('../utils/auth');
 
@@ -15,6 +16,9 @@ router.use(authenticateToken);
 
 // 创建订单
 router.post('/', createOrder);
+
+// 改签订单
+router.post('/change', changeOrder);
 
 // 获取用户订单列表
 router.get('/', getUserOrders);
