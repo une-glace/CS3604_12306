@@ -288,8 +288,8 @@ const allocateSeatsForGroup = async (trainNumber, date, seatType, count, prefere
 
   // 生成全量座位（排序：car->row->letter）
   const letters = ['A','B','C','D','F'];
-  const cars = Array.from({length:8}, (_,i)=>i+1);
-  const rows = Array.from({length:16}, (_,i)=>i+1);
+  const cars = Array.from({length:8}, (_,i)=>i+1).sort(() => Math.random() - 0.5);
+  const rows = Array.from({length:16}, (_,i)=>i+1).sort(() => Math.random() - 0.5);
   const universe = [];
   for (const car of cars) {
     for (const row of rows) {

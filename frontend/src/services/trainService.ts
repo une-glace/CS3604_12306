@@ -58,20 +58,16 @@ export const searchTrains = async (
 ): Promise<SearchTrainItem[]> => {
   const qs = new URLSearchParams();
   
-  // 如果有多个出发车站，使用数组格式
+  // 如果有多个出发车站，使用逗号分隔的单参数，兼容后端解析
   if (params.fromStations && params.fromStations.length > 0) {
-    params.fromStations.forEach(station => {
-      qs.append('fromStations', station);
-    });
+    qs.set('fromStations', params.fromStations.join(','));
   } else {
     qs.set('fromStation', params.fromStation);
   }
   
-  // 如果有多个到达车站，使用数组格式
+  // 如果有多个到达车站，使用逗号分隔的单参数，兼容后端解析
   if (params.toStations && params.toStations.length > 0) {
-    params.toStations.forEach(station => {
-      qs.append('toStations', station);
-    });
+    qs.set('toStations', params.toStations.join(','));
   } else {
     qs.set('toStation', params.toStation);
   }

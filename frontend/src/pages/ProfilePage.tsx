@@ -200,8 +200,8 @@ const ProfilePage: React.FC = () => {
       const { fetchUserOrdersFormatted, getOrderDetail } = await import('../services/orderService');
       const apiStatus = ((): string => {
         if (orderFilter === 'unpaid') return 'unpaid';
-        if (orderFilter === 'paid') return 'paid';
-        if (orderFilter === 'completed') return 'completed';
+        if (orderFilter === 'paid') return 'all';
+        if (orderFilter === 'completed') return 'all';
         return 'all';
       })();
       const data = await fetchUserOrdersFormatted(page, orderPagination.limit, apiStatus);

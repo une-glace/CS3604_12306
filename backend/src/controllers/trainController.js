@@ -24,14 +24,19 @@ const searchTrains = async (req, res) => {
       });
     }
 
-    // 处理多车站查询
-    const fromStationList = fromStations ? 
-      (Array.isArray(fromStations) ? fromStations : [fromStations]) : 
-      (fromStation ? [fromStation] : []);
-      
-    const toStationList = toStations ? 
-      (Array.isArray(toStations) ? toStations : [toStations]) : 
-      (toStation ? [toStation] : []);
+    // 处理多车站查询（兼容逗号分隔的字符串）
+    const toList = (v) => {
+      if (!v) return [];
+      if (Array.isArray(v)) return v;
+      if (typeof v === 'string') {
+        const parts = v.split(',').map(s => s.trim()).filter(Boolean);
+        return parts.length > 0 ? parts : [v];
+      }
+      return [];
+    };
+
+    const fromStationList = (fromStations ? toList(fromStations) : (fromStation ? [fromStation] : []));
+    const toStationList = (toStations ? toList(toStations) : (toStation ? [toStation] : []));
 
     if (fromStationList.length === 0 || toStationList.length === 0) {
       return res.status(400).json({
