@@ -113,11 +113,16 @@ const ProfilePage: React.FC = () => {
     }
   }, [isLoading, isLoggedIn, navigate]);
 
-  // 根据URL参数预设当前分区（如 ?section=orders）
+  // 根据URL参数预设当前分区（如 ?section=orders&filter=paid）
   useEffect(() => {
     const section = urlSearchParams.get('section');
+    const filter = urlSearchParams.get('filter');
+    
     if (section === 'orders') {
       setActiveSection('orders');
+      if (filter && ['unpaid', 'paid', 'completed'].includes(filter)) {
+        setOrderFilter(filter);
+      }
     } else if (section === 'passengers') {
       setActiveSection('passengers');
     } else if (section === 'personal-info') {
@@ -762,9 +767,9 @@ const ProfilePage: React.FC = () => {
     if (orderFilter === 'unpaid') {
       statusMatch = order.status === 'unpaid';
     } else if (orderFilter === 'paid') {
-      statusMatch = order.status === 'paid' || (isChanged && !departed);
+      statusMatch = order.status === 'paid' || (isChanged && !departed) || (order.status === 'refunded' && !departed);
     } else if (orderFilter === 'completed') {
-      statusMatch = order.status === 'completed' || (isChanged && departed);
+      statusMatch = order.status === 'completed' || (isChanged && departed) || (order.status === 'refunded' && departed);
     }
     const selectedDate = dateMode === 'book' ? (order.bookDate || order.date) : (order.tripDate || order.date);
     const dateMatch = (!dateStart || (selectedDate && selectedDate >= dateStart)) && (!dateEnd || (selectedDate && selectedDate <= dateEnd));

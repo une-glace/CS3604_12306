@@ -875,6 +875,7 @@
 .ticket-status.unpaid { color: #fa8c16; }
 .ticket-status.completed { color: #1677ff; }
 .ticket-status.changed { color: #999; }
+.ticket-status.refunded { color: #999; }
 .order-ops { display: flex; gap: 8px; padding: 8px 12px; border-top: 1px solid #f0f0f0; background: #fff; justify-content: flex-end; }
 .ops-btn { border: 1px solid #d9d9d9; background: #fff; color: #000; border-radius: 4px; padding: 4px 10px; cursor: pointer; }
 .order-ops .detail-btn { background: #fa8c16; color: #fff; border: 1px solid #fa8c16; border-radius: 4px; padding: 6px 14px; }

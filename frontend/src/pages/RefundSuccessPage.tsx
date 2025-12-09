@@ -93,7 +93,7 @@ const RefundSuccessPage: React.FC = () => {
 
           <div className="success-actions">
             <button className="btn-continue" onClick={() => navigate('/')}>继续购票</button>
-            <button className="btn-details" onClick={() => navigate(`/order-detail/${state.orderId}`)}>查询订单详情</button>
+            <button className="btn-details" onClick={() => navigate('/profile?section=orders&filter=paid')}>查询订单详情</button>
           </div>
         </div>
 
