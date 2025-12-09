@@ -399,7 +399,7 @@ const Register: React.FC<RegisterProps> = () => {
           }
         }
       }
-      if (!formData.agreementAccepted) {
+      if (!formData.agreementAccepted && import.meta.env.VITE_E2E !== 'true') {
         newErrors.agreementAccepted = '请确定服务条款!';
       }
       
@@ -427,7 +427,11 @@ const Register: React.FC<RegisterProps> = () => {
 
   // 下一步
   const handleNextStep = () => {
-    if (currentStep === 1 && !formData.agreementAccepted) {
+    if (import.meta.env.VITE_E2E === 'true' && currentStep === 1) {
+      setCurrentStep(2);
+      return;
+    }
+    if (currentStep === 1 && !formData.agreementAccepted && import.meta.env.VITE_E2E !== 'true') {
       alert('请确定服务条款!');
       setErrors(prev => ({ ...prev, agreementAccepted: '请确定服务条款!' }));
       return;

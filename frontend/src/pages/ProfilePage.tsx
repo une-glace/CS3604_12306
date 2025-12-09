@@ -198,7 +198,13 @@ const ProfilePage: React.FC = () => {
     try {
       setIsLoadingOrders(true);
       const { fetchUserOrdersFormatted, getOrderDetail } = await import('../services/orderService');
-      const data = await fetchUserOrdersFormatted(page, orderPagination.limit, 'all');
+      const apiStatus = ((): string => {
+        if (orderFilter === 'unpaid') return 'unpaid';
+        if (orderFilter === 'paid') return 'paid';
+        if (orderFilter === 'completed') return 'completed';
+        return 'all';
+      })();
+      const data = await fetchUserOrdersFormatted(page, orderPagination.limit, apiStatus);
       const formattedOrders = data.orders;
       setOrders(formattedOrders);
       setOrderPagination(data.pagination);
@@ -364,7 +370,7 @@ const ProfilePage: React.FC = () => {
     } finally {
       setIsLoadingOrders(false);
     }
-  }, [orderPagination.limit]);
+  }, [orderPagination.limit, orderFilter]);
 
   // 监听订单筛选变化 - 必须在条件渲染之前声明
   useEffect(() => {

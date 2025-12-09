@@ -1,635 +1,97 @@
-Run npm run test:unit -- --coverage
-
-> frontend@0.0.0 test:unit
-> vitest run --coverage
-
-
- RUN  v2.1.9 /home/runner/work/CS3604_12306/CS3604_12306/frontend
-      Coverage enabled with v8
-
- ✓ src/components/__tests__/BookingForm.spec.tsx (3 tests) 487ms
-   ✓ BookingForm > calls onSearch with valid inputs 350ms
- ✓ src/pages/__tests__/ForgotPasswordVerifyPage.spec.tsx (1 test) 371ms
-   ✓ 忘记密码-手机找回-第二步 > 输入正确验证码并提交后进入第三步 369ms
- ✓ src/pages/__tests__/ForgotPasswordResetValidation.spec.tsx (5 tests) 1062ms
-   ✓ 忘记密码-第三步交互校验 > 2.1.7 非法密码显示错误且完成按钮不可点击 335ms
- ❯ src/pages/__tests__/Login.spec.tsx (1 test | 1 failed) 411ms
-   × Login component > valid credentials navigate to profile 409ms
-     → Unable to find an element by: [data-testid="profile"]
-
-Ignored nodes: comments, script, style
-<body>
-  <div>
-    <div
-      class="login-container"
-    >
-      <div
-        class="login-header"
-      >
-        <div
-          class="login-left"
-        >
-          <div
-            class="login-logo"
-          >
-            <img
-              alt="12306"
-              src="/铁路12306-512x512.png"
-            />
-            <div
-              class="brand-text"
-            >
-              <div
-                class="brand-title"
-              >
-                中国铁路12306
-              </div>
-              <div
-                class="brand-subtitle"
-              >
-                12306 CHINA RAILWAY
-              </div>
-            </div>
-          </div>
-          <div
-            class="login-welcome"
-          >
-            欢迎登录12306
-          </div>
-        </div>
-      </div>
-      <div
-        class="login-hero"
-      >
-        <div
-          class="hero-carousel"
-        >
-          <div
-            class="hero-carousel-wrapper"
-          >
-            <div
-              class="hero-carousel-slide active"
-            >
-              <img
-                alt="登录轮播一"
-                src="/banner-login-2.jpg"
-                style="object-position: center center;"
-              />
-            </div>
-            <div
-              class="hero-carousel-slide "
-            >
-              <img
-                alt="登录轮播二"
-                src="/login-banner-1.jpg"
-                style="object-position: 70% center;"
-              />
-            </div>
-          </div>
-          <button
-            aria-label="上一张"
-            class="hero-carousel-arrow hero-carousel-arrow-left"
-          >
-            ‹
-          </button>
-          <button
-            aria-label="下一张"
-            class="hero-carousel-arrow hero-carousel-arrow-right"
-          >
-            ›
-          </button>
-          <div
-            class="hero-carousel-indicators"
-          >
-            <button
-              aria-label="切换到第1张"
-              class="hero-indicator active"
-            />
-            <button
-              aria-label="切换到第2张"
-              class="hero-indicator "
-            />
-          </div>
-        </div>
-        <div
-          class="login-panel"
-        >
-          <div
-            class="login-tabs"
-          >
-            <button
-              class="login-tab active"
-            >
-              账户登录
-            </button>
-            <span
-              class="tab-sep"
-            >
-              |
-            </span>
-            <button
-              class="login-tab "
-            >
-              扫码登录
-            </button>
-          </div>
-          <div
-            class="login-card"
-          >
-            <form
-              class="login-form"
-            >
-              <div
-                class="form-group user"
-              >
-                <input
-                  class=""
-                  id="username"
-                  name="username"
-                  placeholder="用户名/邮箱/手机号"
-                  type="text"
-                  value="newuser"
-                />
-              </div>
-              <div
-                class="form-group password"
-              >
-                <input
-                  class=""
-                  id="password"
-                  name="password"
-                  placeholder="请输入密码"
-                  type="password"
-                  value="mypassword"
-                />
-              </div>
-              <button
-                class="login-button"
-                type="submit"
-              >
-                立即登录
-              </button>
-              <div
-                class="form-links"
-              >
-                <a
-                  href="/forgot-password"
-                >
-                  忘记密码？
-                </a>
-                <span
-                  class="sep"
-                >
-                  |
-                </span>
-                <button
-                  class="register-link"
-                  type="button"
-                >
-                  注册12306账号
-                </button>
-              </div>
-              <div
-                class="form-extra"
-              >
-                <div
-                  class="form-divider"
-                />
-                <p
-                  class="service-notice"
-                >
-                  铁路12306每日5:00至次日1:00（周二为5:00至24:00）提供购票、改签、变更到站业务办理， 全天均可办理退票等其他服务。
-                </p>
-              </div>
-            </form>
-          </div>
-        </div>
-      </div>
-      <div
-        class="login-footer"
-      >
-        <div
-          class="footer-bottom"
-        >
-          <p>
-            版权所有©2008-2025 中国铁道科学研究院集团有限公司 技术支持：铁旅科技有限公司
-          </p>
-          <p>
-            中国国家铁路集团有限公司 京公网安备 11010802038392号 | 京ICP备05020493号-4 | ICP证：京B2-20202537
-          </p>
-        </div>
-      </div>
-    </div>
-  </div>
-</body>
- ✓ src/pages/__tests__/ForgotPasswordPage.spec.tsx (1 test) 617ms
-   ✓ 忘记密码-手机找回-第一步 > 填写合法账户信息并提交后进入第二步 614ms
- ✓ src/pages/__tests__/ForgotPasswordResetPage.spec.tsx (1 test) 502ms
-   ✓ 忘记密码-手机找回-第三步 > 符合策略的新密码与确认提交后进入完成页 500ms
- ✓ src/components/__tests__/FilterConditions.spec.tsx (1 test) 241ms
- ✓ src/pages/__tests__/ProfilePage.spec.tsx (1 test) 42ms
- ✓ src/pages/__tests__/ForgotPasswordDonePage.spec.tsx (1 test) 139ms
-
-⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
-
- FAIL  src/pages/__tests__/Login.spec.tsx > Login component > valid credentials navigate to profile
-TestingLibraryElementError: Unable to find an element by: [data-testid="profile"]
-
-Ignored nodes: comments, script, style
-<body>
-  <div>
-    <div
-      class="login-container"
-    >
-      <div
-        class="login-header"
-      >
-        <div
-          class="login-left"
-        >
-          <div
-            class="login-logo"
-          >
-            <img
-              alt="12306"
-              src="/铁路12306-512x512.png"
-            />
-            <div
-              class="brand-text"
-            >
-              <div
-                class="brand-title"
-              >
-                中国铁路12306
-              </div>
-              <div
-                class="brand-subtitle"
-              >
-                12306 CHINA RAILWAY
-              </div>
-            </div>
-          </div>
-          <div
-            class="login-welcome"
-          >
-            欢迎登录12306
-          </div>
-        </div>
-      </div>
-      <div
-        class="login-hero"
-      >
-        <div
-          class="hero-carousel"
-        >
-          <div
-            class="hero-carousel-wrapper"
-          >
-            <div
-              class="hero-carousel-slide active"
-            >
-              <img
-                alt="登录轮播一"
-                src="/banner-login-2.jpg"
-                style="object-position: center center;"
-              />
-            </div>
-            <div
-              class="hero-carousel-slide "
-            >
-              <img
-                alt="登录轮播二"
-                src="/login-banner-1.jpg"
-                style="object-position: 70% center;"
-              />
-            </div>
-          </div>
-          <button
-            aria-label="上一张"
-            class="hero-carousel-arrow hero-carousel-arrow-left"
-          >
-            ‹
-          </button>
-          <button
-            aria-label="下一张"
-            class="hero-carousel-arrow hero-carousel-arrow-right"
-          >
-            ›
-          </button>
-          <div
-            class="hero-carousel-indicators"
-          >
-            <button
-              aria-label="切换到第1张"
-              class="hero-indicator active"
-            />
-            <button
-              aria-label="切换到第2张"
-              class="hero-indicator "
-            />
-          </div>
-        </div>
-        <div
-          class="login-panel"
-        >
-          <div
-            class="login-tabs"
-          >
-            <button
-              class="login-tab active"
-            >
-              账户登录
-            </button>
-            <span
-              class="tab-sep"
-            >
-              |
-            </span>
-            <button
-              class="login-tab "
-            >
-              扫码登录
-            </button>
-          </div>
-          <div
-            class="login-card"
-          >
-            <form
-              class="login-form"
-            >
-              <div
-                class="form-group user"
-              >
-                <input
-                  class=""
-                  id="username"
-                  name="username"
-                  placeholder="用户名/邮箱/手机号"
-                  type="text"
-                  value="newuser"
-                />
-              </div>
-              <div
-                class="form-group password"
-              >
-                <input
-                  class=""
-                  id="password"
-                  name="password"
-                  placeholder="请输入密码"
-                  type="password"
-                  value="mypassword"
-                />
-              </div>
-              <button
-                class="login-button"
-                type="submit"
-              >
-                立即登录
-              </button>
-              <div
-                class="form-links"
-              >
-                <a
-                  href="/forgot-password"
-                >
-                  忘记密码？
-                </a>
-                <span
-                  class="sep"
-                >
-                  |
-                </span>
-                <button
-                  class="register-link"
-                  type="button"
-                >
-                  注册12306账号
-                </button>
-              </div>
-              <div
-                class="form-extra"
-              >
-                <div
-                  class="form-divider"
-                />
-                <p
-                  class="service-notice"
-                >
-                  铁路12306每日5:00至次日1:00（周二为5:00至24:00）提供购票、改签、变更到站业务办理， 全天均可办理退票等其他服务。
-                </p>
-              </div>
-            </form>
-          </div>
-        </div>
-      </div>
-      <div
-        class="login-footer"
-      >
-        <div
-          class="footer-bottom"
-        >
-          <p>
-            版权所有©2008-2025 中国铁道科学研究院集团有限公司 技术支持：铁旅科技有限公司
-          </p>
-          <p>
-            中国国家铁路集团有限公司 京公网安备 11010802038392号 | 京ICP备05020493号-4 | ICP证：京B2-20202537
-          </p>
-        </div>
-      </div>
-    </div>
-  </div>
-</body>
- ❯ Object.getElementError node_modules/@testing-library/dom/dist/config.js:37:19
- ❯ node_modules/@testing-library/dom/dist/query-helpers.js:76:38
- ❯ node_modules/@testing-library/dom/dist/query-helpers.js:52:17
- ❯ node_modules/@testing-library/dom/dist/query-helpers.js:95:19
- ❯ src/pages/__tests__/Login.spec.tsx:30:19
-     28|     await user.click(screen.getByRole('button', { name: '立即登录' }));
- Test Files  1 failed | 8 passed (9)
-     29|     alertMock.mockRestore();
-      Tests  1 failed | 14 passed (15)
-     30|     expect(screen.getByTestId('profile')).toBeInTheDocument();
-   Start at  08:06:39
-       |                   ^
-   Duration  6.59s (transform 789ms, setup 881ms, collect 2.87s, tests 3.87s, environment 5.98s, prepare 965ms)
-     31|   });
-
-     32| });
-
-
-Error: TestingLibraryElementError: Unable to find an element by: [data-testid="profile"]
-
-Ignored nodes: comments, script, style
-<body>
-  <div>
-    <div
-      class="login-container"
-    >
-      <div
-        class="login-header"
-      >
-        <div
-          class="login-left"
-        >
-          <div
-            class="login-logo"
-          >
-            <img
-              alt="12306"
-              src="/铁路12306-512x512.png"
-            />
-            <div
-              class="brand-text"
-            >
-              <div
-                class="brand-title"
-              >
-                中国铁路12306
-              </div>
-              <div
-                class="brand-subtitle"
-              >
-                12306 CHINA RAILWAY
-              </div>
-            </div>
-          </div>
-          <div
-            class="login-welcome"
-          >
-            欢迎登录12306
-          </div>
-        </div>
-      </div>
-      <div
-        class="login-hero"
-      >
-        <div
-          class="hero-carousel"
-        >
-          <div
-            class="hero-carousel-wrapper"
-          >
-            <div
-              class="hero-carousel-slide active"
-            >
-              <img
-                alt="登录轮播一"
-                src="/banner-login-2.jpg"
-                style="object-position: center center;"
-              />
-            </div>
-            <div
-              class="hero-carousel-slide "
-            >
-              <img
-                alt="登录轮播二"
-                src="/login-banner-1.jpg"
-                style="object-position: 70% center;"
-              />
-            </div>
-          </div>
-          <button
-            aria-label="上一张"
-            class="hero-carousel-arrow hero-carousel-arrow-left"
-          >
-            ‹
-          </button>
-          <button
-            aria-label="下一张"
-            class="hero-carousel-arrow hero-carousel-arrow-right"
-          >
-            ›
-          </button>
-          <div
-            class="hero-carousel-indicators"
-          >
-            <button
-              aria-label="切换到第1张"
-              class="hero-indicator active"
-            />
-            <button
-              aria-label="切换到第2张"
-              class="hero-indicator "
-            />
-          </div>
-        </div>
-        <div
-          class="login-panel"
-        >
-          <div
-            class="login-tabs"
-          >
-            <button
-              class="login-tab active"
-            >
-              账户登录
-            </button>
-            <span
-              class="tab-sep"
-            >
-              |
-            </span>
-            <button
-              class="login-tab "
-            >
-              扫码登录
-            </button>
-          </div>
-          <div
-            class="login-card"
-          >
-            <form
-              class="login-form"
-            >
-              <div
-                class="form-group user"
-              >
-                <input
-                  class=""
-                  id="username"
-                  name="username"
-                  placeholder="用户名/邮箱/手机号"
-                  type="text"
-                  value="newuser"
-                />
-              </div>
-              <div
-                class="form-group password"
-              >
-                <input
-                  class=""
-                  id="password"
-                  name="password"
-                  placeholder="请输入密码"
-                  type="password"
-                  value="mypassword"
-                />
-              </div>
-              <button
-                class="login-button"
-                type="submit"
-              >
-                立即登录
-              </button>
-              <div
-                class="form-links"
-              >
-                <a
-                  href="/forgot-password"
-                >
-                  忘记密码？
-                </a>
-                <span
-                  class="sep"
-                >
-                  |
-                </span>
-                <button
-                  class="register-link"
-                  type="button"
-                >
-              
-⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
-
+Run npm run test:e2e --prefix frontend
+  npm run test:e2e --prefix frontend
+  shell: /usr/bin/bash -e {0}
+> frontend@0.0.0 test:e2e
+> playwright test
+Running 26 tests using 1 worker
+······F······F·····F······
+  1) [chromium] › tests/e2e/order.spec.ts:5:3 › 订票与订单支付 › 下单并支付成功 ──────────────────────────────────
+    Error: expect(locator).toBeVisible() failed
+    Locator: locator('.orders-list .order-card').first()
+    Expected: visible
+    Timeout: 10000ms
+    Error: element(s) not found
+    Call log:
+      - Expect "toBeVisible" with timeout 10000ms
+      - waiting for locator('.orders-list .order-card').first()
+      191 |     
+      192 |     const paidList = page.locator('.orders-list .order-card').first();
+    > 193 |     await expect(paidList).toBeVisible({ timeout: 10000 });
+          |                            ^
+      194 |   });
+      195 | });
+      196 |
+        at /home/runner/work/CS3604_12306/CS3604_12306/frontend/tests/e2e/order.spec.ts:193:28
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/order-订票与订单支付-下单并支付成功-chromium/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    test-results/order-订票与订单支付-下单并支付成功-chromium/video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+    Error Context: test-results/order-订票与订单支付-下单并支付成功-chromium/error-context.md
+  2) [slow-chromium] › tests/e2e/auth.spec.ts:10:3 › 用户认证 › 注册流程 ───────────────────────────────────
+    Error: expect(locator).toBeVisible() failed
+    Locator: getByRole('heading', { name: '手机验证' })
+    Expected: visible
+    Timeout: 10000ms
+    Error: element(s) not found
+    Call log:
+      - Expect "toBeVisible" with timeout 10000ms
+      - waiting for getByRole('heading', { name: '手机验证' })
+      58 |       page.once('dialog', dialog => dialog.accept().catch(() => {}));
+      59 |       await page.locator('button.next-btn').click();
+    > 60 |       await expect(page.getByRole('heading', { name: '手机验证' })).toBeVisible({ timeout: 10000 });
+         |                                                                 ^
+      61 |     }
+      62 |     const sendBtn = page.locator('button.send-code-btn');
+      63 |     await sendBtn.click();
+        at /home/runner/work/CS3604_12306/CS3604_12306/frontend/tests/e2e/auth.spec.ts:60:65
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/auth-用户认证-注册流程-slow-chromium/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+    attachment #2: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/auth-用户认证-注册流程-slow-chromium/test-failed-2.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+    attachment #3: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/auth-用户认证-注册流程-slow-chromium/test-failed-3.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+    attachment #4: video (video/webm) ──────────────────────────────────────────────────────────────
+    test-results/auth-用户认证-注册流程-slow-chromium/video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+    attachment #5: video (video/webm) ──────────────────────────────────────────────────────────────
+    test-results/auth-用户认证-注册流程-slow-chromium/video-2.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+    attachment #6: video (video/webm) ──────────────────────────────────────────────────────────────
+    test-results/auth-用户认证-注册流程-slow-chromium/video-1.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+    Error Context: test-results/auth-用户认证-注册流程-slow-chromium/error-context.md
+  3) [slow-chromium] › tests/e2e/order.spec.ts:5:3 › 订票与订单支付 › 下单并支付成功 ─────────────────────────────
+    Error: expect(locator).toBeVisible() failed
+    Locator: locator('.orders-list .order-card').first()
+    Expected: visible
+    Timeout: 10000ms
+    Error: element(s) not found
+    Call log:
+      - Expect "toBeVisible" with timeout 10000ms
+      - waiting for locator('.orders-list .order-card').first()
+      191 |     
+      192 |     const paidList = page.locator('.orders-list .order-card').first();
+    > 193 |     await expect(paidList).toBeVisible({ timeout: 10000 });
+          |                            ^
+      194 |   });
+      195 | });
+      196 |
+        at /home/runner/work/CS3604_12306/CS3604_12306/frontend/tests/e2e/order.spec.ts:193:28
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/order-订票与订单支付-下单并支付成功-slow-chromium/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    test-results/order-订票与订单支付-下单并支付成功-slow-chromium/video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+    Error Context: test-results/order-订票与订单支付-下单并支付成功-slow-chromium/error-context.md
+  3 failed
+    [chromium] › tests/e2e/order.spec.ts:5:3 › 订票与订单支付 › 下单并支付成功 ───────────────────────────────────
+    [slow-chromium] › tests/e2e/auth.spec.ts:10:3 › 用户认证 › 注册流程 ────────────────────────────────────
+    [slow-chromium] › tests/e2e/order.spec.ts:5:3 › 订票与订单支付 › 下单并支付成功 ──────────────────────────────
+  23 passed (2.5m)
 Error: Process completed with exit code 1.
