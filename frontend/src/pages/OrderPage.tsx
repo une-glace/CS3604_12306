@@ -51,6 +51,32 @@ interface OrderData {
   assignedSeats?: Array<{ passengerId: string; carriage: string | number; seatNumber: string }>;
 }
 
+interface ChangeOrderPassenger {
+  name?: string;
+  seatType?: string;
+  seatNumber?: string | number;
+  carriage?: string | number;
+  price?: number;
+}
+
+interface ChangeOrderData {
+  id?: string | number;
+  trainNumber?: string;
+  departure?: string;
+  arrival?: string;
+  departureTime?: string;
+  date?: string;
+  passengers?: ChangeOrderPassenger[];
+  passenger?: string;
+  seat?: string;
+  price?: number;
+}
+
+interface ChangeLocationState {
+  isChangeMode?: boolean;
+  changeOrder?: ChangeOrderData;
+}
+
 const OrderPage: React.FC = () => {
   const location = useLocation();
   const navigate = useNavigate();
@@ -69,8 +95,8 @@ const OrderPage: React.FC = () => {
   
   // 改签相关状态
   const [isChangeConfirmModalOpen, setIsChangeConfirmModalOpen] = useState(false);
-  const [changeOrderData, setChangeOrderData] = useState<any>(null);
-  const isChangeMode = location.state && (location.state as any).isChangeMode;
+  const [changeOrderData, setChangeOrderData] = useState<ChangeOrderData | null>(null);
+  const isChangeMode = Boolean((location.state as ChangeLocationState | null)?.isChangeMode);
 
   // 顶部导航交互：与首页保持一致
   const handleProfileClick = () => {
@@ -135,12 +161,12 @@ const OrderPage: React.FC = () => {
         setPassengers(normalized);
 
         // 处理改签模式下的乘客预选
-        const state = location.state as any;
+        const state = location.state as ChangeLocationState | null;
         if (state?.isChangeMode && state?.changeOrder) {
           setChangeOrderData(state.changeOrder);
           const oldOrder = state.changeOrder;
           const oldPassengerNames = oldOrder.passengers && oldOrder.passengers.length > 0
-            ? oldOrder.passengers.map((p: any) => p.name)
+            ? oldOrder.passengers.map((p: ChangeOrderPassenger) => String(p.name || '')).filter(Boolean)
             : [oldOrder.passenger];
             
           const matchedPassengers = normalized.filter(p => oldPassengerNames.includes(p.name));
@@ -541,8 +567,8 @@ const OrderPage: React.FC = () => {
       const responseData = response.data;
       
       if (responseData && responseData.id) {
-        const BackendPassengersType = {} as { passengers?: Array<{ idCard?: string; seatNumber?: string }> };
-        const backendOrder = (responseData.order as typeof BackendPassengersType) || {};
+        type BackendOrder = { passengers?: Array<{ idCard?: string; seatNumber?: string }> };
+        const backendOrder = (responseData.order as BackendOrder) || {};
         const realAssignedSeats: Array<{ passengerId: string; carriage: string | number; seatNumber: string }> = [];
         
         const backendPassengers = Array.isArray(backendOrder.passengers) ? backendOrder.passengers : [];
@@ -632,10 +658,15 @@ const OrderPage: React.FC = () => {
     try {
       setIsSubmitting(true);
       if (!changeOrderData || !trainInfo) return;
+      if (!changeOrderData.id) {
+        alert('未找到原订单编号');
+        setIsSubmitting(false);
+        return;
+      }
       const { changeOrder } = await import('../services/orderService');
 
       const payload = {
-        oldOrderId: changeOrderData.id,
+        oldOrderId: String(changeOrderData.id),
         newTrainInfo: {
           trainNumber: trainInfo.trainNumber,
           from: trainInfo.from,

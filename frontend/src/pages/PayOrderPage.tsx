@@ -490,9 +490,15 @@ const PayOrderPage: React.FC = () => {
                 }))
               };
               navigate(`/order-detail/${encodeURIComponent(id)}`, { state: { detail, isChangeSuccess: !!routeState?.isChangeMode } });
-            } catch (e: any) {
+            } catch (e) {
               console.warn('支付后更新订单状态失败', e);
-              const msg = e.response?.data?.message || e.message || '未知错误';
+              let msg = '未知错误';
+              if (e instanceof Error) {
+                msg = e.message;
+              } else if (typeof e === 'object' && e !== null && 'response' in e) {
+                const resp = (e as { response?: { data?: { message?: string } } }).response;
+                msg = resp?.data?.message ?? msg;
+              }
               alert(`支付失败：${msg}`);
             }
           })();

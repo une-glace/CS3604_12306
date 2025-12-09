@@ -93,7 +93,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
              setUser(u);
              console.warn('API failed, restored user from cache');
              return;
-          } catch {}
+          } catch { void 0; }
         }
 
         if (import.meta.env.VITE_E2E === 'true') {
@@ -126,7 +126,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
            const u = JSON.parse(savedUser);
            setUser(u);
            return;
-        } catch {}
+        } catch { void 0; }
       }
 
       if (import.meta.env.VITE_E2E === 'true') {

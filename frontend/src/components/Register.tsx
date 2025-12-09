@@ -84,7 +84,7 @@ const Register: React.FC<RegisterProps> = () => {
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value, type } = e.target;
     const checked = (e.target as HTMLInputElement).checked;
-    let nextValue: any = type === 'checkbox' ? checked : value;
+    let nextValue: string | boolean = type === 'checkbox' ? checked : value;
     if (name === 'phoneNumber') {
       nextValue = String(nextValue).replace(/\D/g, '').slice(0, 11);
     }
@@ -179,7 +179,7 @@ const Register: React.FC<RegisterProps> = () => {
       setErrors(prev => ({ ...prev, realName: '请输入姓名！' }));
       return;
     }
-    const allowed = /^[A-Za-z\u4e00-\u9fa5\. ]+$/;
+    const allowed = /^[A-Za-z\u4e00-\u9fa5. ]+$/;
     if (!allowed.test(name)) {
       setErrors(prev => ({ ...prev, realName: '请输入姓名！' }));
       return;
@@ -338,9 +338,10 @@ const Register: React.FC<RegisterProps> = () => {
         setIsVerified(false);
         setErrors(prev => ({ ...prev, phoneVerificationCode: resp.message || '验证码输入错误，请重新输入' }));
       }
-    } catch (e: any) {
+    } catch (e) {
       setIsVerified(false);
-      setErrors(prev => ({ ...prev, phoneVerificationCode: e.message || '验证码校验失败' }));
+      const msg = e instanceof Error ? e.message : '';
+      setErrors(prev => ({ ...prev, phoneVerificationCode: msg || '验证码校验失败' }));
     } finally {
       setIsLoading(false);
     }
@@ -368,7 +369,7 @@ const Register: React.FC<RegisterProps> = () => {
         const pwd = formData.password || '';
       const cpwd = formData.confirmPassword || '';
       const name = (formData.realName || '').trim();
-      const allowed = /^[A-Za-z\u4e00-\u9fa5\. ]+$/;
+      const allowed = /^[A-Za-z\u4e00-\u9fa5. ]+$/;
       const nlen = computeNameDisplayLength(name);
       if (!name || !allowed.test(name)) {
         newErrors.realName = '请输入姓名！';
@@ -523,7 +524,7 @@ const Register: React.FC<RegisterProps> = () => {
                 navigate('/profile');
                 return;
               }
-            } catch {}
+            } catch { void 0; }
           }
           setSubmitError(response.message || '注册失败，请重试');
         } else {
@@ -537,15 +538,15 @@ const Register: React.FC<RegisterProps> = () => {
                 navigate('/profile');
                 return;
               }
-            } catch {}
+            } catch { void 0; }
           }
           alert(msg || '注册失败，请重试');
           setSubmitError(msg || '注册失败，请重试');
         }
       }
-    } catch (error: any) {
+    } catch (error) {
       console.error('注册失败:', error);
-      const emsg = error?.message || '注册失败，请重试';
+      const emsg = error instanceof Error ? error.message : '注册失败，请重试';
       alert(emsg);
       setSubmitError(emsg);
     } finally {

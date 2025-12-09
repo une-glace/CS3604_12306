@@ -20,7 +20,7 @@ Object.defineProperty(window, 'matchMedia', {
 });
 
 // Mock global fetch to handle relative URLs and return default success
-global.fetch = vi.fn(async (input: RequestInfo | URL, _init?: RequestInit) => {
+global.fetch = vi.fn(async (input: RequestInfo | URL) => {
   let url = input.toString();
   
   // Handle relative URLs by prepending a dummy origin

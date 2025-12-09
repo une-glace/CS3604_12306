@@ -192,7 +192,7 @@ const TrainListPage: React.FC = () => {
         }
         
         const list = await searchTrains(searchParams);
-        let mapped = list.map(mapToTrainInfo);
+        const mapped = list.map(mapToTrainInfo);
 
         setTrains(mapped);
         setFilteredTrains(mapped);
