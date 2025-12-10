@@ -198,18 +198,38 @@ const ProfilePage: React.FC = () => {
     try {
       setIsLoadingOrders(true);
       const { fetchUserOrdersFormatted, getOrderDetail } = await import('../services/orderService');
-      const apiStatus = ((): string => {
+      const primaryStatus = ((): string => {
         if (orderFilter === 'unpaid') return 'unpaid';
-        if (orderFilter === 'paid') return 'all';
-        if (orderFilter === 'completed') return 'all';
+        if (orderFilter === 'paid') return 'paid';
+        if (orderFilter === 'completed') return 'completed';
         return 'all';
       })();
-      const data = await fetchUserOrdersFormatted(page, orderPagination.limit, apiStatus);
-      const formattedOrders = data.orders;
-      setOrders(formattedOrders);
-      setOrderPagination(data.pagination);
+      const primary = await fetchUserOrdersFormatted(page, orderPagination.limit, primaryStatus);
+      let combinedOrders = primary.orders;
+      let combinedPagination = primary.pagination;
+      if (orderFilter !== 'unpaid') {
+        try {
+          const extra = await fetchUserOrdersFormatted(page, orderPagination.limit, 'changed');
+          const seen = new Set<string>();
+          const keyOf = (o: Order) => `id:${String(o.id)}|num:${String(o.orderNumber)}`;
+          const merged = [] as Order[];
+          for (const o of [...combinedOrders, ...extra.orders]) {
+            const k = keyOf(o);
+            if (!seen.has(k)) { seen.add(k); merged.push(o); }
+          }
+          combinedOrders = merged;
+          combinedPagination = {
+            page: combinedPagination.page,
+            limit: combinedPagination.limit,
+            total: combinedOrders.length,
+            totalPages: Math.ceil(combinedOrders.length / combinedPagination.limit)
+          };
+        } catch (e) { console.warn('获取改签订单失败', e); }
+      }
+      setOrders(combinedOrders);
+      setOrderPagination(combinedPagination);
 
-      const enriched = await Promise.all(formattedOrders.map(async (o: Order) => {
+      const enriched = await Promise.all(combinedOrders.map(async (o: Order) => {
         const hasSeat = (o.passengers && o.passengers[0]?.seatNumber) || (o.seat && o.seat !== '待分配');
         if (hasSeat) return o;
         try {

@@ -1,19 +1,26 @@
 Run npm run test:e2e --prefix frontend
-  npm run test:e2e --prefix frontend
-  shell: /usr/bin/bash -e {0}
+
 > frontend@0.0.0 test:e2e
 > playwright test
+
+
 Running 26 tests using 1 worker
-······F······F·····F······
+······F············F······
+
   1) [chromium] › tests/e2e/order.spec.ts:5:3 › 订票与订单支付 › 下单并支付成功 ──────────────────────────────────
+
     Error: expect(locator).toBeVisible() failed
+
     Locator: locator('.orders-list .order-card').first()
     Expected: visible
     Timeout: 10000ms
     Error: element(s) not found
+
     Call log:
       - Expect "toBeVisible" with timeout 10000ms
       - waiting for locator('.orders-list .order-card').first()
+
+
       191 |     
       192 |     const paidList = page.locator('.orders-list .order-card').first();
     > 193 |     await expect(paidList).toBeVisible({ timeout: 10000 });
@@ -22,58 +29,31 @@ Running 26 tests using 1 worker
       195 | });
       196 |
         at /home/runner/work/CS3604_12306/CS3604_12306/frontend/tests/e2e/order.spec.ts:193:28
+
     attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
     test-results/order-订票与订单支付-下单并支付成功-chromium/test-failed-1.png
     ────────────────────────────────────────────────────────────────────────────────────────────────
+
     attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
     test-results/order-订票与订单支付-下单并支付成功-chromium/video.webm
     ────────────────────────────────────────────────────────────────────────────────────────────────
+
     Error Context: test-results/order-订票与订单支付-下单并支付成功-chromium/error-context.md
-  2) [slow-chromium] › tests/e2e/auth.spec.ts:10:3 › 用户认证 › 注册流程 ───────────────────────────────────
+
+  2) [slow-chromium] › tests/e2e/order.spec.ts:5:3 › 订票与订单支付 › 下单并支付成功 ─────────────────────────────
+
     Error: expect(locator).toBeVisible() failed
-    Locator: getByRole('heading', { name: '手机验证' })
-    Expected: visible
-    Timeout: 10000ms
-    Error: element(s) not found
-    Call log:
-      - Expect "toBeVisible" with timeout 10000ms
-      - waiting for getByRole('heading', { name: '手机验证' })
-      58 |       page.once('dialog', dialog => dialog.accept().catch(() => {}));
-      59 |       await page.locator('button.next-btn').click();
-    > 60 |       await expect(page.getByRole('heading', { name: '手机验证' })).toBeVisible({ timeout: 10000 });
-         |                                                                 ^
-      61 |     }
-      62 |     const sendBtn = page.locator('button.send-code-btn');
-      63 |     await sendBtn.click();
-        at /home/runner/work/CS3604_12306/CS3604_12306/frontend/tests/e2e/auth.spec.ts:60:65
-    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
-    test-results/auth-用户认证-注册流程-slow-chromium/test-failed-1.png
-    ────────────────────────────────────────────────────────────────────────────────────────────────
-    attachment #2: screenshot (image/png) ──────────────────────────────────────────────────────────
-    test-results/auth-用户认证-注册流程-slow-chromium/test-failed-2.png
-    ────────────────────────────────────────────────────────────────────────────────────────────────
-    attachment #3: screenshot (image/png) ──────────────────────────────────────────────────────────
-    test-results/auth-用户认证-注册流程-slow-chromium/test-failed-3.png
-    ────────────────────────────────────────────────────────────────────────────────────────────────
-    attachment #4: video (video/webm) ──────────────────────────────────────────────────────────────
-    test-results/auth-用户认证-注册流程-slow-chromium/video.webm
-    ────────────────────────────────────────────────────────────────────────────────────────────────
-    attachment #5: video (video/webm) ──────────────────────────────────────────────────────────────
-    test-results/auth-用户认证-注册流程-slow-chromium/video-2.webm
-    ────────────────────────────────────────────────────────────────────────────────────────────────
-    attachment #6: video (video/webm) ──────────────────────────────────────────────────────────────
-    test-results/auth-用户认证-注册流程-slow-chromium/video-1.webm
-    ────────────────────────────────────────────────────────────────────────────────────────────────
-    Error Context: test-results/auth-用户认证-注册流程-slow-chromium/error-context.md
-  3) [slow-chromium] › tests/e2e/order.spec.ts:5:3 › 订票与订单支付 › 下单并支付成功 ─────────────────────────────
-    Error: expect(locator).toBeVisible() failed
+
     Locator: locator('.orders-list .order-card').first()
     Expected: visible
     Timeout: 10000ms
     Error: element(s) not found
+
     Call log:
       - Expect "toBeVisible" with timeout 10000ms
       - waiting for locator('.orders-list .order-card').first()
+
+
       191 |     
       192 |     const paidList = page.locator('.orders-list .order-card').first();
     > 193 |     await expect(paidList).toBeVisible({ timeout: 10000 });
@@ -82,16 +62,19 @@ Running 26 tests using 1 worker
       195 | });
       196 |
         at /home/runner/work/CS3604_12306/CS3604_12306/frontend/tests/e2e/order.spec.ts:193:28
+
     attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
     test-results/order-订票与订单支付-下单并支付成功-slow-chromium/test-failed-1.png
     ────────────────────────────────────────────────────────────────────────────────────────────────
+
     attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
     test-results/order-订票与订单支付-下单并支付成功-slow-chromium/video.webm
     ────────────────────────────────────────────────────────────────────────────────────────────────
+
     Error Context: test-results/order-订票与订单支付-下单并支付成功-slow-chromium/error-context.md
-  3 failed
+
+  2 failed
     [chromium] › tests/e2e/order.spec.ts:5:3 › 订票与订单支付 › 下单并支付成功 ───────────────────────────────────
-    [slow-chromium] › tests/e2e/auth.spec.ts:10:3 › 用户认证 › 注册流程 ────────────────────────────────────
     [slow-chromium] › tests/e2e/order.spec.ts:5:3 › 订票与订单支付 › 下单并支付成功 ──────────────────────────────
-  23 passed (2.5m)
+  24 passed (2.5m)
 Error: Process completed with exit code 1.
