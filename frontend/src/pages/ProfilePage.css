@@ -568,7 +568,51 @@
 }
 
 .add-action::before {
+  /* Removed content here to allow custom icon in HTML if needed, but existing usage for passengers relies on this. */
+  /* Keep it for passengers, but address uses span.add-icon */
+  /* If I change this, passenger add might break. */
+  /* Passenger uses <button class="add-action">添加</button> */
+  /* Address uses <button class="add-action"><span class="add-icon">+</span> 增加</button> */
+  /* So I should probably scope the before pseudo element or remove it and add span to passenger too. */
+  /* Let's keep it but check if it interferes. */
+  /* The previous CSS was:
+     .add-action::before { content: '+'; ... }
+  */
+  /* If I keep it, address button will have two plus signs. */
+  /* I should check if I can target passenger specific add-action */
+}
+
+/* Restoring original add-action::before but scoping to passenger table if possible? */
+/* Or just remove content and rely on HTML structure. */
+/* Let's check Passenger Table HTML: <button className="add-action" onClick={handleAddPassenger}>添加</button> */
+/* It has no icon span. So I should keep ::before for it, OR change Passenger HTML. */
+/* I will change Passenger HTML to be consistent if I can, but I shouldn't touch unrelated code if not necessary. */
+/* Better: make .add-action::before apply only when it's NOT inside manage-bar or check structure. */
+/* Or just override for manage-bar. */
+
+.add-action {
+    display: flex;
+    align-items: center;
+}
+
+.passenger-table .add-action::before {
   content: '+';
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  margin-right: 8px;
+  border-radius: 50%;
+  background: #52c41a;
+  color: #fff;
+  font-size: 14px;
+  line-height: 1;
+  box-shadow: 0 0 0 1px rgba(0,0,0,0.06) inset;
+}
+
+.manage-bar .add-action .add-icon {
+    /* Styles for the span icon */
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -602,19 +646,30 @@
   border-radius: 8px;
 }
 
-.address-section { padding: 30px; }
+.address-section { padding: 20px; }
 .address-table {
-  margin: 0 12px;
+  margin: 0;
   background: #fff;
   border: 1px solid #f0f0f0;
-  border-radius: 8px;
+  border-radius: 0; /* Box style */
 }
 
 .table-header,
 .table-row {
   display: grid;
-  grid-template-columns: 44px 60px 128px 140px 200px 160px 128px 128px;
   align-items: center;
+}
+
+/* Default grid (Passenger) */
+.passenger-table .table-header,
+.passenger-table .table-row {
+  grid-template-columns: 44px 60px 128px 140px 200px 160px 128px 128px;
+}
+
+/* Address grid */
+.address-table .table-header,
+.address-table .table-row {
+  grid-template-columns: 60px 120px 1fr 140px 100px 100px;
 }
 
 .table-header {
@@ -633,7 +688,7 @@
 .col-check { text-align: center; }
 .col-index { color: #999; }
 .col-name { color: #333; font-weight: 500; }
-.col-idtype, .col-idnumber, .col-phone, .col-verify { color: #333; }
+.col-idtype, .col-idnumber, .col-phone, .col-verify, .col-address, .col-default { color: #333; }
 .col-actions { display: flex; gap: 6px; }
 
 .verify-badge {
@@ -1002,200 +1057,162 @@
   color: #fff;
 }
 
-/* 订单状态样式 */
-.order-status.paid {
-  background: #52c41a;
-  color: white;
-}
-
-.order-status.changed {
-  background: #f5f5f5;
-  color: #999;
-  border: 1px solid #d9d9d9;
-}
-
-/* 已改签订单整体变灰 */
-.changed-order {
-  background-color: #f9f9f9;
-}
-
-.changed-order .order-header {
-  background-color: #f0f0f0;
-  color: #999;
-}
-
-.changed-order .train-info h4 {
-  color: #999;
-}
-
-.changed-order .price-info .price {
-  color: #999;
-}
-
-.changed-order .order-number,
-.changed-order .train-info p,
-.changed-order .passenger-info p {
-  color: #999;
-}
-
-.changed-order .detail-btn,
-.changed-order .refund-btn,
-.changed-order .ops-btn {
-  border-color: #e5e5e5;
-  color: #ccc;
-  background: #f5f5f5;
-  cursor: not-allowed;
-}
-
-/* 订单列表空状态样式 */
-.custom-empty-state {
+/* 地址管理样式新增 */
+.manage-bar {
+  background: #e6f7ff;
+  border-top: 1px solid #bae7ff;
+  border-bottom: 1px solid #bae7ff;
+  padding: 10px 15px;
   display: flex;
-  flex-direction: column;
   align-items: center;
-  justify-content: center;
-  padding: 60px 0;
-  text-align: center;
-  background: #fff;
-  border: 1px solid #e5e5e5; /* Optional: match table border style */
-  border-radius: 4px;
 }
 
-.custom-empty-state .empty-icon {
+.address-tips {
+  margin-top: 20px;
+  border: 1px solid #ffd6b3;
+  background: #fff7e6;
+  padding: 15px;
+}
+
+.address-tips .tips-title {
+  font-weight: bold;
+  color: #333;
+  margin-bottom: 10px;
+}
+
+.address-tips ol {
+  margin: 0;
+  padding-left: 20px;
+  color: #666;
+  font-size: 13px;
+}
+
+.address-tips li {
+  margin-bottom: 5px;
+}
+
+/* Address Form Styling */
+.address-form-panel {
+  margin: 0;
+  padding: 20px 0;
+  border: none;
+  background: transparent;
+}
+
+.address-form-panel .form-header {
   margin-bottom: 20px;
 }
 
-.custom-empty-state .empty-text p {
-  margin: 6px 0;
-  font-size: 14px;
+.address-form-panel .form-header h3 {
+  font-size: 16px;
+  color: #333;
+  font-weight: bold;
+  border-bottom: none;
+  padding: 0;
+  margin: 0;
+}
+
+.address-form-panel .required-hint {
+  font-size: 12px;
+  color: #E2422B;
+  font-weight: normal;
+  margin-left: 5px;
+}
+
+.address-form-panel .kv-item {
+  border-bottom: none;
+  padding: 8px 0;
+}
+
+.address-form-panel .kv-label {
+  width: 100px;
+  text-align: right;
+  margin-right: 15px;
   color: #666;
 }
 
-.custom-empty-state .empty-text a {
-  color: #0066cc;
-  text-decoration: none;
-  font-weight: 500;
-  cursor: pointer;
+.red-star {
+  color: #E2422B;
+  margin-right: 4px;
 }
 
-.custom-empty-state .empty-text a:hover {
-  text-decoration: underline;
-}
-
-/* 改签模态框样式 */
-.modal-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background-color: rgba(0, 0, 0, 0.5);
+.address-selects {
   display: flex;
-  justify-content: center;
-  align-items: center;
-  z-index: 1000;
+  gap: 10px;
 }
 
-.change-ticket-modal {
-  background: white;
-  border-radius: 4px;
-  width: 440px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-  font-family: 'Microsoft YaHei', sans-serif;
-  overflow: hidden;
-}
-
-.change-ticket-modal .modal-header {
-  height: 40px;
-  background: #0066cc;
-  padding: 0 10px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  border-bottom: 1px solid #d0d0d0;
-  width: 100%;
-}
-
-.change-ticket-modal .modal-header h3 {
-  margin: 0;
+.address-selects select {
+  padding: 6px 10px;
+  border: 1px solid #ddd;
+  border-radius: 2px;
   font-size: 14px;
-  color: #fff;
-  font-weight: bold;
+  color: #666;
+  background: #fff;
 }
 
-.change-ticket-modal .close-btn {
-  background: none;
-  border: none;
-  font-size: 20px;
-  color: #fff;
+.address-form-panel input {
+  padding: 6px 10px;
+  border: 1px solid #ddd;
+  border-radius: 2px;
+  font-size: 14px;
+}
+
+.input-wide {
+  width: 450px;
+}
+
+.input-tip {
+  margin-left: 10px;
+  color: #999;
+  font-size: 12px;
+}
+
+.default-check-row {
+  margin-top: 5px;
+}
+
+.checkbox-label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 14px;
+  color: #333;
   cursor: pointer;
-  padding: 0;
-  line-height: 1;
 }
 
-.change-ticket-modal .modal-body {
-  padding: 0 20px;
-  display: flex;
-  gap: 0;
-  align-items: flex-start;
-}
-
-.change-ticket-modal .warning-icon-container {
-  flex-shrink: 0;
-}
-
-.change-ticket-modal .warning-text {
-  font-size: 16px;
-  color: #333;
-  line-height: 1.5;
-}
-
-.change-ticket-modal .main-warning {
-  font-weight: bold;
-  margin: 0;
-  color: #333;
-}
-
-.change-ticket-modal .sub-warning {
-  margin: 0;
-  font-size: 16px;
-  color: #ff0000;
-}
-
-.change-ticket-modal .highlight-red {
-  color: #ff0000;
-  font-weight: bold;
-}
-
-.change-ticket-modal .link-blue {
-  color: #0066cc;
-  text-decoration: none;
-}
-
-.change-ticket-modal .modal-footer {
-  padding: 10px 20px 20px;
-  display: flex;
+.centered-actions {
   justify-content: center;
   gap: 15px;
+  margin-top: 30px;
+  padding-bottom: 20px;
+  border-bottom: 1px solid #f0f0f0;
 }
 
-.change-ticket-modal .btn-cancel {
-  padding: 6px 20px;
-  background: #f0f0f0;
-  border: 1px solid #dcdcdc;
-  border-radius: 4px;
-  color: #333;
-  cursor: pointer;
-}
-
-.change-ticket-modal .btn-confirm-orange {
-  padding: 6px 20px;
+.submit-btn {
+  padding: 8px 30px;
   background: #ff9900;
-  border: 1px solid #ff9900;
+  color: #fff;
+  border: none;
   border-radius: 4px;
-  color: white;
+  font-size: 14px;
   cursor: pointer;
+  max-height: 30px;
+  max-width: 100px;
+}
+.submit-btn:hover {
+  background: #e68a00;
 }
 
-.change-ticket-modal .btn-confirm-orange:hover {
-  background: #e68a00;
+.cancel-btn {
+  padding: 8px 30px;
+  background: #fff;
+  color: #666;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 14px;
+  cursor: pointer;
+}
+.cancel-btn:hover {
+  background: #f5f5f5;
+  color: #333;
 }

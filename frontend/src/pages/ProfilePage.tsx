@@ -1556,104 +1556,131 @@ const ProfilePage: React.FC = () => {
 
           {activeSection === 'addresses' && (
             <div className="content-section">
-              <div className="section-header">
-                <h2>地址管理</h2>
-                <div className="breadcrumb">
-                  <span>常用信息管理</span>
-                  <span className="separator">{'>'}</span>
-                  <span className="current">地址管理</span>
-                </div>
-              </div>
               <div className="address-section">
-                <div className="manage-bar">
-                  <button className="add-action" onClick={() => setIsAddingAddress(true)}>➕ 增加</button>
+                <div className="address-table">
+                  {!isAddingAddress ? (
+                    <>
+                      <div className="table-header">
+                        <div className="col-index">序号</div>
+                        <div className="col-name">收件人</div>
+                        <div className="col-address">地址</div>
+                        <div className="col-phone">手机</div>
+                        <div className="col-default">是否默认</div>
+                        <div className="col-actions">操作</div>
+                      </div>
+
+                      <div className="manage-bar">
+                        <button className="add-action" onClick={() => setIsAddingAddress(true)}>
+                          <span className="add-icon">＋</span> 增加
+                        </button>
+                      </div>
+
+                      {addresses.map((a, idx) => (
+                        <div className="table-row" key={a.id}>
+                          <div className="col-index">{idx + 1}</div>
+                          <div className="col-name">{a.recipient}</div>
+                          <div className="col-address">{a.region} {a.detail}</div>
+                          <div className="col-phone">{a.phone}</div>
+                          <div className="col-default">{a.isDefault ? '是' : '否'}</div>
+                          <div className="col-actions">
+                            <button className="op-btn delete" onClick={async () => {
+                              if (!window.confirm('确定删除该地址吗？')) return;
+                              try {
+                                const { deleteAddress } = await import('../services/addressService');
+                                await deleteAddress(a.id);
+                                setAddresses(prev => prev.filter(x => x.id !== a.id));
+                              } catch (e) {
+                                console.error('删除地址失败', e);
+                                setAddresses(prev => prev.filter(x => x.id !== a.id));
+                              }
+                            }}>🗑</button>
+                          </div>
+                        </div>
+                      ))}
+                    </>
+                  ) : (
+                    <div className="info-card address-form-panel" data-testid="address-form">
+                      <div className="form-header">
+                        <h3>选择地址 <span className="required-hint">(*为必填项)</span></h3>
+                      </div>
+                      <div className="kv-list">
+                        <div className="kv-item">
+                          <label className="kv-label"><span className="red-star">*</span> 所在地址：</label>
+                          <div className="address-selects">
+                            <select id="province" value={addrProvince} onChange={e => { setAddrProvince(e.target.value); setAddrCity(''); setAddrDistrict(''); setAddrTown(''); setAddrNeighborhood(''); }}>
+                              <option value="">请选择省</option>
+                              {provinces.map(p => (<option key={p} value={p}>{p}</option>))}
+                            </select>
+                            <select id="city" value={addrCity} disabled={!addrProvince} onChange={e => { setAddrCity(e.target.value); setAddrDistrict(''); setAddrTown(''); setAddrNeighborhood(''); }}>
+                              <option value="">请选择市</option>
+                              {cities.map(c => (<option key={c} value={c}>{c}</option>))}
+                            </select>
+                            <select id="district" value={addrDistrict} disabled={!addrCity} onChange={e => { setAddrDistrict(e.target.value); setAddrTown(''); setAddrNeighborhood(''); }}>
+                              <option value="">请选择区/县</option>
+                              {districts.map(d => (<option key={d} value={d}>{d}</option>))}
+                            </select>
+                            <select id="town" value={addrTown} disabled={!addrDistrict} onChange={e => { setAddrTown(e.target.value); setAddrNeighborhood(''); }}>
+                              <option value="">请选择乡镇（周边地区）</option>
+                              {towns.map(t => (<option key={t} value={t}>{t}</option>))}
+                            </select>
+                            <select id="neighborhood" value={addrNeighborhood} disabled={!addrTown} onChange={e => setAddrNeighborhood(e.target.value)}>
+                              <option value="">请选择附近区域</option>
+                              {neighborhoods.map(n => (<option key={n} value={n}>{n}</option>))}
+                            </select>
+                          </div>
+                        </div>
+                        <div className="kv-item">
+                          <label className="kv-label"><span className="red-star">*</span> 详细地址：</label>
+                          <input id="detail" className="input-wide" value={addrDetail} onChange={e => setAddrDetail(e.target.value)} />
+                          <span className="input-tip">(地址填写规则)</span>
+                        </div>
+                        <div className="kv-item">
+                          <label className="kv-label"><span className="red-star">*</span> 收件人：</label>
+                          <input id="recipient" value={addrRecipient} onChange={e => setAddrRecipient(e.target.value)} />
+                        </div>
+                        <div className="kv-item">
+                          <label className="kv-label"><span className="red-star">*</span> 手机号码：</label>
+                          <input id="phone" value={addrPhone} onChange={e => setAddrPhone(e.target.value)} />
+                        </div>
+                        <div className="kv-item default-check-row">
+                          <label className="kv-label"></label>
+                          <label className="checkbox-label">
+                            <input id="default-address" type="checkbox" checked={addrIsDefault} onChange={e => setAddrIsDefault(e.target.checked)} />
+                            设为默认地址
+                          </label>
+                        </div>
+                      </div>
+                      <div className="section-actions centered-actions">
+                        <button className="cancel-btn" onClick={() => setIsAddingAddress(false)}>取消</button>
+                        <button className="submit-btn" onClick={async () => {
+                          try {
+                            const { addAddress } = await import('../services/addressService');
+                            const regionParts = [addrProvince, addrCity, addrDistrict, addrTown, addrNeighborhood].filter(Boolean);
+                            const payload = { recipient: addrRecipient.trim(), phone: addrPhone.trim(), region: regionParts.join(' '), detail: addrDetail.trim(), isDefault: addrIsDefault };
+                            const before = addresses.length;
+                            const created = await addAddress(payload as import('../services/addressService').AddressFormData);
+                            const next = [...addresses, created];
+                            setAddresses(next);
+                            setIsAddingAddress(false);
+                            setAddrRecipient(''); setAddrPhone(''); setAddrProvince(''); setAddrCity(''); setAddrDistrict(''); setAddrTown(''); setAddrNeighborhood(''); setAddrDetail(''); setAddrIsDefault(false);
+                            if (next.length <= before) alert('添加地址可能失败，请稍后刷新');
+                          } catch (e) {
+                            console.error('添加地址失败', e);
+                            const msg = (e instanceof Error) ? e.message : (typeof e === 'string' ? e : '');
+                            alert(msg || '添加地址失败');
+                          }
+                        }}>保存</button>
+                      </div>
+                    </div>
+                  )}
                 </div>
 
-                {isAddingAddress && (
-                  <div className="info-card" data-testid="address-form">
-                    <div className="kv-list">
-                      <div className="kv-item">
-                        <label className="kv-label">* 所在地址</label>
-                        <select id="province" value={addrProvince} onChange={e => { setAddrProvince(e.target.value); setAddrCity(''); setAddrDistrict(''); setAddrTown(''); setAddrNeighborhood(''); }}>
-                          <option value="">请选择省</option>
-                          {provinces.map(p => (<option key={p} value={p}>{p}</option>))}
-                        </select>
-                        <select id="city" value={addrCity} disabled={!addrProvince} onChange={e => { setAddrCity(e.target.value); setAddrDistrict(''); setAddrTown(''); setAddrNeighborhood(''); }}>
-                          <option value="">请选择市</option>
-                          {cities.map(c => (<option key={c} value={c}>{c}</option>))}
-                        </select>
-                        <select id="district" value={addrDistrict} disabled={!addrCity} onChange={e => { setAddrDistrict(e.target.value); setAddrTown(''); setAddrNeighborhood(''); }}>
-                          <option value="">请选择区/县</option>
-                          {districts.map(d => (<option key={d} value={d}>{d}</option>))}
-                        </select>
-                        <select id="town" value={addrTown} disabled={!addrDistrict} onChange={e => { setAddrTown(e.target.value); setAddrNeighborhood(''); }}>
-                          <option value="">请选择乡镇（周边地区）</option>
-                          {towns.map(t => (<option key={t} value={t}>{t}</option>))}
-                        </select>
-                        <select id="neighborhood" value={addrNeighborhood} disabled={!addrTown} onChange={e => setAddrNeighborhood(e.target.value)}>
-                          <option value="">请选择附近区域</option>
-                          {neighborhoods.map(n => (<option key={n} value={n}>{n}</option>))}
-                        </select>
-                      </div>
-                      <div className="kv-item"><label className="kv-label">* 详细地址</label><input id="detail" value={addrDetail} onChange={e => setAddrDetail(e.target.value)} /></div>
-                      <div className="kv-item"><label className="kv-label">* 收件人</label><input id="recipient" value={addrRecipient} onChange={e => setAddrRecipient(e.target.value)} /></div>
-                      <div className="kv-item"><label className="kv-label">* 手机号</label><input id="phone" value={addrPhone} onChange={e => setAddrPhone(e.target.value)} /></div>
-                      <div className="kv-item"><label className="kv-label">设为默认地址</label><input id="default-address" type="checkbox" checked={addrIsDefault} onChange={e => setAddrIsDefault(e.target.checked)} /></div>
-                    </div>
-                    <div className="section-actions">
-                      <button className="submit-btn" onClick={async () => {
-                        try {
-                          const { addAddress } = await import('../services/addressService');
-                          const regionParts = [addrProvince, addrCity, addrDistrict, addrTown, addrNeighborhood].filter(Boolean);
-                          const payload = { recipient: addrRecipient.trim(), phone: addrPhone.trim(), region: regionParts.join(' '), detail: addrDetail.trim(), isDefault: addrIsDefault };
-                          const before = addresses.length;
-                          const created = await addAddress(payload as import('../services/addressService').AddressFormData);
-                          const next = [...addresses, created];
-                          setAddresses(next);
-                          setIsAddingAddress(false);
-                          setAddrRecipient(''); setAddrPhone(''); setAddrProvince(''); setAddrCity(''); setAddrDistrict(''); setAddrTown(''); setAddrNeighborhood(''); setAddrDetail(''); setAddrIsDefault(false);
-                          if (next.length <= before) alert('添加地址可能失败，请稍后刷新');
-                        } catch (e) {
-                          console.error('添加地址失败', e);
-                          const msg = (e instanceof Error) ? e.message : (typeof e === 'string' ? e : '');
-                          alert(msg || '添加地址失败');
-                        }
-                      }}>保存</button>
-                    </div>
-                  </div>
-                )}
-
-                <div className="address-table">
-                  <div className="table-header">
-                    <div className="col-index">序号</div>
-                    <div className="col-name">收件人</div>
-                    <div className="col-phone">手机／电话</div>
-                    <div className="col-idnumber">省市区</div>
-                    <div className="col-idtype">详细地址</div>
-                    <div className="col-actions">操作</div>
-                  </div>
-                  {addresses.map((a, idx) => (
-                    <div className="table-row" key={a.id}>
-                      <div className="col-index">{idx + 1}</div>
-                      <div className="col-name">{a.recipient}</div>
-                      <div className="col-phone">{a.phone}</div>
-                      <div className="col-idnumber">{a.region}</div>
-                      <div className="col-idtype">{a.detail}</div>
-                      <div className="col-actions">
-                        <button className="op-btn delete" onClick={async () => {
-                          if (!window.confirm('确定删除该地址吗？')) return;
-                          try {
-                            const { deleteAddress } = await import('../services/addressService');
-                            await deleteAddress(a.id);
-                            setAddresses(prev => prev.filter(x => x.id !== a.id));
-                          } catch (e) {
-                            console.error('删除地址失败', e);
-                            setAddresses(prev => prev.filter(x => x.id !== a.id));
-                          }
-                        }}>🗑</button>
-                      </div>
-                    </div>
-                  ))}
+                <div className="address-tips">
+                  <div className="tips-title">温馨提示</div>
+                  <ol>
+                    <li>您最多可添加20个车票快递地址，对已支付的地址30天内不可删除与修改。</li>
+                    <li>请您准确完整的填写收件地址、收件人姓名、手机号码等信息，并保持电话畅通，以免耽误接收车票。</li>
+                  </ol>
                 </div>
               </div>
             </div>
