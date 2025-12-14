@@ -12,6 +12,7 @@ const authRoutes = require('./routes/auth');
 const orderRoutes = require('./routes/order');
 const trainRoutes = require('./routes/train');
 const passengerRoutes = require('./routes/passenger');
+const addressRoutes = require('./routes/address');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -47,6 +48,7 @@ app.use(`${apiPrefix}/auth`, authRoutes);
 app.use(`${apiPrefix}/orders`, orderRoutes);
 app.use(`${apiPrefix}/trains`, trainRoutes);
 app.use(`${apiPrefix}/passengers`, passengerRoutes);
+app.use(`${apiPrefix}/addresses`, addressRoutes);
 
 // 基础路由
 app.get('/', (req, res) => {

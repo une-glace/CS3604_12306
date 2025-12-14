@@ -5,6 +5,7 @@ const OrderPassenger = require('./OrderPassenger');
 const Train = require('./Train');
 const TrainSeat = require('./TrainSeat');
 const Passenger = require('./Passenger');
+const Address = require('./Address');
 
 // 定义模型关联关系
 // Order 与 OrderPassenger 的关联关系
@@ -53,6 +54,17 @@ Passenger.belongsTo(User, {
   as: 'user'
 });
 
+// User 与 Address 的关联关系
+User.hasMany(Address, {
+  foreignKey: 'user_id',
+  as: 'addresses',
+  onDelete: 'CASCADE'
+});
+Address.belongsTo(User, {
+  foreignKey: 'user_id',
+  as: 'user'
+});
+
 const models = {
   User,
   Order,
@@ -60,6 +72,7 @@ const models = {
   Train,
   TrainSeat,
   Passenger,
+  Address,
   sequelize
 };
 
@@ -77,7 +90,7 @@ const testConnection = async () => {
 // 同步数据库表结构
 const syncDatabase = async (force = false) => {
   try {
-    const alter = String(process.env.DB_DIALECT || '').toLowerCase() === 'mysql' && !force;
+    const alter = !force;
     await sequelize.sync({ force, alter });
     console.log('✅ 数据库表同步成功');
   } catch (error) {
