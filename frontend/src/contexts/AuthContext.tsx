@@ -19,18 +19,17 @@ interface AuthProviderProps {
 }
 
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
-  // Initialize user from localStorage to avoid initial null state
   const [user, setUser] = useState<User | null>(() => {
     try {
+      const hasToken = !!localStorage.getItem('authToken');
       const saved = localStorage.getItem('user');
-      return saved ? JSON.parse(saved) : null;
+      return hasToken && saved ? JSON.parse(saved) : null;
     } catch {
       return null;
     }
   });
 
-  // If user is already in localStorage, we don't need to block rendering
-  const [isLoading, setIsLoading] = useState(() => !localStorage.getItem('user'));
+  const [isLoading, setIsLoading] = useState(() => !localStorage.getItem('authToken'));
 
   // 登录函数
   const login = (userData: User, token: string) => {
@@ -75,6 +74,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         return;
       }
       setUser(null);
+      try { localStorage.removeItem('user'); } catch { void 0; }
       setIsLoading(false);
       return;
     }
@@ -93,7 +93,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
              setUser(u);
              console.warn('API failed, restored user from cache');
              return;
-          } catch {}
+          } catch { void 0; }
         }
 
         if (import.meta.env.VITE_E2E === 'true') {
@@ -126,7 +126,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
            const u = JSON.parse(savedUser);
            setUser(u);
            return;
-        } catch {}
+        } catch { void 0; }
       }
 
       if (import.meta.env.VITE_E2E === 'true') {

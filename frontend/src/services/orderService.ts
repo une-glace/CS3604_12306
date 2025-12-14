@@ -120,6 +120,25 @@ export const cancelOrder = async (orderId: string): Promise<{ success: boolean }
   }
 };
 
+// 改签订单
+export const changeOrder = async (payload: {
+  oldOrderId: string;
+  newTrainInfo: Record<string, unknown>;
+  passengers: Array<Record<string, unknown>>;
+  totalPrice: number;
+  selectedSeats?: string[];
+}): Promise<{ success: boolean; newOrderId?: string }> => {
+  try {
+    const response = await post('/orders/change', payload);
+    const newOrderId = (response?.data?.data?.newOrderId ?? response?.data?.newOrderId) as string | undefined;
+    const success = Boolean(response?.data?.success ?? (newOrderId ? true : false));
+    return { success, newOrderId };
+  } catch (error) {
+    console.error('改签订单失败:', error);
+    throw error;
+  }
+};
+
 // 为页面提供格式化后的订单列表（纯函数式映射）
 export interface FormattedOrder {
   id: string;
@@ -136,7 +155,7 @@ export interface FormattedOrder {
   seat: string;
   passengers?: Array<{ name: string; seatNumber?: string; seatType?: string; carriage?: string | number }>;
   price: number;
-  status: 'paid' | 'unpaid' | 'cancelled' | 'refunded' | 'completed';
+  status: 'paid' | 'unpaid' | 'cancelled' | 'refunded' | 'completed' | 'changed';
 }
 
 export const fetchUserOrdersFormatted = async (page = 1, limit = 10, status?: string): Promise<{ orders: FormattedOrder[]; pagination: { page: number; limit: number; total: number; totalPages: number } }> => {
@@ -192,7 +211,8 @@ export const fetchUserOrdersFormatted = async (page = 1, limit = 10, status?: st
         o.status === 'paid' ? 'paid' :
         o.status === 'cancelled' ? 'cancelled' :
         o.status === 'refunded' ? 'refunded' :
-        o.status === 'completed' ? 'completed' : 'unpaid'
+        o.status === 'completed' ? 'completed' : 
+        o.status === 'changed' ? 'changed' : 'unpaid'
       ) as FormattedOrder['status']
     };
   });

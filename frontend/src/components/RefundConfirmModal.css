@@ -1,0 +1,258 @@
+.refund-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.refund-modal {
+  background: white;
+  border-radius: 4px;
+  width: 540px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  display: flex;
+  flex-direction: column;
+  font-family: Arial, sans-serif;
+}
+
+.refund-modal-header {
+  padding: 10px 15px;
+  background-color: #2577e1;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  color: white;
+  height: 40px;
+  border-radius: 0px 0px 0 0;
+}
+
+.refund-modal-header h3 {
+  margin: 0;
+  font-size: 14px;
+  font-weight: bold;
+}
+
+.close-button {
+  background: none;
+  border: none;
+  color: white;
+  font-size: 20px;
+  cursor: pointer;
+  padding: 0;
+  line-height: 1;
+}
+
+.refund-modal-content {
+  padding: 20px 30px;
+}
+
+/* New Confirmation Header */
+.refund-confirm-header {
+  display: flex;
+  align-items: flex-start;
+  margin-bottom: 10px;
+}
+
+.confirm-icon {
+  width: 32px;
+  height: 32px;
+  background-color: #FFB800;
+  color: white;
+  border-radius: 50%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 20px;
+  font-weight: bold;
+  margin-right: 15px;
+  flex-shrink: 0;
+}
+
+.confirm-text {
+  flex: 1;
+}
+
+.confirm-title {
+  font-size: 16px;
+  color: #333;
+  margin-bottom: 5px;
+  line-height: 1.2;
+}
+
+.confirm-subtitle {
+  font-size: 12px;
+  color: #666;
+  line-height: 1.5;
+}
+
+/* Total Refund Section */
+.total-refund-section {
+  margin-bottom: 10px;
+  display: flex;
+  align-items: center;
+  border-top: 1px dashed #ddd;
+  padding-top: 10px;
+}
+
+.total-refund-section .label {
+  font-size: 12px;
+  color: #666;
+}
+
+.total-refund-section .amount-large {
+  font-size: 12px;
+  color: #FF9900;
+  margin-left: 5px;
+}
+
+/* Fee Details Section */
+.fee-details-section {
+  border-top: 1px dashed #ddd;
+  border-bottom: 1px dashed #ddd;
+  padding: 10px 0;
+  margin-bottom: 0px;
+}
+
+.fee-row {
+  display: flex;
+  align-items: baseline;
+  margin-bottom: 0px;
+  font-size: 12px;
+  color: #666;
+}
+
+.fee-row:last-child {
+  margin-bottom: 0;
+}
+
+.fee-row .label {
+  width: 90px;
+  text-align: left;
+  margin-right: 5px;
+}
+
+.fee-row .value {
+  color: #333;
+  font-size: 12px; /* Slightly larger numbers */
+  font-family: Arial, sans-serif;
+}
+
+.fee-row .value.highlight {
+  color: #FF9900;
+}
+
+.fee-note {
+  color: #999;
+  font-size: 12px;
+  margin-left: 0px;
+}
+
+/* Warning Section */
+.warning-section {
+  margin-bottom: 0px;
+}
+
+.warning-item {
+  display: flex;
+  align-items: flex-start;
+  margin-bottom: 8px;
+  font-size: 12px;
+  color: #666;
+}
+
+.warning-icon-small {
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+  width: 16px;
+  height: 16px;
+  background-color: #ccc;
+  color: white;
+  border-radius: 50%;
+  font-size: 12px;
+  margin-right: 8px;
+  flex-shrink: 0;
+  font-weight: bold;
+}
+
+/* Rules Section */
+.refund-rules-section {
+  background-color: #f8f8f8;
+  padding: 15px;
+  border: 1px solid #eee;
+  font-size: 12px;
+  color: #666;
+  line-height: 1.8;
+}
+
+.refund-rules-section ol {
+  margin: 0;
+  padding-left: 20px;
+}
+
+.refund-rules-section li {
+  margin-bottom: 0px;
+}
+
+.link-blue {
+  color: #0078d7;
+  text-decoration: none;
+}
+
+.link-blue:hover {
+  text-decoration: underline;
+}
+
+/* Footer */
+.refund-modal-footer {
+  padding: 15px 30px;
+  display: flex;
+  justify-content: center;
+  gap: 15px;
+  padding-bottom: 30px;
+}
+
+.cancel-btn {
+  width: 80px;
+  height: 30px;
+  padding: 0;
+  background-color: #fff;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  color: #333;
+  cursor: pointer;
+  font-size: 14px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.cancel-btn:hover {
+  border-color: #bbb;
+}
+
+.confirm-btn {
+  width: 80px;
+  height: 30px;
+  padding: 0;
+  background-color: #FF9900;
+  border: 1px solid #FF9900;
+  border-radius: 4px;
+  color: white;
+  cursor: pointer;
+  font-size: 14px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.confirm-btn:hover {
+  background-color: #e68a00;
+  border-color: #e68a00;
+}

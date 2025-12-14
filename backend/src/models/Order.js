@@ -72,9 +72,9 @@ const Order = sequelize.define('Order', {
     comment: '总价格'
   },
   status: {
-    type: DataTypes.ENUM('unpaid', 'paid', 'cancelled', 'completed'),
+    type: DataTypes.ENUM('unpaid', 'paid', 'cancelled', 'completed', 'refunded', 'changed'),
     defaultValue: 'unpaid',
-    comment: '订单状态：unpaid-未支付，paid-已支付，cancelled-已取消，completed-已完成'
+    comment: '订单状态：unpaid-未支付，paid-已支付，cancelled-已取消，completed-已完成，refunded-已退票，changed-已改签'
   },
   paymentMethod: {
     type: DataTypes.STRING(20),

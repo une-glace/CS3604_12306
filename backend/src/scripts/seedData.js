@@ -298,8 +298,8 @@ const initSeatData = async () => {
     const trains = await Train.findAll();
     const today = new Date();
     
-    // 为未来60天生成座位数据
-    for (let i = 0; i < 60; i++) {
+    const days = String(process.env.NODE_ENV || '').toLowerCase() === 'test' ? 0 : 60;
+    for (let i = 0; i < days; i++) {
       const date = new Date(today);
       date.setDate(today.getDate() + i);
       const dateString = date.toISOString().split('T')[0];
@@ -346,7 +346,8 @@ const initSeatData = async () => {
       }
     }
 
-    // 添加测试文档指定日期的座位数据（2025-12-15 / 2025-12-16）
+    
+    
     const specificDates = ['2025-12-15', '2025-12-16'];
     const specificSeatPrice = {
       G: { '商务座': 1748, '一等座': 933, '二等座': 553 },

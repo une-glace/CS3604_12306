@@ -12,6 +12,7 @@ interface SearchConditionsProps {
   tripType?: 'single' | 'round';
   onConditionsChange?: (conditions: SearchConditions) => void;
   onStationFilterChange?: (filters: { fromStations?: string[]; toStations?: string[] }) => void;
+  readOnlyStations?: boolean;
 }
 
 interface SearchConditions {
@@ -33,7 +34,8 @@ const SearchConditions: React.FC<SearchConditionsProps> = ({
   onConditionsChange,
   onStationFilterChange,
   returnDate = '',
-  tripType = 'single'
+  tripType = 'single',
+  readOnlyStations = false
 }) => {
   const HOT_CITIES = [
     '北京','上海','天津','重庆','长沙','长春','成都','福州','广州','贵阳','呼和浩特','哈尔滨','合肥','杭州','海口','济南','昆明','拉萨','兰州','南宁','南京','南昌','沈阳','石家庄','太原','乌鲁木齐','武汉','西宁','西安','银川','郑州','深圳','厦门'
@@ -196,10 +198,12 @@ const SearchConditions: React.FC<SearchConditionsProps> = ({
               placeholder="请选择"
               value={conditions.fromStation}
               onChange={(e) => handleFromStationChange(e.target.value)}
-              onFocus={() => openDropdown('from')}
-              onClick={() => openDropdown('from')}
+              onFocus={() => { if (!readOnlyStations) openDropdown('from'); }}
+              onClick={() => { if (!readOnlyStations) openDropdown('from'); }}
+              readOnly={readOnlyStations}
+              disabled={readOnlyStations}
             />
-            {dropdownOpenFor === 'from' && (
+            {dropdownOpenFor === 'from' && !readOnlyStations && (
               <div className="station-dropdown" role="dialog" aria-label="选择出发地">
                 <div className="dropdown-inner">
                   <div className="scope-column">
@@ -235,10 +239,12 @@ const SearchConditions: React.FC<SearchConditionsProps> = ({
               placeholder="请选择"
               value={conditions.toStation}
               onChange={(e) => handleToStationChange(e.target.value)}
-              onFocus={() => openDropdown('to')}
-              onClick={() => openDropdown('to')}
+              onFocus={() => { if (!readOnlyStations) openDropdown('to'); }}
+              onClick={() => { if (!readOnlyStations) openDropdown('to'); }}
+              readOnly={readOnlyStations}
+              disabled={readOnlyStations}
             />
-            {dropdownOpenFor === 'to' && (
+            {dropdownOpenFor === 'to' && !readOnlyStations && (
               <div className="station-dropdown" role="dialog" aria-label="选择目的地">
                 <div className="dropdown-inner">
                   <div className="scope-column">

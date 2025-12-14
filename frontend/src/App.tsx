@@ -17,6 +17,7 @@ import ForgotPasswordResetPage from './pages/ForgotPasswordResetPage'
 import ForgotPasswordDonePage from './pages/ForgotPasswordDonePage'
 import Register from './components/Register'
 import PayOrderPage from './pages/PayOrderPage'
+import RefundSuccessPage from './pages/RefundSuccessPage'
 
 function App() {
   return (
@@ -31,6 +32,7 @@ function App() {
             <Route path="/pay-order" element={<PayOrderPage />} />
             <Route path="/order-detail/:orderId" element={<OrderDetailPage />} />
             <Route path="/profile" element={<ProfilePage />} />
+            <Route path="/refund-success" element={<RefundSuccessPage />} />
             <Route path="/catering" element={<CateringPage />} />
             <Route path="/catering/book" element={<CateringBookingPage />} />
             <Route path="/catering/vendor" element={<CateringVendorPage />} />

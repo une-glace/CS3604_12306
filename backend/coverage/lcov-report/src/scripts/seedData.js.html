@@ -23,16 +23,16 @@
         <div class='clearfix'>
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">79.31% </span>
+                <span class="strong">57.62% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>46/58</span>
+                <span class='fraction'>34/59</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">75% </span>
+                <span class="strong">37.5% </span>
                 <span class="quiet">Branches</span>
-                <span class='fraction'>9/12</span>
+                <span class='fraction'>6/16</span>
             </div>
         
             
@@ -44,9 +44,9 @@
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">78.57% </span>
+                <span class="strong">56.14% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>44/56</span>
+                <span class='fraction'>32/57</span>
             </div>
         
             
@@ -469,7 +469,10 @@
 <a name='L404'></a><a href='#L404'>404</a>
 <a name='L405'></a><a href='#L405'>405</a>
 <a name='L406'></a><a href='#L406'>406</a>
-<a name='L407'></a><a href='#L407'>407</a></td><td class="line-coverage quiet"><span class="cline-any cline-yes">7x</span>
+<a name='L407'></a><a href='#L407'>407</a>
+<a name='L408'></a><a href='#L408'>408</a>
+<a name='L409'></a><a href='#L409'>409</a>
+<a name='L410'></a><a href='#L410'>410</a></td><td class="line-coverage quiet"><span class="cline-any cline-yes">7x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">7x</span>
@@ -769,38 +772,41 @@
 <span class="cline-any cline-yes">2x</span>
 <span class="cline-any cline-yes">2x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">2x</span>
-<span class="cline-any cline-yes">60x</span>
-<span class="cline-any cline-yes">60x</span>
-<span class="cline-any cline-yes">60x</span>
+<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">60x</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">1440x</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">1440x</span>
-<span class="cline-any cline-yes">1080x</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">360x</span>
-<span class="cline-any cline-yes">300x</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">60x</span>
-<span class="cline-any cline-yes">60x</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">1440x</span>
-<span class="cline-any cline-yes">4020x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -1175,29 +1181,31 @@ const initSeatData = async () =&gt; {
     const trains = await Train.findAll();
     const today = new Date();
     
-    // 为未来30天生成座位数据
-    for (let i = 0; i &lt; 30; i++) {
-      const date = new Date(today);
-      date.setDate(today.getDate() + i);
-      const dateString = date.toISOString().split('T')[0];
+    const days = String(process.env.NODE_ENV || <span class="branch-1 cbranch-no" title="branch not covered" >'')</span>.toLowerCase() === 'test' ? 0 : <span class="branch-1 cbranch-no" title="branch not covered" >60;</span>
+    for (let i = 0; i &lt; days; i++) {
+      const date = <span class="cstat-no" title="statement not covered" >new Date(today);</span>
+<span class="cstat-no" title="statement not covered" >      date.setDate(today.getDate() + i);</span>
+      const dateString = <span class="cstat-no" title="statement not covered" >date.toISOString().split('T')[0];</span>
 &nbsp;
-      for (const train of trains) {
+<span class="cstat-no" title="statement not covered" >      for (const train of trains) {</span>
         // 根据车次类型设置不同的座位配置
-        let seatConfig = [];
+        let seatConfig = <span class="cstat-no" title="statement not covered" >[];</span>
         
-        if (train.trainType === 'G') {
-          seatConfig = [
+<span class="cstat-no" title="statement not covered" >        if (train.trainType === 'G') {</span>
+<span class="cstat-no" title="statement not covered" >          seatConfig = [</span>
             { seatType: '商务座', totalSeats: 24, price: 1748 },
+            { seatType: '特等座', totalSeats: 18, price: 1600 },
+            { seatType: '优选一等座', totalSeats: 32, price: 1033 },
             { seatType: '一等座', totalSeats: 64, price: 933 },
             { seatType: '二等座', totalSeats: 200, price: 553 }
           ];
-        } else if (train.trainType === 'D') {
-          seatConfig = [
+        } else <span class="cstat-no" title="statement not covered" >if (train.trainType === 'D') {</span>
+<span class="cstat-no" title="statement not covered" >          seatConfig = [</span>
             { seatType: '一等座', totalSeats: 48, price: 428 },
             { seatType: '二等座', totalSeats: 152, price: 428 }
           ];
-        } else <span class="missing-if-branch" title="else path not taken" >E</span>if (train.trainType === 'K') {
-          seatConfig = [
+        } else <span class="cstat-no" title="statement not covered" >if (train.trainType === 'K') {</span>
+<span class="cstat-no" title="statement not covered" >          seatConfig = [</span>
             { seatType: '硬座', totalSeats: 240, price: 156 },
             { seatType: '硬卧', totalSeats: 120, price: 320 },
             { seatType: '软卧', totalSeats: 64, price: 520 }
@@ -1205,8 +1213,8 @@ const initSeatData = async () =&gt; {
         }
 &nbsp;
         // 创建座位数据
-        for (const seat of seatConfig) {
-          await TrainSeat.findOrCreate({
+<span class="cstat-no" title="statement not covered" >        for (const seat of seatConfig) {</span>
+<span class="cstat-no" title="statement not covered" >          await TrainSeat.findOrCreate({</span>
             where: {
               trainNumber: train.trainNumber,
               date: dateString,
@@ -1221,7 +1229,8 @@ const initSeatData = async () =&gt; {
       }
     }
 &nbsp;
-    // 添加测试文档指定日期的座位数据（2025-12-15 / 2025-12-16）
+    
+    
     const specificDates = ['2025-12-15', '2025-12-16'];
     const specificSeatPrice = {
       G: { '商务座': 1748, '一等座': 933, '二等座': 553 },
@@ -1288,7 +1297,7 @@ module.exports = {
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2025-12-02T09:25:48.432Z
+                at 2025-12-08T11:05:41.721Z
             </div>
         <script src="../../prettify.js"></script>
         <script>

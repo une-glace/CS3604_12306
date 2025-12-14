@@ -188,6 +188,9 @@ const OrderDetailPage: React.FC = () => {
     return String(t)
   })()
 
+  const pageState = location.state as { detail?: Partial<DetailOrder>; isChangeSuccess?: boolean } | null
+  const isChangeSuccess = Boolean(pageState?.isChangeSuccess)
+
   const handleProfileClick = () => {
     if (isLoggedIn) {
       navigate('/profile')
@@ -257,7 +260,7 @@ const OrderDetailPage: React.FC = () => {
                 <div style={{width:28,height:28,background:'#27ae60',color:'#fff',borderRadius: '50%',display:'flex',alignItems:'center',justifyContent:'center',fontWeight:700, fontSize:18}}>✓</div>
                 <div style={{ marginLeft: 4 }}>
                   <div>
-                    <span style={{ fontSize: 16, color: '#2f8f3b', fontWeight: 400 }}>交易已成功！</span>
+                    <span style={{ fontSize: 16, color: '#2f8f3b', fontWeight: 400 }}>{isChangeSuccess ? '改签成功！' : '交易已成功！'}</span>
                     <span style={{ color: '#000' }}> 感谢您选择铁路出行！您的订单号：</span>
                     <span style={{ color: '#f47621ff' , fontSize:16}}>{order.orderId}</span>
                   </div>

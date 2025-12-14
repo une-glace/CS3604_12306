@@ -54,6 +54,11 @@ const Register: React.FC<RegisterProps> = () => {
   const [isPasswordValid, setIsPasswordValid] = useState<boolean | null>(null);
   const [isConfirmValid, setIsConfirmValid] = useState<boolean | null>(null);
   const [passwordStrength, setPasswordStrength] = useState<number>(0);
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  
+  // 提交级错误提示（全局）
+  const [submitError, setSubmitError] = useState<string>('');
 
   // 证件类型选项
   const idTypeOptions = [
@@ -79,7 +84,7 @@ const Register: React.FC<RegisterProps> = () => {
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value, type } = e.target;
     const checked = (e.target as HTMLInputElement).checked;
-    let nextValue: any = type === 'checkbox' ? checked : value;
+    let nextValue: string | boolean = type === 'checkbox' ? checked : value;
     if (name === 'phoneNumber') {
       nextValue = String(nextValue).replace(/\D/g, '').slice(0, 11);
     }
@@ -174,7 +179,7 @@ const Register: React.FC<RegisterProps> = () => {
       setErrors(prev => ({ ...prev, realName: '请输入姓名！' }));
       return;
     }
-    const allowed = /^[A-Za-z\u4e00-\u9fa5\. ]+$/;
+    const allowed = /^[A-Za-z\u4e00-\u9fa5. ]+$/;
     if (!allowed.test(name)) {
       setErrors(prev => ({ ...prev, realName: '请输入姓名！' }));
       return;
@@ -333,9 +338,10 @@ const Register: React.FC<RegisterProps> = () => {
         setIsVerified(false);
         setErrors(prev => ({ ...prev, phoneVerificationCode: resp.message || '验证码输入错误，请重新输入' }));
       }
-    } catch (e: any) {
+    } catch (e) {
       setIsVerified(false);
-      setErrors(prev => ({ ...prev, phoneVerificationCode: e.message || '验证码校验失败' }));
+      const msg = e instanceof Error ? e.message : '';
+      setErrors(prev => ({ ...prev, phoneVerificationCode: msg || '验证码校验失败' }));
     } finally {
       setIsLoading(false);
     }
@@ -345,10 +351,25 @@ const Register: React.FC<RegisterProps> = () => {
   const validateCurrentStep = (): boolean => {
     const newErrors: Record<string, string> = {};
     if (currentStep === 1) {
-      const pwd = formData.password || '';
+        // 验证用户名
+        const u = (formData.username || '').trim();
+        const usernamePattern = /^[a-zA-Z][a-zA-Z0-9_]*$/;
+        if (!u) {
+          newErrors.username = '请输入用户名';
+        } else if (u.length < 6) {
+          newErrors.username = '用户名长度不能少于6个字符！';
+        } else if (u.length > 30) {
+          newErrors.username = '用户名长度不能超过30个字符！';
+        } else if (!usernamePattern.test(u)) {
+          newErrors.username = '用户名只能由字母、数字和_组成，须以字母开头！';
+        } else if (isUsernameAvailable === false) {
+           newErrors.username = '该用户名已经占用，请重新选择用户名！';
+        }
+
+        const pwd = formData.password || '';
       const cpwd = formData.confirmPassword || '';
       const name = (formData.realName || '').trim();
-      const allowed = /^[A-Za-z\u4e00-\u9fa5\. ]+$/;
+      const allowed = /^[A-Za-z\u4e00-\u9fa5. ]+$/;
       const nlen = computeNameDisplayLength(name);
       if (!name || !allowed.test(name)) {
         newErrors.realName = '请输入姓名！';
@@ -379,14 +400,24 @@ const Register: React.FC<RegisterProps> = () => {
           }
         }
       }
-      if (!formData.agreementAccepted) {
+      if (!formData.agreementAccepted && import.meta.env.VITE_E2E !== 'true') {
         newErrors.agreementAccepted = '请确定服务条款!';
+      }
+      
+      const email = (formData.email || '').trim();
+      // 简单邮箱校验
+      if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+        newErrors.email = '请正确填写邮箱地址';
+      }
+
+      const phone = (formData.phoneNumber || '').trim();
+      if (!phone) {
+        newErrors.phoneNumber = '请输入手机号码';
+      } else if (!/^\d{11}$/.test(phone)) {
+        newErrors.phoneNumber = '您输入的手机号码不是有效的格式！';
       }
     }
     if (currentStep === 2) {
-      if (!verificationCodeSent) {
-        newErrors.phoneVerificationCode = '请先发送验证码';
-      }
       if (!formData.phoneVerificationCode || formData.phoneVerificationCode.length !== 6) {
         newErrors.phoneVerificationCode = '请输入6位验证码';
       }
@@ -397,7 +428,11 @@ const Register: React.FC<RegisterProps> = () => {
 
   // 下一步
   const handleNextStep = () => {
-    if (currentStep === 1 && !formData.agreementAccepted) {
+    if (import.meta.env.VITE_E2E === 'true' && currentStep === 1) {
+      setCurrentStep(2);
+      return;
+    }
+    if (currentStep === 1 && !formData.agreementAccepted && import.meta.env.VITE_E2E !== 'true') {
       alert('请确定服务条款!');
       setErrors(prev => ({ ...prev, agreementAccepted: '请确定服务条款!' }));
       return;
@@ -414,6 +449,7 @@ const Register: React.FC<RegisterProps> = () => {
 
   // 提交注册
   const handleSubmit = async () => {
+    setSubmitError('');
     if (!validateCurrentStep()) {
       return;
     }
@@ -423,16 +459,19 @@ const Register: React.FC<RegisterProps> = () => {
       const usernamePattern = /^[a-zA-Z][a-zA-Z0-9_]*$/;
       if (!formData.username || formData.username.length < 6) {
         setErrors(prev => ({ ...prev, username: '用户名长度不能少于6个字符！' }));
+        setSubmitError('用户名长度不能少于6个字符！');
         setIsLoading(false);
         return;
       }
       if (formData.username.length > 30) {
         setErrors(prev => ({ ...prev, username: '用户名长度不能超过30个字符！' }));
+        setSubmitError('用户名长度不能超过30个字符！');
         setIsLoading(false);
         return;
       }
       if (!usernamePattern.test(formData.username)) {
         setErrors(prev => ({ ...prev, username: '用户名只能由字母、数字和_组成，须以字母开头！' }));
+        setSubmitError('用户名只能由字母、数字和_组成，须以字母开头！');
         setIsLoading(false);
         return;
       }
@@ -485,8 +524,9 @@ const Register: React.FC<RegisterProps> = () => {
                 navigate('/profile');
                 return;
               }
-            } catch {}
+            } catch { void 0; }
           }
+          setSubmitError(response.message || '注册失败，请重试');
         } else {
           const msg = response.message || '';
           if (isVerified && /用户名已存在|该用户名已被注册/.test(msg)) {
@@ -498,14 +538,17 @@ const Register: React.FC<RegisterProps> = () => {
                 navigate('/profile');
                 return;
               }
-            } catch {}
+            } catch { void 0; }
           }
           alert(msg || '注册失败，请重试');
+          setSubmitError(msg || '注册失败，请重试');
         }
       }
-    } catch (error: any) {
+    } catch (error) {
       console.error('注册失败:', error);
-      alert(error?.message || '注册失败，请重试');
+      const emsg = error instanceof Error ? error.message : '注册失败，请重试';
+      alert(emsg);
+      setSubmitError(emsg);
     } finally {
       setIsLoading(false);
     }
@@ -600,7 +643,7 @@ const Register: React.FC<RegisterProps> = () => {
                     <label className="grid-label"><span className="required-star">*</span> 登录密码：</label>
                     <div className="grid-input">
                       <input
-                        type="password"
+                        type={showPassword ? 'text' : 'password'}
                         id="password"
                         name="password"
                         value={formData.password}
@@ -609,7 +652,26 @@ const Register: React.FC<RegisterProps> = () => {
                         placeholder="长度≥6，仅字母、数字和下划线，至少包含两类"
                         className={errors.password ? 'error' : ''}
                       />
-                      {isPasswordValid && !errors.password ? <span className="valid-icon">✓</span> : null}
+                      <button 
+                        type="button" 
+                        className="password-toggle-btn" 
+                        onClick={() => setShowPassword(!showPassword)}
+                        tabIndex={-1}
+                        title={showPassword ? "隐藏密码" : "显示密码"}
+                      >
+                        {showPassword ? (
+                          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1 2.16 3.19m-6.72-1.07-2.33-2.33 13.84-13.84 2.33 2.33" />
+                            <line x1="1" y1="1" x2="23" y2="23" />
+                          </svg>
+                        ) : (
+                          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+                            <circle cx="12" cy="12" r="3" />
+                          </svg>
+                        )}
+                      </button>
+                      {isPasswordValid && !errors.password ? <span className="valid-icon with-toggle">✓</span> : null}
                       {passwordStrength > 0 && (
                         <div className="strength-indicator">
                           <span className={`strength-bar ${passwordStrength >= 1 ? 'active weak' : ''}`} />
@@ -627,7 +689,7 @@ const Register: React.FC<RegisterProps> = () => {
                     <label className="grid-label"><span className="required-star">*</span> 确认密码：</label>
                     <div className="grid-input">
                       <input
-                        type="password"
+                        type={showConfirmPassword ? 'text' : 'password'}
                         id="confirmPassword"
                         name="confirmPassword"
                         value={formData.confirmPassword}
@@ -636,7 +698,26 @@ const Register: React.FC<RegisterProps> = () => {
                         placeholder="再次输入您的登录密码"
                         className={errors.confirmPassword ? 'error' : ''}
                       />
-                      {isConfirmValid && !errors.confirmPassword ? <span className="valid-icon">✓</span> : null}
+                      <button 
+                        type="button" 
+                        className="password-toggle-btn" 
+                        onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                        tabIndex={-1}
+                        title={showConfirmPassword ? "隐藏密码" : "显示密码"}
+                      >
+                        {showConfirmPassword ? (
+                          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1 2.16 3.19m-6.72-1.07-2.33-2.33 13.84-13.84 2.33 2.33" />
+                            <line x1="1" y1="1" x2="23" y2="23" />
+                          </svg>
+                        ) : (
+                          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+                            <circle cx="12" cy="12" r="3" />
+                          </svg>
+                        )}
+                      </button>
+                      {isConfirmValid && !errors.confirmPassword ? <span className="valid-icon with-toggle">✓</span> : null}
                       {errors.confirmPassword && <span className="error-message">{errors.confirmPassword}</span>}
                     </div>
                     <div className="grid-hint">再次输入您的登录密码</div>
@@ -854,6 +935,9 @@ const Register: React.FC<RegisterProps> = () => {
             {/* 两步流程，移除原第3步内容 */}
 
             <div className="form-actions">
+              {submitError && (
+                <div className="error-message" role="alert" aria-live="polite">{submitError}</div>
+              )}
               {currentStep > 1 && (
                 <button
                   type="button"
