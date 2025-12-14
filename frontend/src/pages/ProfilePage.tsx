@@ -3,6 +3,7 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import AddPassengerModal from '../components/AddPassengerModal';
 import { getPassengers as apiGetPassengers, addPassenger as apiAddPassenger, updatePassenger as apiUpdatePassenger, deletePassenger as apiDeletePassenger, type PassengerFormData } from '../services/passengerService';
+import { type AddressItem } from '../services/addressService';
 import PaymentModal from '../components/PaymentModal';
 import RefundConfirmModal from '../components/RefundConfirmModal';
 import './ProfilePage.css';
@@ -71,7 +72,7 @@ const ProfilePage: React.FC = () => {
   const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
   const [paymentOrderData, setPaymentOrderData] = useState<{ orderId: string; totalPrice: number; trainNumber: string; fromStation: string; toStation: string; departureDate: string; passengerCount: number } | null>(null);
   const [paymentOrderBackendId, setPaymentOrderBackendId] = useState<string | null>(null);
-  const [addresses, setAddresses] = useState<Array<{ id: string; recipient: string; phone: string; region: string; detail: string }>>([]);
+  const [addresses, setAddresses] = useState<AddressItem[]>([]);
   const [isAddingAddress, setIsAddingAddress] = useState(false);
   const [addrRecipient, setAddrRecipient] = useState('');
   const [addrPhone, setAddrPhone] = useState('');
