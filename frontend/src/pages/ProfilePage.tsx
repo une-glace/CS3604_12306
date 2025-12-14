@@ -1342,7 +1342,8 @@ const ProfilePage: React.FC = () => {
                           if (next.length <= before) alert('添加地址可能失败，请稍后刷新');
                         } catch (e) {
                           console.error('添加地址失败', e);
-                          alert(e?.message || '添加地址失败');
+                          const msg = (e instanceof Error) ? e.message : (typeof e === 'string' ? e : '');
+                          alert(msg || '添加地址失败');
                         }
                       }}>保存</button>
                     </div>
