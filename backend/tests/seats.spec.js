@@ -47,17 +47,17 @@ describe('allocateSeatsForGroup via createOrder', () => {
   };
 
   test('优先同排相邻，满足偏好字母', async () => {
-    const seats = await createGroupOrder(3, ['E','E','E']);
+    const seats = await createGroupOrder(3, ['F','F','F']);
     expect(seats.length).toBe(3);
-    const carRow = seats.map(s => s.split('车')[0] + '车' + s.split('车')[1].replace(/[A-E]/,'')).map(x => x); // same car+row
+    const carRow = seats.map(s => s.split('车')[0] + '车' + s.split('车')[1].replace(/[ABCDF]/,'')); // same car+row
     expect(new Set(carRow).size).toBe(1);
-    expect(seats.every(s => /[A-E]$/.test(s))).toBe(true);
+    expect(seats.every(s => /[ABCDF]$/.test(s))).toBe(true);
   });
 
   test('同车厢相邻排分配（同排不足时）', async () => {
     // 预占用一排四个座位，使同排不足
     await createGroupOrder(4, ['A','B','C','D']);
-    const seats = await createGroupOrder(3, ['E','E','E']);
+    const seats = await createGroupOrder(3, ['F','F','F']);
     const cars = seats.map(s => s.split('车')[0]);
     expect(new Set(cars).size).toBe(1);
   });

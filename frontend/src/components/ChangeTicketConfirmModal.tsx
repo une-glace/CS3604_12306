@@ -8,8 +8,15 @@ interface TrainInfo {
   departureTime: string;
   arrivalTime: string;
   date: string;
-  duration: string;
   seatType: string;
+  price: number;
+}
+
+interface TicketInfo {
+  passengerId: string;
+  passengerName: string;
+  seatType: string;
+  ticketType: '成人票' | '儿童票' | '学生票';
   price: number;
 }
 
@@ -23,36 +30,27 @@ interface Passenger {
   idType?: string;
 }
 
-interface TicketInfo {
-  passengerId: string;
-  passengerName: string;
-  seatType: string;
-  ticketType: '成人票' | '儿童票' | '学生票';
-  price: number;
-}
-
-interface OrderConfirmModalProps {
+interface ChangeTicketConfirmModalProps {
   isOpen: boolean;
   onClose: () => void;
   onConfirm: (selectedSeatCodes: string[]) => void;
-  trainInfo: TrainInfo | null;
+  newTrainInfo: TrainInfo;
   passengers: Passenger[];
   ticketInfos: TicketInfo[];
-  totalPrice: number;
-  seatInfo?: Record<string, { price: number; availableSeats: number; totalSeats: number; isAvailable: boolean }>;
+  seatInfo?: Record<string, { price: number; availableSeats: number; totalSeats: number; isAvailable: boolean }>; 
 }
 
-const OrderConfirmModal: React.FC<OrderConfirmModalProps> = ({
+const ChangeTicketConfirmModal: React.FC<ChangeTicketConfirmModalProps> = ({
   isOpen,
   onClose,
   onConfirm,
-  trainInfo,
+  newTrainInfo,
   passengers,
   ticketInfos,
   seatInfo
 }) => {
   const [selectedCodes, setSelectedCodes] = useState<string[]>([]);
-  if (!isOpen || !trainInfo) return null;
+  if (!isOpen) return null;
 
   const weekDay = (dateStr: string) => {
     try {
@@ -119,6 +117,7 @@ const OrderConfirmModal: React.FC<OrderConfirmModalProps> = ({
       return [...prev, code];
     });
   };
+
   const hasStudentTicket = ticketInfos.some(t => t.ticketType === '学生票');
 
   return (
@@ -128,26 +127,24 @@ const OrderConfirmModal: React.FC<OrderConfirmModalProps> = ({
           <h3>请核对以下信息</h3>
           <button className="close-btn" onClick={onClose}>×</button>
         </div>
-        
+
         <div className="modal-content">
-          {/* 信息总览（日期 + 车次 + 区间 + 时间）*/}
           <div className="info-summary">
-            <span className="date-text">{trainInfo.date}（{weekDay(trainInfo.date)}）</span>
+            <span className="date-text">{newTrainInfo.date}（{weekDay(newTrainInfo.date)}）</span>
             <span className="sp">&nbsp;</span>
-            <span className="train-strong">{trainInfo.trainNumber}</span>
+            <span className="train-strong">{newTrainInfo.trainNumber}</span>
             <span className="text-small">次</span>
             <span className="sp">&nbsp;</span>
-            <span className="station-strong">{trainInfo.from}</span>
+            <span className="station-strong">{newTrainInfo.from}</span>
             <span className="sp">（</span>
-            <span className="depart-strong">{trainInfo.departureTime}</span>
+            <span className="depart-strong">{newTrainInfo.departureTime}</span>
             <span className="sp">开） — </span>
-            <span className="station-strong">{trainInfo.to}</span>
+            <span className="station-strong">{newTrainInfo.to}</span>
             <span className="sp">（</span>
-            <span className="arrival-small">{trainInfo.arrivalTime}</span>
+            <span className="arrival-small">{newTrainInfo.arrivalTime}</span>
             <span className="sp">到）</span>
           </div>
 
-          {/* 核对表格 */}
           <div className="check-table">
             <div className="check-table-header">
               <div>序号</div>
@@ -172,7 +169,6 @@ const OrderConfirmModal: React.FC<OrderConfirmModalProps> = ({
             })}
           </div>
 
-          {/* 说明与选座展示（交互）*/}
           <div className="note-line">*如果本次列车剩余席位无法满足您的选座需求，系统将自动为您分配席位。</div>
 
           <div className="seat-preference">
@@ -221,8 +217,6 @@ const OrderConfirmModal: React.FC<OrderConfirmModalProps> = ({
             <div className="tip-red">*按现行规定，学生票购票区间必须与学生证上的乘车区间一致，否则车站将不予换票。</div>
           )}
           <div className="stock-info">本次列车，{buildStockNodes()}</div>
-
-          
         </div>
 
         <div className="modal-footer">
@@ -234,4 +228,4 @@ const OrderConfirmModal: React.FC<OrderConfirmModalProps> = ({
   );
 };
 
-export default OrderConfirmModal;
+export default ChangeTicketConfirmModal;

@@ -424,11 +424,39 @@
 .valid-icon {
   position: absolute;
   right: 12px;
-  top: 50%;
-  transform: translateY(-50%);
+  top: 0;
+  height: 30px;
+  display: flex;
+  align-items: center;
   color: #52c41a;
   font-size: 16px;
   pointer-events: none;
+}
+
+.valid-icon.with-toggle {
+  right: 35px;
+}
+
+.password-toggle-btn {
+  position: absolute;
+  right: 5px;
+  top: 0;
+  height: 30px;
+  width: 30px;
+  border: none;
+  background: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #999;
+  font-size: 16px;
+  padding: 0;
+  z-index: 2;
+}
+
+.password-toggle-btn:hover {
+  color: #666;
 }
 
 .grid-input input:focus,

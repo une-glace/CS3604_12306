@@ -1,7 +1,7 @@
 .train-list {
   background: #fff;
   border: 1px solid #e5e5e5;
-  border-radius: 4px;
+  border-radius: 0;
   overflow: hidden;
 }
 
@@ -290,25 +290,68 @@
 
 /* 空状态样式 */
 .empty-state {
-  text-align: center;
-  padding: 60px 20px;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding: 40px 20px;
   color: #666;
+  background-color: #fff;
+  gap: 20px;
 }
 
-.empty-icon {
-  font-size: 48px;
-  margin-bottom: 16px;
+.empty-icon-wrapper {
+  width: 48px;
+  height: 48px;
+  border: 4px solid #ddd;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
 }
 
-.empty-text {
-  font-size: 16px;
-  font-weight: 500;
-  margin-bottom: 8px;
+.empty-icon-symbol {
+  font-size: 32px;
+  font-weight: bold;
+  color: #ddd;
+  line-height: 1;
 }
 
-.empty-hint {
+.empty-content {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  text-align: left;
+  padding-top: 4px;
+  max-width: 600px;
+}
+
+.empty-message {
   font-size: 14px;
   color: #999;
+  line-height: 1.5;
+}
+
+.empty-suggestion {
+  font-size: 14px;
+  color: #999;
+  line-height: 1.5;
+}
+
+.station-highlight {
+  padding: 0 4px;
+  color: #333;
+}
+
+.transfer-link {
+  color: #0078d7;
+  cursor: pointer;
+  font-weight: 500;
+  margin: 0 4px;
+}
+
+.transfer-link:hover {
+  text-decoration: underline;
 }
 
 /* 滚动条样式 */

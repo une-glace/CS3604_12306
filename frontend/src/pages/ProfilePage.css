@@ -874,6 +874,8 @@
 .ticket-status.paid { color: #2f8f3b; }
 .ticket-status.unpaid { color: #fa8c16; }
 .ticket-status.completed { color: #1677ff; }
+.ticket-status.changed { color: #999; }
+.ticket-status.refunded { color: #999; }
 .order-ops { display: flex; gap: 8px; padding: 8px 12px; border-top: 1px solid #f0f0f0; background: #fff; justify-content: flex-end; }
 .ops-btn { border: 1px solid #d9d9d9; background: #fff; color: #000; border-radius: 4px; padding: 4px 10px; cursor: pointer; }
 .order-ops .detail-btn { background: #fa8c16; color: #fff; border: 1px solid #fa8c16; border-radius: 4px; padding: 6px 14px; }
@@ -998,147 +1000,194 @@
   color: white;
 }
 
-.order-status.unpaid {
-  background: #faad14;
-  color: white;
-}
-
-.order-status.cancelled {
-  background: #ff4d4f;
-  color: white;
-}
-
-.order-status.refunded {
-  background: #722ed1;
-  color: white;
-}
-
-/* 空状态样式 */
-.empty-state {
-  text-align: center;
-  padding: 40px 20px;
+.order-status.changed {
+  background: #f5f5f5;
   color: #999;
-  background: #f8f9fa;
-  border-radius: 8px;
-  margin-top: 20px;
+  border: 1px solid #d9d9d9;
 }
 
-.empty-state p {
-  margin: 0;
-  font-size: 14px;
+/* 已改签订单整体变灰 */
+.changed-order {
+  background-color: #f9f9f9;
 }
 
-/* 响应式设计 */
-@media (max-width: 768px) {
-  .profile-main {
-    flex-direction: column;
-    padding: 15px;
-  }
-  
-  .profile-sidebar {
-    width: 100%;
-    margin-bottom: 20px;
-  }
-  
-  .user-info-card {
-    padding: 15px;
-  }
-  
-  .avatar {
-    width: 50px;
-    height: 50px;
-    font-size: 20px;
-  }
-  
-  .section-header {
-    padding: 15px 20px;
-  }
-  
-  .info-card, .passengers-section, .orders-section {
-    margin: 20px;
-    padding: 20px;
-  }
-  
-  .info-grid {
-    grid-template-columns: 1fr;
-    gap: 15px;
-  }
-  
-  .order-content {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 15px;
-  }
-  
-  .order-filters {
-    flex-direction: column;
-    gap: 10px;
-  }
-  
-  .passenger-card {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 15px;
-  }
-  
-  .passenger-actions {
-    align-self: flex-end;
-  }
+.changed-order .order-header {
+  background-color: #f0f0f0;
+  color: #999;
 }
 
-/* 加载状态样式 */
-.loading-state {
-  background: #fff;
-  border: 1px solid #e5e5e5;
-  border-radius: 8px;
-  padding: 60px 20px;
+.changed-order .train-info h4 {
+  color: #999;
+}
+
+.changed-order .price-info .price {
+  color: #999;
+}
+
+.changed-order .order-number,
+.changed-order .train-info p,
+.changed-order .passenger-info p {
+  color: #999;
+}
+
+.changed-order .detail-btn,
+.changed-order .refund-btn,
+.changed-order .ops-btn {
+  border-color: #e5e5e5;
+  color: #ccc;
+  background: #f5f5f5;
+  cursor: not-allowed;
+}
+
+/* 订单列表空状态样式 */
+.custom-empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 60px 0;
   text-align: center;
-  margin: 20px 0;
+  background: #fff;
+  border: 1px solid #e5e5e5; /* Optional: match table border style */
+  border-radius: 4px;
 }
 
-.loading-state p {
-  font-size: 16px;
+.custom-empty-state .empty-icon {
+  margin-bottom: 20px;
+}
+
+.custom-empty-state .empty-text p {
+  margin: 6px 0;
+  font-size: 14px;
   color: #666;
-  margin: 0;
 }
 
-/* 分页样式 */
-.pagination {
+.custom-empty-state .empty-text a {
+  color: #0066cc;
+  text-decoration: none;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.custom-empty-state .empty-text a:hover {
+  text-decoration: underline;
+}
+
+/* 改签模态框样式 */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
   display: flex;
   justify-content: center;
   align-items: center;
-  gap: 20px;
-  margin: 30px 0;
-  padding: 20px;
-  background: #fff;
-  border: 1px solid #e5e5e5;
-  border-radius: 8px;
+  z-index: 1000;
 }
 
-.page-btn {
-  padding: 8px 16px;
-  background: #fff;
-  border: 1px solid #ddd;
+.change-ticket-modal {
+  background: white;
   border-radius: 4px;
+  width: 440px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  font-family: 'Microsoft YaHei', sans-serif;
+  overflow: hidden;
+}
+
+.change-ticket-modal .modal-header {
+  height: 40px;
+  background: #0066cc;
+  padding: 0 10px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid #d0d0d0;
+  width: 100%;
+}
+
+.change-ticket-modal .modal-header h3 {
+  margin: 0;
+  font-size: 14px;
+  color: #fff;
+  font-weight: bold;
+}
+
+.change-ticket-modal .close-btn {
+  background: none;
+  border: none;
+  font-size: 20px;
+  color: #fff;
   cursor: pointer;
-  font-size: 14px;
+  padding: 0;
+  line-height: 1;
+}
+
+.change-ticket-modal .modal-body {
+  padding: 0 20px;
+  display: flex;
+  gap: 0;
+  align-items: flex-start;
+}
+
+.change-ticket-modal .warning-icon-container {
+  flex-shrink: 0;
+}
+
+.change-ticket-modal .warning-text {
+  font-size: 16px;
   color: #333;
-  transition: all 0.3s ease;
+  line-height: 1.5;
 }
 
-.page-btn:hover:not(:disabled) {
+.change-ticket-modal .main-warning {
+  font-weight: bold;
+  margin: 0;
+  color: #333;
+}
+
+.change-ticket-modal .sub-warning {
+  margin: 0;
+  font-size: 16px;
+  color: #ff0000;
+}
+
+.change-ticket-modal .highlight-red {
+  color: #ff0000;
+  font-weight: bold;
+}
+
+.change-ticket-modal .link-blue {
+  color: #0066cc;
+  text-decoration: none;
+}
+
+.change-ticket-modal .modal-footer {
+  padding: 10px 20px 20px;
+  display: flex;
+  justify-content: center;
+  gap: 15px;
+}
+
+.change-ticket-modal .btn-cancel {
+  padding: 6px 20px;
   background: #f0f0f0;
-  border-color: #ccc;
+  border: 1px solid #dcdcdc;
+  border-radius: 4px;
+  color: #333;
+  cursor: pointer;
 }
 
-.page-btn:disabled {
-  background: #f5f5f5;
-  color: #999;
-  cursor: not-allowed;
-  border-color: #e5e5e5;
+.change-ticket-modal .btn-confirm-orange {
+  padding: 6px 20px;
+  background: #ff9900;
+  border: 1px solid #ff9900;
+  border-radius: 4px;
+  color: white;
+  cursor: pointer;
 }
 
-.page-info {
-  font-size: 14px;
-  color: #666;
+.change-ticket-modal .btn-confirm-orange:hover {
+  background: #e68a00;
 }
