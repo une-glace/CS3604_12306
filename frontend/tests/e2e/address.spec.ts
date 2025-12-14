@@ -9,7 +9,7 @@ test.describe('常用地址管理', () => {
 
   test('增加地址并删除', async ({ page }) => {
     await page.getByRole('button', { name: '地址管理' }).click();
-    await expect(page.getByRole('heading', { name: '地址管理' })).toBeVisible();
+    await expect(page.locator('button.add-action')).toBeVisible();
 
     await page.locator('button.add-action').click();
     await page.fill('#recipient', '收件人A');

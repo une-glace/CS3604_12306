@@ -1644,7 +1644,7 @@ const ProfilePage: React.FC = () => {
                         </div>
                         <div className="kv-item default-check-row">
                           <label className="kv-label"></label>
-                          <label className="checkbox-label">
+                          <label className="profile-checkbox-label">
                             <input id="default-address" type="checkbox" checked={addrIsDefault} onChange={e => setAddrIsDefault(e.target.checked)} />
                             设为默认地址
                           </label>

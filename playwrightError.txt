@@ -4,77 +4,77 @@ Run npm run test:e2e --prefix frontend
 > playwright test
 
 
-Running 26 tests using 1 worker
-······F············F······
+Running 28 tests using 1 worker
+F·············F·············
 
-  1) [chromium] › tests/e2e/order.spec.ts:5:3 › 订票与订单支付 › 下单并支付成功 ──────────────────────────────────
-
-    Error: expect(locator).toBeVisible() failed
-
-    Locator: locator('.orders-list .order-card').first()
-    Expected: visible
-    Timeout: 10000ms
-    Error: element(s) not found
-
-    Call log:
-      - Expect "toBeVisible" with timeout 10000ms
-      - waiting for locator('.orders-list .order-card').first()
-
-
-      191 |     
-      192 |     const paidList = page.locator('.orders-list .order-card').first();
-    > 193 |     await expect(paidList).toBeVisible({ timeout: 10000 });
-          |                            ^
-      194 |   });
-      195 | });
-      196 |
-        at /home/runner/work/CS3604_12306/CS3604_12306/frontend/tests/e2e/order.spec.ts:193:28
-
-    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
-    test-results/order-订票与订单支付-下单并支付成功-chromium/test-failed-1.png
-    ────────────────────────────────────────────────────────────────────────────────────────────────
-
-    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
-    test-results/order-订票与订单支付-下单并支付成功-chromium/video.webm
-    ────────────────────────────────────────────────────────────────────────────────────────────────
-
-    Error Context: test-results/order-订票与订单支付-下单并支付成功-chromium/error-context.md
-
-  2) [slow-chromium] › tests/e2e/order.spec.ts:5:3 › 订票与订单支付 › 下单并支付成功 ─────────────────────────────
+  1) [chromium] › tests/e2e/address.spec.ts:10:3 › 常用地址管理 › 增加地址并删除 ────────────────────────────────
 
     Error: expect(locator).toBeVisible() failed
 
-    Locator: locator('.orders-list .order-card').first()
+    Locator: getByRole('heading', { name: '地址管理' })
     Expected: visible
-    Timeout: 10000ms
+    Timeout: 5000ms
     Error: element(s) not found
 
     Call log:
-      - Expect "toBeVisible" with timeout 10000ms
-      - waiting for locator('.orders-list .order-card').first()
+      - Expect "toBeVisible" with timeout 5000ms
+      - waiting for getByRole('heading', { name: '地址管理' })
 
 
-      191 |     
-      192 |     const paidList = page.locator('.orders-list .order-card').first();
-    > 193 |     await expect(paidList).toBeVisible({ timeout: 10000 });
-          |                            ^
-      194 |   });
-      195 | });
-      196 |
-        at /home/runner/work/CS3604_12306/CS3604_12306/frontend/tests/e2e/order.spec.ts:193:28
+      10 |   test('增加地址并删除', async ({ page }) => {
+      11 |     await page.getByRole('button', { name: '地址管理' }).click();
+    > 12 |     await expect(page.getByRole('heading', { name: '地址管理' })).toBeVisible();
+         |                                                               ^
+      13 |
+      14 |     await page.locator('button.add-action').click();
+      15 |     await page.fill('#recipient', '收件人A');
+        at /home/runner/work/CS3604_12306/CS3604_12306/frontend/tests/e2e/address.spec.ts:12:63
 
     attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
-    test-results/order-订票与订单支付-下单并支付成功-slow-chromium/test-failed-1.png
+    test-results/address-常用地址管理-增加地址并删除-chromium/test-failed-1.png
     ────────────────────────────────────────────────────────────────────────────────────────────────
 
     attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
-    test-results/order-订票与订单支付-下单并支付成功-slow-chromium/video.webm
+    test-results/address-常用地址管理-增加地址并删除-chromium/video.webm
     ────────────────────────────────────────────────────────────────────────────────────────────────
 
-    Error Context: test-results/order-订票与订单支付-下单并支付成功-slow-chromium/error-context.md
+    Error Context: test-results/address-常用地址管理-增加地址并删除-chromium/error-context.md
+
+  2) [slow-chromium] › tests/e2e/address.spec.ts:10:3 › 常用地址管理 › 增加地址并删除 ───────────────────────────
+
+    Error: expect(locator).toBeVisible() failed
+
+    Locator: getByRole('heading', { name: '地址管理' })
+    Expected: visible
+    Timeout: 5000ms
+    Error: element(s) not found
+
+    Call log:
+      - Expect "toBeVisible" with timeout 5000ms
+      - waiting for getByRole('heading', { name: '地址管理' })
+
+
+      10 |   test('增加地址并删除', async ({ page }) => {
+      11 |     await page.getByRole('button', { name: '地址管理' }).click();
+    > 12 |     await expect(page.getByRole('heading', { name: '地址管理' })).toBeVisible();
+         |                                                               ^
+      13 |
+      14 |     await page.locator('button.add-action').click();
+      15 |     await page.fill('#recipient', '收件人A');
+        at /home/runner/work/CS3604_12306/CS3604_12306/frontend/tests/e2e/address.spec.ts:12:63
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/address-常用地址管理-增加地址并删除-slow-chromium/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    test-results/address-常用地址管理-增加地址并删除-slow-chromium/video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/address-常用地址管理-增加地址并删除-slow-chromium/error-context.md
 
   2 failed
-    [chromium] › tests/e2e/order.spec.ts:5:3 › 订票与订单支付 › 下单并支付成功 ───────────────────────────────────
-    [slow-chromium] › tests/e2e/order.spec.ts:5:3 › 订票与订单支付 › 下单并支付成功 ──────────────────────────────
-  24 passed (2.5m)
+    [chromium] › tests/e2e/address.spec.ts:10:3 › 常用地址管理 › 增加地址并删除 ─────────────────────────────────
+    [slow-chromium] › tests/e2e/address.spec.ts:10:3 › 常用地址管理 › 增加地址并删除 ────────────────────────────
+  26 passed (2.6m)
 Error: Process completed with exit code 1.
