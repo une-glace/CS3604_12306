@@ -1,0 +1,132 @@
+id: REQ-1
+name: 车票查询与展示
+functional_description: 输入行程信息并查看车票列表。
+ui_description: |
+  参考图片路径: requirements/assets/1.车票查询与展示/1.png
+  顶部为搜索面板，底部为数据表格。
+scenarios: 
+children:
+  - id: REQ-1-1
+    name: 输入查询条件
+    functional_description: 页面顶部的输入区域，用于设置出发地、目的地、日期及乘客类型。
+    ui_description: |
+      参考图片路径: requirements/assets/1.车票查询与展示/1.1.png
+      位于页面顶部蓝色边框区域。
+      左侧：单程/往返单选框（竖向排列）。
+      中部：出发地、目的地输入框（带切换箭头图标），出发日、返程日日期选择器。
+      右侧：普通/学生单选框，橙色“查询”按钮。
+    scenarios:
+      - name: 正常提交查询
+        steps:
+          - action: 点击“单程”单选按钮
+            expectation: “单程”被选中，“返程日”输入框变为禁用/灰色状态。
+          - action: 出发地选择(REQ-1-1-1)
+            expectation: 输入框下方弹出常用城市选择面板。
+          - action: 目的地选择(REQ-1-1-2)
+            expectation: 输入框下方弹出常用城市选择面板。
+          - action: 日期选择(REQ-1-1-3)
+            expectation: 日期选择器弹出，用户可选择日期。
+          - action: 点击“普通”票种单选按钮
+            expectation: “普通”被选中。
+          - action: 点击“查询”按钮
+            expectation: 按钮出现点击反馈，下方结果列表展示查询结果。
+      - name: 异常-缺少目的地
+        steps:
+          - action: 点击“单程”单选按钮
+            expectation:
+          - action: 出发地选择(REQ-1-1-1)
+            expectation: 输入框下方弹出常用城市选择面板。
+          - action: 日期选择(REQ-1-1-3)
+            expectation: 日期选择器弹出，用户可选择日期。
+          - action: 点击“普通”票种单选按钮
+            expectation:
+          - action: 点击“查询”按钮
+            expectation: 弹出提示框“目的地不能为空”或输入框边框变红，不触发数据刷新。
+    children:
+      - id: REQ-1-1-1
+        name: 出发地选择
+        feature_description: 具备热门城市选择功能的输入组件（出发地）。
+        ui_description: |
+            参考图片路径: requirements/assets/1.车票查询与展示/1.1.1.png
+            文本输入框，聚焦时弹出城市选择浮层。
+        scenarios:
+          - name: 文本输入
+            steps:
+              - action: 点击“出发地”输入框
+                expectation: 输入框获得焦点，弹出常用城市选择面板。
+              - action: 输入文本 "北京"
+                expectation: 输入框内容变为“北京”。
+          - name: 快速选择城市
+            steps:
+              - action: 点击“出发地”输入框
+                expectation: 输入框下方弹出常用城市选择面板。
+              - action: 点击“北京”
+                expectation: 输入框内容变为“北京”。
+          - name: 隐藏常用城市选择面板
+            steps:
+              - action: 点击“出发地”输入框
+                expectation: 输入框下方弹出常用城市选择面板。
+              - action: 点击其他区域
+                expectation: 常用城市选择面板隐藏。
+      - id: REQ-1-1-2
+        name: 目的地选择
+        functional_description: 具备热门城市选择功能的输入组件（目的地）。
+        ui_description: |
+            参考图片路径: requirements/assets/1.车票查询与展示/1.1.2.png
+            文本输入框，聚焦时弹出城市选择浮层。
+        scenarios:
+          - name: 文本输入
+            steps:
+              - action: 点击“出发地”输入框
+                expectation: 输入框获得焦点，弹出常用城市选择面板。
+              - action: 输入文本 "上海"
+                expectation: 输入框内容变为“上海”。
+          - name: 快速选择城市
+            steps:
+              - action: 点击“目的地”输入框
+                expectation: 输入框下方弹出常用城市选择面板。
+              - action: 点击“上海”
+                expectation: 输入框内容变为“上海”。
+      - id: REQ-1-1-3
+        name: 出发日选择
+        feature_description: |
+            参考图片路径: requirements/assets/1.车票查询与展示/1.1.3.png
+            日期选择器组件，用于选择出发日，包含年、月、日选择器。
+        ui_description: 文本输入框，点击后弹出日期选择器浮层。
+        scenarios:
+          - name: 选择日期
+            steps:
+              - action: 点击“出发日”输入框
+                expectation: 弹出日期选择器。
+              - action: 选择“2025-12-30”
+                expectation: 输入框显示“2025-12-30”，日期选择器关闭。
+  
+  - id: REQ-1-2
+    name: 车次列表展示
+    functional_description: 展示查询结果的表格，显示车次详情及各席位余票情况，提供预订入口。
+    ui_description: |
+      参考图片路径: requirements/assets/1.车票查询与展示/1.2.png
+      表头：蓝色背景，白色字体。
+      行内容：
+      - 车次：显示车次号（如G21）。
+      - 出发站/到达站：显示出发站和到达站的名称。
+      - 出发时间/到达时间：显示出发时间和到达时间，表头右侧分别有排序箭头。
+      - 历时：显示总时长及“当日到达”、“次日到达”标记，表头右侧有排序箭头。
+      - 一等座：显示“有”、“无”、“数字”（余票）、“候补”（橙色）。
+      - 二等座：显示“有”、“无”、“数字”（余票）、“候补”（橙色）。
+      - 商务座：显示“有”、“无”、“数字”（余票）、“候补”（橙色）。
+      - 备注：蓝色的“预订”按钮。
+    
+    scenarios:
+      - name: 按出发时间降序排序
+        steps:
+          - action: 查询车次列表(REQ-1-1)
+            expectation: 车次列表展示查询结果。
+          - action: 点击表头的“出发时间”
+            expectation: “出发时间”右侧的箭头变为向下，且填充为橙色，车次列表按出发时间降序排序。
+      - name: 按历时降序排序
+        steps:
+          - action: 查询车次列表(REQ-1-1)
+            expectation: 车次列表展示查询结果。
+          - action: 点击表头的“历时”
+            expectation: “历时”右侧的箭头变为向下，且填充为橙色，车次列表按历时降序排序。
