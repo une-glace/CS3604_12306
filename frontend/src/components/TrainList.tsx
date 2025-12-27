@@ -135,6 +135,12 @@ const TrainList: React.FC<TrainListProps> = ({ trains, onTrainSelect, fromStatio
       if (seatValue === '候补') {
         return <span className="seat-waitlist">候补</span>;
       }
+      if (seatValue === '无') {
+        return <span className="seat-unavailable">无</span>;
+      }
+      if (/^\d+$/.test(seatValue)) {
+        return <span className="seat-available">{seatValue}</span>;
+      }
       return <span className="seat-available">{seatValue}</span>;
     }
     

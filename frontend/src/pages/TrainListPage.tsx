@@ -104,6 +104,7 @@ const TrainListPage: React.FC = () => {
     if (si['硬座']) seats.hardSeat = fmt(si['硬座']);
     if (si['硬卧']) seats.hardSleeper = fmt(si['硬卧']);
     if (si['软卧']) seats.softSleeper = fmt(si['软卧']);
+    if (si['无座']) seats.noSeat = fmt(si['无座']);
     const canBook = Object.keys(si).length === 0
       ? true
       : Object.values(si).some((x) => x && x.availableSeats > 0);
@@ -135,7 +136,7 @@ const TrainListPage: React.FC = () => {
       }
       setLoading(true);
       try {
-        const { searchTrains } = await import('../services/trainService');
+        const { searchTrains, getTrainDetail } = await import('../services/trainService');
         
         const searchParams: {
           fromStation: string;
@@ -192,7 +193,28 @@ const TrainListPage: React.FC = () => {
         }
         
         const list = await searchTrains(searchParams);
-        const mapped = list.map(mapToTrainInfo);
+        let enriched = list;
+        if (Array.isArray(list) && list.length > 0) {
+          const missing = list.filter(x => !x.seatInfo || Object.keys(x.seatInfo).length === 0);
+          if (missing.length > 0) {
+            const details = await Promise.all(missing.map(x => getTrainDetail(x.trainNumber, departDate).catch(() => null)));
+            const detailMap = new Map<string, SearchTrainItem['seatInfo']>();
+            missing.forEach((m, i) => {
+              const d = details[i];
+              if (d && d.seatInfo && Object.keys(d.seatInfo).length > 0) {
+                detailMap.set(m.trainNumber, d.seatInfo as unknown as SearchTrainItem['seatInfo']);
+              }
+            });
+            enriched = list.map(x => {
+              if (!x.seatInfo || Object.keys(x.seatInfo).length === 0) {
+                const si = detailMap.get(x.trainNumber);
+                return si ? { ...x, seatInfo: si } : x;
+              }
+              return x;
+            });
+          }
+        }
+        const mapped = enriched.map(mapToTrainInfo);
 
         setTrains(mapped);
         setFilteredTrains(mapped);

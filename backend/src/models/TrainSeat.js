@@ -10,6 +10,7 @@ const TrainSeat = sequelize.define('TrainSeat', {
   trainNumber: {
     type: DataTypes.STRING(20),
     allowNull: false,
+    field: 'train_number',
     references: {
       model: 'trains',
       key: 'train_number'
@@ -24,16 +25,19 @@ const TrainSeat = sequelize.define('TrainSeat', {
   seatType: {
     type: DataTypes.ENUM('商务座', '特等座', '优选一等座', '一等座', '二等座', '硬卧', '软卧', '硬座', '无座'),
     allowNull: false,
+    field: 'seat_type',
     comment: '座位类型'
   },
   totalSeats: {
     type: DataTypes.INTEGER,
     allowNull: false,
+    field: 'total_seats',
     comment: '总座位数'
   },
   availableSeats: {
     type: DataTypes.INTEGER,
     allowNull: false,
+    field: 'available_seats',
     comment: '可用座位数'
   },
   price: {
@@ -44,11 +48,13 @@ const TrainSeat = sequelize.define('TrainSeat', {
   createdAt: {
     type: DataTypes.DATE,
     defaultValue: DataTypes.NOW,
+    field: 'created_at',
     comment: '创建时间'
   },
   updatedAt: {
     type: DataTypes.DATE,
     defaultValue: DataTypes.NOW,
+    field: 'updated_at',
     comment: '更新时间'
   }
 }, {

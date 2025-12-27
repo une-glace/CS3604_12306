@@ -1,7 +1,7 @@
 const request = require('supertest');
 const app = require('../src/app');
 const { seedData } = require('../src/scripts/seedData');
-const { testConnection, syncDatabase, sequelize } = require('../src/models');
+const { testConnection, syncDatabase, sequelize, TrainSeat } = require('../src/models');
 
 describe('Order API', () => {
   let token;
@@ -23,6 +23,12 @@ describe('Order API', () => {
     });
     token = reg.body.data.token;
     await seedData();
+    const futureDate = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+    await TrainSeat.findOrCreate({
+      where: { trainNumber: 'G101', date: futureDate, seatType: '二等座' },
+      defaults: { totalSeats: 200, availableSeats: 200, price: 553 }
+    });
+    global.__FUTURE_DATE__ = futureDate;
   });
 
   it('creates order and updates status to paid', async () => {
@@ -33,7 +39,7 @@ describe('Order API', () => {
         to: '上海虹桥',
         departureTime: '08:00',
         arrivalTime: '13:28',
-        date: '2025-12-15',
+        date: global.__FUTURE_DATE__,
         duration: '5小时28分'
       },
       passengers: [{
