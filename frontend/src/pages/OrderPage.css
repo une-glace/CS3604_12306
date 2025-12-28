@@ -1202,7 +1202,7 @@
 .pay-total-row .total-val { color: #de8920; font-weight: 400; font-size: 12px; }
 .pay-divider { height: 1px; background: #9ec9ff; margin: 8px 0; }
 .pay-action-row { display: flex; justify-content: center; gap: 12px; padding: 8px 0; }
-.cancel-btn { border: 1px solid #cfe1ff; background: #fff; color: #333; border-radius: 4px; padding: 6px 16px; cursor: pointer; max-width: 100px; }
+.cancel-btn { border: 1px solid #cfe1ff; background: #fff; color: #333; border-radius: 4px; padding: 0px 0px; cursor: pointer; max-width: 100px; }
 .pay-btn { background: #fa8c16; color: #fff; border: none; border-radius: 4px; padding: 6px 16px; cursor: pointer; }
 .pay-btn:hover { background: #f57c00; }
 .detail-passenger-table .pay-table-header, .detail-passenger-table .pay-table-row { grid-template-columns: 60px 60px 100px 1fr 100px 100px 80px 100px 120px 100px; }
