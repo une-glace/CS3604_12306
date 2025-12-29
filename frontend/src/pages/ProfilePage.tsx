@@ -1516,7 +1516,7 @@ const ProfilePage: React.FC = () => {
                             <button className="ops-btn" disabled>购/赔/退保险</button>
                             <button className="ops-btn" disabled={order.status === 'changed' || order.status === 'cancelled' || order.status === 'refunded' || order.status === 'completed'} onClick={() => handleChangeTicketClick(order)}>改签</button>
                             <button className="ops-btn" disabled>变更到站</button>
-                            <button className="ops-btn" onClick={() => {
+                            <button className="ops-btn" disabled={order.status === 'refunded' || order.status === 'changed'} onClick={() => {
                               const params = new URLSearchParams();
                               if (order.date) params.set('date', order.date);
                               if (order.trainNumber) params.set('train', order.trainNumber);
