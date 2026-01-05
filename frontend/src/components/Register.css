@@ -582,6 +582,13 @@
   font-size: 12px;
 }
 
+/* 加宽完成注册按钮 */
+.register-container .submit-btn {
+  padding: 0 0px;
+  min-width: 120px;
+  min-height: 48px;
+}
+
 .submit-btn:disabled {
   background: #f5f5f5;
   color: #bfbfbf;

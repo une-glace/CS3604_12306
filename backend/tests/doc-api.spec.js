@@ -25,10 +25,12 @@ describe('12306 文档映射 API', () => {
         status: 'active'
       }
     });
+    const futureDate = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
     await TrainSeat.findOrCreate({
-      where: { trainNumber: 'G101', date: '2025-12-15', seatType: '二等座' },
+      where: { trainNumber: 'G101', date: futureDate, seatType: '二等座' },
       defaults: { totalSeats: 200, availableSeats: 200, price: 553 }
     });
+    global.__FUTURE_DATE__ = futureDate;
   });
 
   afterAll(async () => {
@@ -136,7 +138,7 @@ describe('12306 文档映射 API', () => {
   it('鉴于存在北京南→上海虹桥的车次；当 按日期查询；那么 返回至少一条且包含 G101', async () => {
     const res = await request(app)
       .get('/api/v1/trains/search')
-      .query({ fromStation: '北京南', toStation: '上海虹桥', departureDate: '2025-12-15' });
+      .query({ fromStation: '北京南', toStation: '上海虹桥', departureDate: global.__FUTURE_DATE__ });
     expect(res.status).toBe(200);
     const trains = res.body?.data?.trains || res.body?.data || [];
     expect(trains.length).toBeGreaterThan(0);
@@ -151,7 +153,7 @@ describe('12306 文档映射 API', () => {
         to: '上海虹桥',
         departureTime: '08:00',
         arrivalTime: '13:28',
-        date: '2025-12-15',
+        date: global.__FUTURE_DATE__,
         duration: '5小时28分'
       },
       passengers: [{

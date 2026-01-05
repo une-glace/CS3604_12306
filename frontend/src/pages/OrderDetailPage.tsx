@@ -317,7 +317,14 @@ const OrderDetailPage: React.FC = () => {
 
               <div className="pay-divider" />
               <div className="pay-action-row">
-                <button className="ins-btn" type="button">餐饮•特产</button>
+                <button className="ins-btn" type="button" onClick={() => {
+                  const params = new URLSearchParams();
+                  if (order?.departureDate) params.set('date', order.departureDate);
+                  if (order?.trainNumber) params.set('train', order.trainNumber);
+                  if (order?.fromStation) params.set('from', order.fromStation);
+                  if (order?.toStation) params.set('to', order.toStation);
+                  navigate(`/catering/book?${params.toString()}`);
+                }}>餐饮•特产</button>
                 <button className="ins-btn" type="button" onClick={() => navigate('/train-list')}>继续购票</button>
                 <button className="pay-btn" type="button" onClick={() => navigate('/profile?section=orders')}>查看订单详情</button>
               </div>

@@ -76,6 +76,43 @@ const models = {
   sequelize
 };
 
+const fixSqliteTrainSeatsUnique = async () => {
+  const dialect = sequelize.getDialect();
+  if (dialect !== 'sqlite') return;
+  const [rows] = await sequelize.query("SELECT sql FROM sqlite_master WHERE type='table' AND name='train_seats';");
+  const createSql = rows && rows[0] && rows[0].sql;
+  if (!createSql) return;
+  const hasBadUnique =
+    /`train_number`[^,]*UNIQUE/i.test(createSql) ||
+    /`date`[^,]*UNIQUE/i.test(createSql) ||
+    /`seat_type`[^,]*UNIQUE/i.test(createSql);
+  if (!hasBadUnique) return;
+  await sequelize.transaction(async (t) => {
+    await sequelize.query(
+      "CREATE TABLE IF NOT EXISTS `train_seats_new` (`id` INTEGER PRIMARY KEY, `train_number` VARCHAR(20) NOT NULL REFERENCES `trains` (`train_number`), `date` DATE NOT NULL, `seat_type` TEXT NOT NULL, `total_seats` INTEGER NOT NULL, `available_seats` INTEGER NOT NULL, `price` DECIMAL(8,2) NOT NULL, `created_at` DATETIME, `updated_at` DATETIME);",
+      { transaction: t }
+    );
+    await sequelize.query(
+      "INSERT OR IGNORE INTO `train_seats_new` (`id`,`train_number`,`date`,`seat_type`,`total_seats`,`available_seats`,`price`,`created_at`,`updated_at`) SELECT `id`,`train_number`,`date`,`seat_type`,`total_seats`,`available_seats`,`price`,`created_at`,`updated_at` FROM `train_seats`;",
+      { transaction: t }
+    );
+    await sequelize.query("DROP TABLE `train_seats`;", { transaction: t });
+    await sequelize.query("ALTER TABLE `train_seats_new` RENAME TO `train_seats`;", { transaction: t });
+    await sequelize.query(
+      "CREATE INDEX IF NOT EXISTS `train_seats_train_number_date` ON `train_seats` (`train_number`, `date`);",
+      { transaction: t }
+    );
+    await sequelize.query(
+      "CREATE INDEX IF NOT EXISTS `train_seats_seat_type` ON `train_seats` (`seat_type`);",
+      { transaction: t }
+    );
+    await sequelize.query(
+      "CREATE UNIQUE INDEX IF NOT EXISTS `train_seats_train_number_date_seat_type` ON `train_seats` (`train_number`, `date`, `seat_type`);",
+      { transaction: t }
+    );
+  });
+};
+
 // 测试数据库连接
 const testConnection = async () => {
   try {
@@ -91,7 +128,12 @@ const testConnection = async () => {
 const syncDatabase = async (force = false) => {
   try {
     const alter = !force;
-    await sequelize.sync({ force, alter });
+    const dialect = sequelize.getDialect();
+    const opts = { force, alter };
+    if (dialect === 'sqlite') {
+      opts.alter = false;
+    }
+    await sequelize.sync(opts);
     console.log('✅ 数据库表同步成功');
   } catch (error) {
     console.error('❌ 数据库表同步失败:', error.message);
@@ -102,5 +144,6 @@ const syncDatabase = async (force = false) => {
 module.exports = {
   ...models,
   testConnection,
-  syncDatabase
+  syncDatabase,
+  fixSqliteTrainSeatsUnique
 };

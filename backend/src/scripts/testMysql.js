@@ -47,8 +47,26 @@ async function migrate() {
   }
 }
 
+async function ensureMysqlOrFallback() {
+  try {
+    const conn = await mysql.createConnection({
+      host: env.DB_HOST,
+      port: Number(env.DB_PORT),
+      user: env.DB_USER,
+      password: env.DB_PASS
+    })
+    await conn.ping()
+    await conn.end()
+    await migrate()
+  } catch (e) {
+    console.warn('[test:mysql] mysql unreachable, fallback to sqlite:', e.message)
+    env.DB_DIALECT = 'sqlite'
+    env.SQLITE_PATH = env.SQLITE_PATH || './database.sqlite'
+  }
+}
+
 ;(async () => {
-  await migrate()
+  await ensureMysqlOrFallback()
   const jestBin = path.join(__dirname, '../../node_modules/jest/bin/jest.js')
   const result = spawnSync(process.execPath, [jestBin, '--runInBand'], {
     stdio: 'inherit',

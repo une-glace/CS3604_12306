@@ -216,9 +216,10 @@
 }
 
 .modal-footer {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 12px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 20px;
   padding: 16px 24px;
   border-top: 1px solid #e5e5e5;
   background: #fafafa;
@@ -232,8 +233,8 @@
   font-size: 14px;
   cursor: pointer;
   transition: all 0.2s;
-  min-width: 0; /* 允许按钮自适应为等宽 */
-  width: 100%; /* 在grid列内占满，以保证等宽 */
+  min-width: 140px;
+  white-space: nowrap;
 }
 
 .cancel-btn {

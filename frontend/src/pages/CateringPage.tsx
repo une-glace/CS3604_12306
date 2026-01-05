@@ -1,5 +1,5 @@
-import React, { useMemo, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useMemo, useState, useEffect } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 import { useAuth } from '../contexts/AuthContext';
@@ -8,6 +8,7 @@ import './CateringPage.css';
 
 const CateringPage: React.FC = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const { user, isLoggedIn, logout } = useAuth();
 
   const today = useMemo(() => new Date().toISOString().split('T')[0], []);
@@ -15,6 +16,16 @@ const CateringPage: React.FC = () => {
   const [trainNo, setTrainNo] = useState<string>('');
   const [fromStation, setFromStation] = useState<string>('');
   const [toStation, setToStation] = useState<string>('');
+
+  useEffect(() => {
+    const state = location.state as { trainNo?: string; fromStation?: string; toStation?: string; date?: string } | null;
+    if (state) {
+      if (state.trainNo) setTrainNo(state.trainNo);
+      if (state.fromStation) setFromStation(state.fromStation);
+      if (state.toStation) setToStation(state.toStation);
+      if (state.date) setDate(state.date);
+    }
+  }, [location.state]);
 
   const handleLoginClick = () => navigate('/login');
   const handleRegisterClick = () => navigate('/register');

@@ -1,5 +1,5 @@
 const app = require('./app');
-const { testConnection, syncDatabase, Order, OrderPassenger, TrainSeat } = require('./models');
+const { testConnection, syncDatabase, Order, OrderPassenger, TrainSeat, fixSqliteTrainSeatsUnique } = require('./models');
 const { Op } = require('sequelize');
 const { seedData } = require('./scripts/seedData');
 
@@ -16,9 +16,11 @@ const PORT = process.env.PORT || 3000;
       await testConnection();
       if (process.env.NODE_ENV === 'development' || process.env.NODE_ENV === 'test') {
         await syncDatabase(false);
+        await fixSqliteTrainSeatsUnique();
         await seedData();
       } else {
         await syncDatabase(false);
+        await fixSqliteTrainSeatsUnique();
         try {
           const todayStr = new Date().toISOString().split('T')[0];
           const seatCount = await TrainSeat.count({ where: { date: todayStr } });

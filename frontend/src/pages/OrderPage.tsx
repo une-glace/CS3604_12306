@@ -410,7 +410,7 @@ const OrderPage: React.FC = () => {
 
   const getAvailableSeatTypes = (): string[] => {
     const order = ['商务座','一等座','二等座','软卧','硬卧','一等卧','二等卧','软座','硬座','无座'];
-    const types = seatInfo ? Object.keys(seatInfo) : ['商务座','一等座','二等座','无座'];
+    const types = seatInfo && Object.keys(seatInfo).length > 0 ? Object.keys(seatInfo) : ['商务座','一等座','二等座','无座'];
     return [
       ...order.filter(t => types.includes(t)),
       ...types.filter(t => !order.includes(t))
@@ -467,6 +467,13 @@ const OrderPage: React.FC = () => {
         alert('请选择乘车人');
         return;
       }
+    }
+
+    // 保护：座位信息为空时不允许提交，避免后端报“座位信息不存在”
+    const seatKeys = seatInfo ? Object.keys(seatInfo) : [];
+    if (seatKeys.length === 0) {
+      alert('当前列车的座位信息尚未加载或不可用，请稍后重试或更换日期/车次');
+      return;
     }
 
     // 验证所有必要信息

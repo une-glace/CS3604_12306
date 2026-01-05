@@ -1516,7 +1516,14 @@ const ProfilePage: React.FC = () => {
                             <button className="ops-btn" disabled>购/赔/退保险</button>
                             <button className="ops-btn" disabled={order.status === 'changed' || order.status === 'cancelled' || order.status === 'refunded' || order.status === 'completed'} onClick={() => handleChangeTicketClick(order)}>改签</button>
                             <button className="ops-btn" disabled>变更到站</button>
-                            <button className="ops-btn" onClick={() => navigate('/train-list')}>餐饮•特产</button>
+                            <button className="ops-btn" disabled={order.status === 'refunded' || order.status === 'changed'} onClick={() => {
+                              const params = new URLSearchParams();
+                              if (order.date) params.set('date', order.date);
+                              if (order.trainNumber) params.set('train', order.trainNumber);
+                              if (order.departure) params.set('from', order.departure);
+                              if (order.arrival) params.set('to', order.arrival);
+                              navigate(`/catering/book?${params.toString()}`);
+                            }}>餐饮•特产</button>
                           </div>
                         </div>
                       ))}
