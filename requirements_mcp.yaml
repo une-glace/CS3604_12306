@@ -1,0 +1,421 @@
+id: ROOT
+name: 12306购票系统（实现版）
+description: >
+  基于当前代码实现整理的需求树，重点覆盖首页、认证、车票查询、
+  订票与订单管理、个人中心以及忘记密码流程，并在描述中标注主要 UI 页面路径，
+  方便 MCP 与代码之间建立可追踪的映射关系。
+dependencies: []
+scenarios:
+  - id: ROOT:SCE-0
+    name: 打开首页
+    prerequisites: []
+    steps:
+      - action: 启动前后端服务并访问 http://localhost:5174
+        expectation: >
+          首页成功渲染，导航栏、轮播图和快捷查询面板加载完成。
+          主要页面实现位于 frontend/src/pages/HomePage.tsx，
+          关键组件包括 Navbar.tsx、Carousel.tsx、SearchConditions.tsx、BookingForm.tsx。
+
+children:
+  - id: REQ-ENV-1
+    name: 环境与数据库初始化
+    description: >
+      在本地准备好可用的 SQLite 数据库快照（位于项目根目录的 database.sqlite），
+      其中包含本版系统使用的基础车次与座位数据，
+      以便后续车票查询、下单和餐饮相关需求能够获得一致的数据集。
+    dependencies: []
+    scenarios:
+      - id: REQ-ENV-1:SCE-0
+        name: 使用根目录 database.sqlite 作为数据源
+        prerequisites: []
+        steps:
+          - action: 获取并放置根目录下的 database.sqlite 文件
+            expectation: 项目根目录存在 database.sqlite，AI 或运行环境可以直接连接此 SQLite 文件。
+          - action: 打开 database.sqlite 检查关键表结构
+            expectation: 至少包含与车票相关的车次与座位表（如 trains / train_seats），
+              字段能支撑出发站、到达站、日期、车次号、席别与价格等信息。
+          - action: 通过查询 database.sqlite 中的示例数据验证快照内容
+            expectation: 能查询到包含 G101、D313、K511、G7001 等示例车次，
+              且在 2025-12-15 与 2025-12-16 等日期上有对应座位与价格记录。
+
+  - id: REQ-UI-1
+    name: 首页与主导航
+    description: >
+      提供进入认证、查询、个人中心等模块的统一入口，包含顶栏导航、首页轮播以及快捷查询 UI。
+      对应主要 UI：
+        - frontend/src/pages/HomePage.tsx
+        - frontend/src/components/Navbar.tsx
+        - frontend/src/components/Carousel.tsx
+        - frontend/src/components/SearchConditions.tsx
+        - frontend/src/components/BookingForm.tsx
+    dependencies: []
+    scenarios:
+      - id: REQ-UI-1:SCE-0
+        name: 首页导航展示
+        prerequisites:
+          - ROOT:SCE-0
+        steps:
+          - action: 访问首页
+            expectation: >
+              顶部显示 12306 Logo 与导航栏，包含“首页 / 车票 / 餐饮·特产 / 订单中心 / 个人中心”等入口。
+          - action: 查看页面主体
+            expectation: >
+              中部展示轮播图与购票快捷查询区域，下方有公告与服务入口，与 12306 风格一致。
+
+      - id: REQ-UI-1:SCE-1
+        name: 首页快捷查询入口跳转
+        prerequisites:
+          - ROOT:SCE-0
+        steps:
+          - action: 在首页快捷查询面板选择出发地、目的地与日期，点击“查询”
+            expectation: >
+              使用 BookingForm.tsx 组装查询参数并跳转到车次列表页 /train-list，
+              URL 携带 from、to、date 等查询参数。
+
+    children: []
+
+  - id: REQ-UI-2
+    name: 用户认证 UI（登录 / 注册）
+    description: >
+      支持新用户注册与账号密码登录，成功后首页右上角展示问候语“您好, 用户名”。
+      主要 UI：
+        - frontend/src/components/Login.tsx
+        - frontend/src/components/Register.tsx
+        - frontend/src/components/LoginModal.tsx
+        - frontend/src/contexts/AuthContext.tsx
+    dependencies: []
+    scenarios:
+      - id: REQ-UI-2:SCE-0
+        name: 从首页进入登录与注册
+        prerequisites:
+          - ROOT:SCE-0
+        steps:
+          - action: 点击首页右上角“登录”
+            expectation: >
+              路由跳转到登录页或弹出 LoginModal（依实现），
+              显示用户名、密码输入框与“立即登录”按钮。
+          - action: 点击首页右上角“注册”
+            expectation: >
+              路由跳转到注册页 Register.tsx，展示包含用户名、密码、证件类型、姓名、手机号等字段的表单。
+
+    children:
+      - id: REQ-UI-2-1
+        name: 用户注册页面
+        description: >
+          新用户通过注册表单创建账户，并在后端初始化用户记录。
+          界面实现：frontend/src/components/Register.tsx。
+        dependencies: []
+        scenarios:
+          - id: REQ-UI-2-1:SCE-0
+            name: 成功注册新用户
+            prerequisites:
+              - REQ-UI-2:SCE-0
+            steps:
+              - action: 在注册表单中填写用户名、密码与确认密码
+                expectation: 密码以掩码形式显示，前端校验两次密码一致。
+              - action: 选择证件类型并填写姓名、证件号与手机号等信息
+                expectation: 表单字段显示用户输入，基本格式校验通过。
+              - action: 勾选“我已阅读并同意《用户注册协议》”并点击“下一步”
+                expectation: >
+                  前端调用 /api/v1/auth/register（见 backend/src/controllers/authController.js），
+                  后端校验通过后写入 users 表（backend/src/models/User.js），
+                  页面提示“注册成功”并跳转到登录页。
+
+      - id: REQ-UI-2-2
+        name: 用户登录页面
+        description: >
+          已注册用户通过账号密码登录系统，建立会话并更新前端登录状态。
+          界面实现：frontend/src/components/Login.tsx 与 AuthContext.tsx。
+        dependencies:
+          - REQ-UI-2-1
+        scenarios:
+          - id: REQ-UI-2-2:SCE-0
+            name: 账号密码登录成功
+            prerequisites:
+              - REQ-UI-2:SCE-0
+              - REQ-UI-2-1:SCE-0
+            steps:
+              - action: 在登录页选择“账号登录”，输入用户名和密码
+                expectation: 登录表单展示用户名与密码输入框，密码支持显示/隐藏切换。
+              - action: 点击“立即登录”按钮
+                expectation: >
+                  前端调用 /api/v1/auth/login 接口，后端校验成功后返回 JWT，
+                  AuthContext.tsx 持久化 token 与用户信息，跳转回首页，
+                  顶部导航显示“您好, {realName}”问候语。
+
+  - id: REQ-UI-3
+    name: 车票查询与车次列表 UI
+    description: >
+      用户通过首页或导航进入车次列表页，支持按出发地/目的地/日期查询，并按车次类型与席别筛选。
+      主要 UI：
+        - frontend/src/pages/TrainListPage.tsx
+        - frontend/src/components/FilterConditions.tsx
+        - frontend/src/components/TrainList.tsx
+        - frontend/src/components/SearchConditions.tsx
+    dependencies:
+      - REQ-ENV-1
+      - REQ-UI-1
+    scenarios:
+      - id: REQ-UI-3:SCE-0
+        name: 车次列表页初始化
+        prerequisites:
+          - REQ-ENV-1:SCE-0
+          - REQ-UI-1:SCE-1
+        steps:
+          - action: 使用首页查询入口跳转到 /train-list?from=北京南&to=上海虹桥&date=2025-12-15
+            expectation: >
+              TrainListPage.tsx 根据 URL 查询参数调用前端 trainService.searchTrains，
+              并渲染顶部查询条件栏、筛选区域和车次列表。
+
+      - id: REQ-UI-3:SCE-1
+        name: 车次筛选与条件修改
+        prerequisites:
+          - REQ-UI-3:SCE-0
+        steps:
+          - action: 在 FilterConditions.tsx 中仅勾选 “D-动车”
+            expectation: 车次列表 UI 仅展示车次号以 D 开头的车次。
+          - action: 在席别筛选中仅选择“一等座”
+            expectation: 车次列表仅保留包含一等座余票信息的车次。
+          - action: 在顶部查询栏修改出发地为“南京”，目的地为“上海”，重新点击“查询”
+            expectation: URL 查询参数更新，列表刷新为南京到上海的车次数据。
+
+      - id: REQ-UI-3:SCE-2
+        name: 车次列表展示与预订入口
+        prerequisites:
+          - REQ-UI-3:SCE-0
+        steps:
+          - action: 浏览 TrainList.tsx 渲染的车次项
+            expectation: >
+              每条车次展示车次号、出发/到达站、时间、历时、席别价格与余票，
+              不同类型车次使用不同样式（G/D/K 等）。
+          - action: 在某条车次上点击“预订”按钮
+            expectation: 路由跳转到订单填写页 /order 或 /order/confirm，并携带选中车次及日期信息。
+
+    children: []
+
+  - id: REQ-UI-4
+    name: 订单创建与支付 UI
+    description: >
+      包含从车次列表发起预订、在订单页选择乘车人与席别、提交订单、
+      以及支付流程和订单中心查看。
+      主要 UI：
+        - frontend/src/pages/OrderPage.tsx
+        - frontend/src/pages/PayOrderPage.tsx
+        - frontend/src/pages/OrderDetailPage.tsx
+        - frontend/src/pages/OrderPage.tsx
+        - frontend/src/components/OrderConfirmModal.tsx
+        - frontend/src/components/PaymentModal.tsx
+        - frontend/src/components/OrderProcessing.tsx
+    dependencies:
+      - REQ-UI-2
+      - REQ-UI-3
+      - REQ-UI-5
+    scenarios:
+      - id: REQ-UI-4:SCE-0
+        name: 订单填写页
+        prerequisites:
+          - REQ-UI-3:SCE-2
+          - REQ-UI-5:SCE-0
+        steps:
+          - action: 在车次列表点击“预订”后进入订单页
+            expectation: >
+              OrderPage.tsx 渲染所选车次信息与乘车人选择区域，
+              默认勾选当前账号的常用乘车人。
+          - action: 勾选或切换乘车人，并选择席别（二等座等）
+            expectation: UI 中价格与总金额实时更新。
+
+      - id: REQ-UI-4:SCE-1
+        name: 提交订单并查看订单中心
+        prerequisites:
+          - REQ-UI-4:SCE-0
+        steps:
+          - action: 在订单页点击“提交订单”
+            expectation: >
+              前端调用 /api/v1/orders 接口创建订单（backend/src/controllers/orderController.js），
+              返回订单号并跳转到订单详情或订单中心页面。
+          - action: 进入“订单中心 / 火车票订单 / 未完成订单”
+            expectation: >
+              OrderPage.tsx / OrderDetailPage.tsx 从后端拉取订单列表，
+              展示待支付订单，并提供“去支付”按钮。
+
+      - id: REQ-UI-4:SCE-2
+        name: 模拟支付完成
+        prerequisites:
+          - REQ-UI-4:SCE-1
+        steps:
+          - action: 在未完成订单列表点击“去支付”
+            expectation: >
+              弹出 PaymentModal.tsx 或跳转 PayOrderPage.tsx，
+              显示订单金额与支付确认按钮。
+          - action: 点击“确认支付”
+            expectation: >
+              前端调用支付接口（模拟），后端将订单状态更新为已支付，
+              UI 给出成功提示并在“未出行订单”选项卡中展示该订单。
+
+  - id: REQ-UI-5
+    name: 个人中心与乘车人管理 UI
+    description: >
+      用户在个人中心查看个人信息并管理常用乘车人，包括新增与删除乘客。
+      主要 UI：
+        - frontend/src/pages/ProfilePage.tsx
+        - frontend/src/components/AddPassengerModal.tsx
+    dependencies:
+      - REQ-UI-2
+    scenarios:
+      - id: REQ-UI-5:SCE-0
+        name: 进入个人中心并查看个人信息
+        prerequisites:
+          - REQ-UI-2-2:SCE-0
+        steps:
+          - action: 在登录状态下点击导航栏“我的12306”或用户名
+            expectation: 路由跳转到 ProfilePage.tsx，左侧显示“个人信息 / 乘车人 / 订单中心”等菜单。
+          - action: 点击“个人信息”标签
+            expectation: 右侧展示当前用户姓名、手机号、邮箱等基本信息，并支持编辑联系方式。
+
+      - id: REQ-UI-5:SCE-1
+        name: 常用乘车人管理
+        prerequisites:
+          - REQ-UI-5:SCE-0
+        steps:
+          - action: 在个人中心点击“乘车人”菜单
+            expectation: 展示当前账号关联的乘车人列表，至少包含账号本人。
+          - action: 点击“添加”按钮
+            expectation: >
+              弹出 AddPassengerModal.tsx，表单包含姓名、证件类型、证件号、手机号、乘客类型等字段。
+          - action: 填写合法信息并保存
+            expectation: >
+              前端调用 /api/v1/passengers 接口新增乘客（backend/src/controllers/passengerController.js），
+              列表刷新并展示新添加的乘车人。
+          - action: 在列表中对某乘客点击“删除”
+            expectation: >
+              弹出删除确认框，确认后调用删除接口，
+              成功则从列表中移除该乘客（账号本人不可删除）。
+
+  - id: REQ-UI-6
+    name: 忘记密码四步向导 UI
+    description: >
+      为遗忘密码的用户提供通过手机验证码找回密码的四步流程。
+      主要 UI：
+        - frontend/src/pages/ForgotPasswordPage.tsx
+        - frontend/src/pages/ForgotPasswordVerifyPage.tsx
+        - frontend/src/pages/ForgotPasswordResetPage.tsx
+        - frontend/src/pages/ForgotPasswordDonePage.tsx
+        - 对应 UI 元信息已登记于 .artifacts/ui_interface.yml 中（UI-ForgotPasswordStep1~Done）。
+    dependencies:
+      - REQ-UI-2
+    scenarios:
+      - id: REQ-UI-6:SCE-0
+        name: 第一步－填写账户信息
+        prerequisites: []
+        steps:
+          - action: 在登录页点击“忘记密码”链接
+            expectation: 跳转到 ForgotPasswordPage.tsx，展示国家码、手机号、证件类型与证件号输入框。
+          - action: 填写正确的手机与证件信息并提交
+            expectation: >
+              调用后端初始化接口（如 /api/v1/auth/forgot-password/init），
+              校验通过后进入第二步页面。
+
+      - id: REQ-UI-6:SCE-1
+        name: 第二步－输入验证码
+        prerequisites:
+          - REQ-UI-6:SCE-0
+        steps:
+          - action: 在 ForgotPasswordVerifyPage.tsx 点击“获取手机验证码”
+            expectation: 前端调用发送验证码接口，进入倒计时并限制重复发送频率。
+          - action: 输入收到的验证码并提交
+            expectation: >
+              验证码正确则后端返回重置令牌，页面跳转到第三步设置新密码。
+
+      - id: REQ-UI-6:SCE-2
+        name: 第三步－设置新密码
+        prerequisites:
+          - REQ-UI-6:SCE-1
+        steps:
+          - action: 在 ForgotPasswordResetPage.tsx 输入新密码与确认密码
+            expectation: 本地校验密码策略与两次输入一致，不符合时提示错误并阻止提交。
+          - action: 点击“提交”按钮
+            expectation: >
+              调用密码重置接口，成功后进入完成页，
+              旧会话与重置令牌失效。
+
+      - id: REQ-UI-6:SCE-3
+        name: 第四步－完成页
+        prerequisites:
+          - REQ-UI-6:SCE-2
+        steps:
+          - action: 浏览 ForgotPasswordDonePage.tsx
+            expectation: >
+              页面显示“新密码设置成功，您可以使用新密码登录系统！”提示，
+              并提供“登录系统”链接，点击后返回登录页。
+
+  - id: REQ-UI-7
+    name: 餐饮•特产预订 UI
+    description: >
+      为乘车旅客提供列车自营商品与车站品牌餐饮的预订入口，包括餐饮首页、
+      预订列表页以及具体品牌商家页。
+      主要 UI：
+        - frontend/src/pages/CateringPage.tsx
+        - frontend/src/pages/CateringBookingPage.tsx
+        - frontend/src/pages/CateringVendorPage.tsx
+    dependencies:
+      - REQ-ENV-1
+      - REQ-UI-2
+    scenarios:
+      - id: REQ-UI-7:SCE-0
+        name: 餐饮首页查询入口
+        prerequisites:
+          - REQ-ENV-1:SCE-0
+          - ROOT:SCE-0
+        steps:
+          - action: 通过导航栏点击“餐饮•特产”进入 /catering
+            expectation: >
+              渲染 CateringPage.tsx，顶部沿用 12306 头部与导航，下方展示餐饮主视觉与搜索条。
+          - action: 在餐饮搜索条选择日期并填写车次、乘车站、到达站后点击“搜索”
+            expectation: >
+              组装查询参数并跳转到 /catering/book?date=...&train=...&from=...&to=...，
+              进入餐饮预订列表页。
+
+      - id: REQ-UI-7:SCE-1
+        name: 餐饮预订列表与列车自营商品
+        prerequisites:
+          - REQ-UI-7:SCE-0
+        steps:
+          - action: 在 /catering/book 页面查看顶部筛选区域
+            expectation: >
+              CateringBookingPage.tsx 渲染乘车日期、车次、乘车站、到达站等过滤条件，
+              支持修改后重新“查询”刷新 URL 参数。
+          - action: 浏览“列车自营商品”区域
+            expectation: >
+              页面展示 15/30/40 元冷链餐等自营商品卡片，含图片、名称与价格。
+
+      - id: REQ-UI-7:SCE-2
+        name: 配送站商家列表筛选
+        prerequisites:
+          - REQ-UI-7:SCE-1
+        steps:
+          - action: 在配送站区域勾选或取消乘车站、到达站复选框
+            expectation: 仅展示被选中站点对应的餐饮商家列表。
+          - action: 勾选“显示可预订商家”
+            expectation: 过滤掉状态为休息中的商家，仅保留可预订商家卡片。
+          - action: 在某站点商家网格中查看商家卡片
+            expectation: >
+              每个商家卡片显示品牌名称、起送费、配送费与取餐时间，
+              不同状态显示“可预订”或“休息中”标识。
+
+      - id: REQ-UI-7:SCE-3
+        name: 进入品牌商家页并查看商品
+        prerequisites:
+          - REQ-UI-7:SCE-2
+        steps:
+          - action: 在餐饮预订列表页点击某个商家卡片
+            expectation: >
+              通过 URLSearchParams 组装 name、brand、station 等参数，
+              跳转到 /catering/vendor?name=...&brand=... 页面。
+          - action: 在品牌商家页查看头部信息
+            expectation: >
+              CateringVendorPage.tsx 展示品牌 Logo、门店名称、联系电话、营业时间、
+              起送费、配送费以及下单/退单截止时间。
+          - action: 浏览“所有商品”标签下的商品网格
+            expectation: >
+              商品列表展示菜品图片、名称与价格，顶部标签允许在“所有商品 / 评价 / 商家”
+              三个 Tab 之间切换。

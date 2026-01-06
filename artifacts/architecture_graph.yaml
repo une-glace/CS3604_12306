@@ -1,0 +1,109 @@
+nodes:
+  ROOT:
+    type: REQUIREMENT
+    name: 12306购票系统（实现版）
+    description: |
+      基于当前代码实现整理的需求树，重点覆盖首页、认证、车票查询、 订票与订单管理、个人中心以及忘记密码流程，并在描述中标注主要 UI 页面路径， 方便 MCP 与代码之间建立可追踪的映射关系。
+  REQ-UI-1:
+    type: REQUIREMENT
+    name: 首页与主导航
+    description: |
+      提供进入认证、查询、个人中心等模块的统一入口，包含顶栏导航、首页轮播以及快捷查询 UI。 对应主要 UI：
+        - frontend/src/pages/HomePage.tsx
+        - frontend/src/components/Navbar.tsx
+        - frontend/src/components/Carousel.tsx
+        - frontend/src/components/SearchConditions.tsx
+        - frontend/src/components/BookingForm.tsx
+  REQ-UI-2:
+    type: REQUIREMENT
+    name: 用户认证 UI（登录 / 注册）
+    description: |
+      支持新用户注册与账号密码登录，成功后首页右上角展示问候语“您好, 用户名”。 主要 UI：
+        - frontend/src/components/Login.tsx
+        - frontend/src/components/Register.tsx
+        - frontend/src/components/LoginModal.tsx
+        - frontend/src/contexts/AuthContext.tsx
+  REQ-UI-2-1:
+    type: REQUIREMENT
+    name: 用户注册页面
+    description: |
+      新用户通过注册表单创建账户，并在后端初始化用户记录。 界面实现：frontend/src/components/Register.tsx。
+  REQ-UI-2-2:
+    type: REQUIREMENT
+    name: 用户登录页面
+    description: |
+      已注册用户通过账号密码登录系统，建立会话并更新前端登录状态。 界面实现：frontend/src/components/Login.tsx 与 AuthContext.tsx。
+  REQ-UI-3:
+    type: REQUIREMENT
+    name: 车票查询与车次列表 UI
+    description: |
+      用户通过首页或导航进入车次列表页，支持按出发地/目的地/日期查询，并按车次类型与席别筛选。 主要 UI：
+        - frontend/src/pages/TrainListPage.tsx
+        - frontend/src/components/FilterConditions.tsx
+        - frontend/src/components/TrainList.tsx
+        - frontend/src/components/SearchConditions.tsx
+  REQ-UI-4:
+    type: REQUIREMENT
+    name: 订单创建与支付 UI
+    description: |
+      包含从车次列表发起预订、在订单页选择乘车人与席别、提交订单、 以及支付流程和订单中心查看。 主要 UI：
+        - frontend/src/pages/OrderPage.tsx
+        - frontend/src/pages/PayOrderPage.tsx
+        - frontend/src/pages/OrderDetailPage.tsx
+        - frontend/src/pages/OrderPage.tsx
+        - frontend/src/components/OrderConfirmModal.tsx
+        - frontend/src/components/PaymentModal.tsx
+        - frontend/src/components/OrderProcessing.tsx
+  REQ-UI-5:
+    type: REQUIREMENT
+    name: 个人中心与乘车人管理 UI
+    description: |
+      用户在个人中心查看个人信息并管理常用乘车人，包括新增与删除乘客。 主要 UI：
+        - frontend/src/pages/ProfilePage.tsx
+        - frontend/src/components/AddPassengerModal.tsx
+  REQ-UI-6:
+    type: REQUIREMENT
+    name: 忘记密码四步向导 UI
+    description: |
+      为遗忘密码的用户提供通过手机验证码找回密码的四步流程。 主要 UI：
+        - frontend/src/pages/ForgotPasswordPage.tsx
+        - frontend/src/pages/ForgotPasswordVerifyPage.tsx
+        - frontend/src/pages/ForgotPasswordResetPage.tsx
+        - frontend/src/pages/ForgotPasswordDonePage.tsx
+        - 对应 UI 元信息已登记于 .artifacts/ui_interface.yml 中（UI-ForgotPasswordStep1~Done）。
+  REQ-UI-7:
+    type: REQUIREMENT
+    name: 餐饮•特产预订 UI
+    description: |
+      为乘车旅客提供列车自营商品与车站品牌餐饮的预订入口，包括餐饮首页、 预订列表页以及具体品牌商家页。 主要 UI：
+        - frontend/src/pages/CateringPage.tsx
+        - frontend/src/pages/CateringBookingPage.tsx
+        - frontend/src/pages/CateringVendorPage.tsx
+edges:
+  - from: ROOT
+    to: REQ-UI-1
+    relation: HAS_CHILD
+  - from: ROOT
+    to: REQ-UI-2
+    relation: HAS_CHILD
+  - from: REQ-UI-2
+    to: REQ-UI-2-1
+    relation: HAS_CHILD
+  - from: REQ-UI-2
+    to: REQ-UI-2-2
+    relation: HAS_CHILD
+  - from: ROOT
+    to: REQ-UI-3
+    relation: HAS_CHILD
+  - from: ROOT
+    to: REQ-UI-4
+    relation: HAS_CHILD
+  - from: ROOT
+    to: REQ-UI-5
+    relation: HAS_CHILD
+  - from: ROOT
+    to: REQ-UI-6
+    relation: HAS_CHILD
+  - from: ROOT
+    to: REQ-UI-7
+    relation: HAS_CHILD

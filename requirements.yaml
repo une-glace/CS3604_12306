@@ -1,0 +1,410 @@
+id: ROOT
+name: 12306购票系统
+description: 基于Web的铁路购票系统，包含用户认证、车票查询、预订、订单管理及个人中心等核心功能，首页参考图片：[image](./reference/index.png)。logo资源位于项目根目录的assets/logo.png，在合适的位置引用图片链接。
+dependencies: []
+scenarios: 
+  - id: ROOT:SCE-0
+    name: 进入首页
+    prerequisites:
+    steps:
+      - action: 默认打开首页
+        expectation: 初始化项目脚手架；页面加载完成，显示首页布局。
+children:
+  - id: REQ-1
+    name: 用户认证模块
+    description: 系统的基础设施，提供用户身份识别与管理能力。
+    dependencies: []
+    scenarios:
+      - id: REQ-1:SCE-0
+        name: 认证模块基础设施初始化
+        prerequisites:
+          - ROOT:SCE-0
+        steps:
+          - action: 初始化认证模块数据库和路由
+            expectation: 在数据库创建 `users` 表（包含id, username, password, id_type, id_card, real_name, phone, type等字段）；前端首页右上角生成”登录“、”注册“入口，分别对应 /login 和 /register 路由及空页面容器。
+    children:
+      - id: REQ-1-1
+        name: 用户注册
+        description: 新用户创建账户，并初始化必要的关联数据。注册表单参考图片：[image](./reference/auth/register.png)
+        dependencies: []
+        scenarios:
+          - id: REQ-1-1:SCE-0
+            name: 进入注册页
+            prerequisites:
+              - ROOT:SCE-0 (位于首页)
+            steps:
+              - action: 点击首页右上角的“注册”
+                expectation: 进入注册表单页
+          - id: REQ-1-1:SCE-1
+            name: 成功注册新用户
+            prerequisites:
+              - REQ-1-1:SCE-0 (已在注册页)
+            steps:
+              - action: 输入用户名、密码及确认密码
+                expectation: 输入框内容可见，密码掩码显示。
+              - action: 选择证件类型并输入姓名、证件号码
+                expectation: 字段完成填写。
+              - action: 选择优惠（待）类型（成人/儿童/学生/残疾军人）
+                expectation: 下拉框选中对应类型。
+              - action: 输入邮箱（可选）、选择手机区号并输入手机号码
+                expectation:
+              - action: 勾选“我已阅读并同意《用户注册协议》”
+                expectation: 复选框被选中。
+              - action: 点击“下一步”按钮
+                expectation: 调用注册接口，后端验证通过，数据库插入用户记录，显示“注册成功”提示，随后跳转至登录页。
+
+      - id: REQ-1-2
+        name: 用户登录
+        description: 验证用户身份并建立会话。登录表单参考图片：[image](./reference/auth/login.png)
+        dependencies:
+          - REQ-1-1
+        scenarios:
+          - id: REQ-1-2:SCE-0
+            name: 进入登录页
+            prerequisites:
+              - ROOT:SCE-0 (位于首页)
+            steps:
+              - action: 点击首页右上角的“登录”
+                expectation: 进入登录表单页
+          - id: REQ-1-2:SCE-1
+            name: 账号密码登录成功
+            prerequisites:
+              - REQ-1-2:SCE-0 (已在登录页)
+              - REQ-1-1:SCE-1 (用户已注册)
+            steps:
+              - action: 确保“账号登录”标签处于激活状态
+                expectation: 显示用户名和密码输入框。
+              - action: 输入用户名/邮箱/手机号
+                expectation:
+              - action: 输入密码（可点击“显示/隐藏”切换可见性）
+                expectation:
+              - action: 点击“立即登录”按钮
+                expectation: 调用登录接口，系统验证通过，后端返回登录成功响应，建立Session，跳转到首页。
+
+  - id: REQ-2
+    name: 车票查询模块
+    description: 查询检索车票。
+    dependencies:
+      - REQ-1
+    scenarios:
+      - id: REQ-2:SCE-0
+        name: 查询模块基础设施初始化
+        prerequisites:
+          - ROOT:SCE-0
+        steps:
+          - action: 初始化车票数据模型
+            expectation: 在数据库创建 `stations` (车站), `trains` (车次), `train_station_mapping` (经停信息) 表；并初始化部分演示数据。
+    children:
+      - id: REQ-2-1
+        name: 首页快捷查询面板
+        description: 快捷查询单程车票，快捷查询面板参考图片：[image](./reference/search/quick_search.png)
+        dependencies: []
+        scenarios:
+          - id: REQ-2-1:SCE-1
+            name: 加载快捷查询面板UI
+            prerequisites:
+              - ROOT:SCE-0 (位于首页)
+            steps:
+              - action: 访问首页
+                expectation: 页面正确渲染快捷查询面板组件，包含出发地、目的地、日期选择及查询按钮。
+        children:
+          - id: REQ-2-1-1
+            name: 出发地快捷输入
+            description: 点击出发地输入框，弹出快捷选择框，支持输入和快捷选择。出发地快捷选择参考图片：[image](./reference/search/quick_address.png)
+            dependencies: []
+            scenarios:
+              - id: REQ-2-1-1:SCE-0
+                name: 输入出发地
+                prerequisites:
+                  - ROOT:SCE-0 (位于首页)
+                steps:
+                  - action: 点击出发地输入框
+                    expectation: 弹出快捷选择框。
+                  - action: 输入城市名称
+                    expectation: 调用车站搜索接口，输入框显示输入的城市名称及联想结果。
+              - id: REQ-2-1-1:SCE-1
+                name: 快捷选择出发地
+                prerequisites:
+                  - ROOT:SCE-0 (位于首页)
+                steps:
+                  - action: 点击出发地输入框
+                    expectation: 弹出快捷选择框。
+                  - action: 选择城市
+                    expectation: 输入框显示选中的城市名称。
+          - id: REQ-2-1-2
+            name: 目的地快捷输入
+            description: 点击目的地输入框，弹出快捷选择框，支持输入和快捷选择。目的地快捷选择参考图片：[image](./reference/search/quick_address.png)
+            dependencies: []
+            scenarios:
+              - id: REQ-2-1-2:SCE-0
+                name: 输入目的地
+                prerequisites:
+                  - ROOT:SCE-0 (位于首页)
+                steps:
+                  - action: 点击目的地输入框
+                    expectation: 弹出快捷选择框。
+                  - action: 输入城市名称
+                    expectation: 调用车站搜索接口，输入框显示输入的城市名称及联想结果。
+              - id: REQ-2-1-2:SCE-1
+                name: 快捷选择目的地
+                prerequisites:
+                  - ROOT:SCE-0 (位于首页)
+                steps:
+                  - action: 点击目的地输入框
+                    expectation: 弹出快捷选择框。
+                  - action: 选择城市
+                    expectation: 输入框显示选中的城市名称。
+          - id: REQ-2-1-3
+            name: 选择出发日期
+            description: 点击出发日期输入框，弹出出发日期选择组件，参考图片：[image](./reference/search/quick_date.png)
+            dependencies: []
+            scenarios:
+              - id: REQ-2-1-3:SCE-0
+                name: 选择出发日期
+                prerequisites:
+                  - ROOT:SCE-0 (位于首页)
+                steps:
+                  - action: 点击出发日期输入框
+                    expectation: 弹出日期选择器，展示本月和下个月日期。
+                  - action: 点击选择日期
+                    expectation: 日期控件显示已选日期，格式为YYYY-MM-DD。
+      - id: REQ-2-2
+        name: 车次列表页
+        description: 展示车次数据，提供查询、筛选功能。参考图片：[image](./reference/search/result.png)
+        dependencies: []
+        scenarios:
+          - id: REQ-2-2:SCE-0
+            name: 车次列表页初始化
+            prerequisites:
+              - ROOT:SCE-0
+            steps:
+              - action: 建立页面路由
+                expectation: 创建 /search 路由及页面骨架。
+          - id: REQ-2-2:SCE-1
+            name: 首页点击进入车次列表
+            prerequisites:
+              - ROOT:SCE-0 (位于首页)
+            steps:
+              - action: 鼠标悬浮于导航栏的“车票”项
+                expectation: 展示下拉菜单，其中包含“单程”选项
+              - action: 点击“单程”选项
+                expectation: 页面展示车次列表页。
+        children:
+          - id: REQ-2-2-1
+            name: 车票查询框
+            description: 位于车票列表页上方的查询框，用于输入查询条件（如出发地、目的地、出发日期）。参考图片：[image](./reference/search/query.png)
+            dependencies:
+              - REQ-2-1-1
+              - REQ-2-1-2
+              - REQ-2-1-3
+            scenarios:
+              - id: REQ-2-1:SCE-1
+                name: 列表页查询单程车票
+                prerequisites:
+                  - REQ-2-2:SCE-0 (位于列表页)
+                steps:
+                  - action: REQ-2-1-1:SCE-0(输入出发地)
+                    expectation: 输入框显示有效的城市名称
+                  - action: REQ-2-1-2:SCE-0(输入目的地)
+                    expectation: 输入框显示有效的城市名称
+                  - action: REQ-2-1-3:SCE-0(选择出发日期)
+                    expectation: 日期控件显示已选日期。
+                  - action: 点击“查询”按钮
+                    expectation: 触发查询逻辑，更新URL参数。
+          - id: REQ-2-2-2
+            name: 车次筛选
+            description: 位于车次列表中查询框下方的筛选框，用于根据条件筛选车次（车次类型、车次席别）。参考图片：[image](./reference/search/filter.png)
+            dependencies: []
+            scenarios:
+              - id: REQ-2-2-2:SCE-0
+                name: 筛选车次
+                prerequisites:
+                  - REQ-2-2:SCE-0 (已查询到车次列表)
+                steps:
+                  - action: 选择车次类型（G-高铁/D-动车/Z-直达/T-特快/K-快速）
+                    expectation: 筛选框显示选中的车次类型，前端过滤列表仅展示选中类型的车次。
+                  - action: 选择车次席别（商务座/一等座/二等座/一等卧/二等卧/软卧/硬卧）
+                    expectation: 筛选框显示选中的车次席别，前端过滤列表仅展示选中席别对应的车次。
+          - id: REQ-2-2-3
+            name: 车次列表
+            description: 位于车次列表页下方，核心功能，调用后端接口展示符合筛选条件的车次列表，参考图片：[image](./reference/search/result.png)
+            dependencies: []
+            scenarios: 
+              - id: REQ-2-2-3:SCE-0
+                name: 展示符合筛选条件的车次列表
+                prerequisites:
+                  - REQ-2-2-1:SCE-0 (已触发查询)
+                steps:
+                  - action: 页面加载或点击查询
+                    expectation: 调用车次查询API (GET /api/trains)，返回数据并渲染车次列表，显示出发/到达时间、历时、票价及余票。
+
+  - id: REQ-3
+    name: 个人中心
+    description: 管理购票所需的常用数据（如查看个人信息，乘车人）。参考图片：[image](./reference/center/self.png)
+    dependencies:
+      - REQ-1
+    scenarios:
+      - id: REQ-3:SCE-0
+        name: 个人中心基础设施初始化
+        prerequisites:
+          - REQ-1-2:SCE-1 (已登录)
+        steps:
+          - action: 初始化个人中心布局
+            expectation: 创建 /center 路由，生成包含侧边栏导航（个人信息、乘车人）的布局容器。
+          - action: 首页点击右上角“我的12306”
+            expectation: 进入个人中心页面。
+    children:
+      - id: REQ-3-1
+        name: 查看个人信息
+        description: 查看用户基本信息，参考图片：[image](./reference/center/info.png)
+        dependencies: []
+        scenarios:
+          - id: REQ-3-1:SCE-0
+            name: 查看个人信息
+            prerequisites:
+              - REQ-1-2:SCE-1 (已登录)
+              - REQ-3:SCE-0 (已进入个人中心页)
+            steps:
+              - action: 点击“个人信息”选项卡
+                expectation: 展开选项卡列表
+              - action: 点击“查看个人信息”选项卡
+                expectation: 调用用户信息接口，展示用户基本信息（如姓名、手机号、邮箱）。
+      - id: REQ-3-2
+        name: 乘车人管理
+        description: 管理账户关联乘车人，参考图片：[image](./reference/center/passenger.png)
+        dependencies: []
+        scenarios:
+          - id: REQ-3-2:SCE-0
+            name: 乘车人模块初始化与列表查看
+            prerequisites:
+              - REQ-1-2:SCE-1 (已登录)
+              - REQ-3:SCE-0 (已进入个人中心页)
+            steps:
+              - action: 初始化乘车人数据表
+                expectation: 在数据库创建 `passengers` 表（包含id, name, id_type, id_no, phone, user_id等）。
+              - action: 点击“乘车人”选项卡并选择“查看乘车人”
+                expectation: 调用获取乘车人列表接口，展示用户已添加的乘车人列表。
+        children:
+          - id: REQ-3-2-1
+            name: 添加乘车人
+            description: 添加新的乘车人，添加乘车人表单参考图片：[image](./reference/center/add_passenger.png)
+            dependencies: []
+            scenarios:
+              - id: REQ-3-2-1:SCE-0
+                name: 添加乘车人
+                prerequisites:
+                  - REQ-1-2:SCE-1 (已登录)
+                  - REQ-3-2:SCE-0 (已进入乘车人管理页)
+                steps:
+                  - action: 点击“添加”按钮
+                    expectation: 弹出添加乘车人表单。
+                  - action: 填写乘车人姓名、证件类型、证件号码、手机号/电话
+                    expectation: 表单字段显示输入值。
+                  - action: 点击“保存”按钮
+                    expectation: 调用添加API，校验通过，添加乘车人到数据库并刷新列表。
+          - id: REQ-3-2-2
+            name: 删除乘车人
+            description: 删除已添加的乘车人，不能删除账号本人，删除确认框参考图片：[image](./reference/center/delete_passenger.png)
+            dependencies: []
+            scenarios:
+              - id: REQ-3-2-2:SCE-0
+                name: 删除乘车人
+                prerequisites:
+                  - REQ-1-2:SCE-1 (已登录)
+                  - REQ-3-2:SCE-0 (已进入乘车人管理页)
+                steps:
+                  - action: 点击乘车人列表项的“删除”按钮
+                    expectation: 弹出确认删除弹窗。
+                  - action: 点击“确定”按钮
+                    expectation: 调用删除API，校验通过，从数据库删除乘车人并刷新列表。
+
+  - id: REQ-4
+    name: 订单管理模块
+    description: 核心业务流程，预订车次，生成订单；查看、取消和支付订单。
+    dependencies:
+      - REQ-1
+      - REQ-2
+      - REQ-3
+    scenarios:
+      - id: REQ-4:SCE-0
+        name: 订单模块基础设施初始化
+        prerequisites:
+          - ROOT:SCE-0
+        steps:
+          - action: 初始化订单数据模型
+            expectation: 在数据库创建 `orders` (订单主表) 和 `order_items` (订单详情/车票表)，定义状态枚举（未支付/已支付/已取消）。
+    children:
+      - id: REQ-4-1
+        name: 订单管理页
+        description: 查看订单列表框架。参考图片：[image](./reference/order/order.png)
+        dependencies: []
+        scenarios:
+          - id: REQ-4-1:SCE-0
+            name: 进入订单管理页
+            prerequisites:
+              - REQ-1-2:SCE-1 (已登录)
+              - REQ-3:SCE-0 (已进入个人中心页)
+            steps:
+              - action: 点击左侧导航栏"订单中心"-"火车票订单"
+                expectation: 调用订单列表API，右侧展示选项卡，默认展示未完成订单。
+
+      - id: REQ-4-2
+        name: 预订车次
+        description: 车次列表页点击预订，跳转到订单填写页，生成订单，订单填写页参考图片：[image](./reference/order/book.png)
+        dependencies:
+          - REQ-2-2
+          - REQ-1-2
+          - REQ-3-1
+        scenarios:
+          - id: REQ-4-2:SCE-0
+            name: 预订车次
+            prerequisites:
+              - REQ-1-2:SCE-1 (已登录)
+              - REQ-2-2:SCE-0 (已进入车次列表页)
+            steps:
+              - action: 点击车次后的“预订”按钮
+                expectation: 跳转至订单填写页，回显车次信息。
+              - action: 快捷选择乘车人或输入乘车人姓名，证件号码
+                expectation: 表单字段显示输入值。
+              - action: 点击“提交订单”
+                expectation: 调用下单API，后端创建订单数据，返回订单ID，跳转到订单管理页（或支付页）。
+
+      - id: REQ-4-3
+        name: 取消订单
+        description: 在未完成订单管理页，点击未完成订单的“取消订单”按钮，删除订单，参考图片：[image](./reference/order/cancel.png)
+        dependencies:
+          - REQ-2-2
+          - REQ-1-2
+          - REQ-3-1
+        scenarios:
+          - id: REQ-4-3:SCE-0
+            name: 取消订单
+            prerequisites:
+              - REQ-1-2:SCE-1 (已登录)
+              - REQ-4-2:SCE-0 (已预订车次)
+              - REQ-4-1:SCE-0 (已进入订单管理页)
+            steps:
+              - action: 点击未完成订单的“取消订单”按钮
+                expectation: 弹出确认取消弹窗
+              - action: 点击“确定”按钮
+                expectation: 调用取消订单API，校验通过，更新数据库订单状态，刷新列表。
+
+      - id: REQ-4-4
+        name: 支付订单
+        description: 在未完成订单管理页，点击未完成订单的“支付订单”按钮，跳转到支付页，参考图片：[image](./reference/order/pay.png)
+        dependencies:
+          - REQ-2-2
+          - REQ-1-2
+          - REQ-3-1
+        scenarios:
+          - id: REQ-4-4:SCE-0
+            name: 支付订单
+            prerequisites:
+              - REQ-1-2:SCE-1 (已登录)
+              - REQ-4-2:SCE-0 (已预订车次)
+              - REQ-4-1:SCE-0 (已进入订单管理页)
+            steps:
+              - action: 点击未完成订单的“支付订单”按钮
+                expectation: 调用支付API，模拟支付成功，更新数据库订单状态。
+              - action: 点击“未出行订单”
+                expectation: 展示未出行订单选项卡，包含支付后的订单。
