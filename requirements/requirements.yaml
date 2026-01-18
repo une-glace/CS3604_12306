@@ -1,0 +1,1807 @@
+# 12306 火车票订票系统 - MCP需求文档
+# 版本: 2.0
+# 重点: 功能模块间的跳转流程和状态管理
+
+system:
+  name: "12306火车票订票系统"
+  version: "2.0"
+  description: "基于Web的火车票在线订票系统，支持车票查询、预订、支付和订单管理"
+
+# ============================================
+# 全局状态管理
+# ============================================
+global_state:
+  session:
+    authenticated: boolean  # 用户是否已登录
+    user_id: string         # 当前登录用户ID
+    username: string        # 当前登录用户名
+    token: string           # JWT认证令牌
+    token_expiry: datetime  # 令牌过期时间
+  
+  navigation:
+    current_module: string  # 当前所在模块
+    previous_module: string # 上一个模块（用于返回）
+    pending_action: string  # 登录后待执行的操作
+
+# ============================================
+# 全局导航组件
+# ============================================
+global_navigation:
+  header:
+    component: "AppHeader"
+    location: "所有页面顶部"
+    elements:
+      - id: "logo"
+        text: "12306火车票"
+        action:
+          type: "navigate"
+          target: "/home"
+      - id: "nav_home"
+        text: "首页"
+        action:
+          type: "navigate"
+          target: "/home"
+      - id: "nav_search"
+        text: "车票查询"
+        action:
+          type: "navigate"
+          target: "/search"
+      - id: "nav_orders"
+        text: "我的订单"
+        action:
+          type: "conditional_navigate"
+          condition: "session.authenticated === true"
+          target_if_true: "/orders"
+          target_if_false: "/login"
+          store_pending: "/orders"  # 登录后跳转
+      - id: "nav_passengers"
+        text: "乘车人管理"
+        action:
+          type: "conditional_navigate"
+          condition: "session.authenticated === true"
+          target_if_true: "/passengers"
+          target_if_false: "/login"
+          store_pending: "/passengers"
+      - id: "nav_user"
+        text: "个人中心"
+        condition: "session.authenticated === true"
+        action:
+          type: "navigate"
+          target: "/user/profile"
+      - id: "nav_login"
+        text: "登录"
+        condition: "session.authenticated === false"
+        action:
+          type: "navigate"
+          target: "/login"
+      - id: "nav_register"
+        text: "注册"
+        condition: "session.authenticated === false"
+        action:
+          type: "navigate"
+          target: "/register"
+      - id: "nav_logout"
+        text: "退出"
+        condition: "session.authenticated === true"
+        action:
+          type: "api_call_then_navigate"
+          api: "POST /api/auth/logout"
+          target: "/home"
+          clear_session: true
+
+# ============================================
+# 模块1: 用户认证模块
+# ============================================
+module_auth:
+  name: "用户认证"
+  base_path: "/auth"
+  
+  pages:
+    # 登录页面
+    login:
+      path: "/login"
+      title: "用户登录"
+      requires_auth: false
+      redirect_if_auth: "/home"  # 已登录用户访问时重定向
+      
+      ui_elements:
+        form:
+          id: "login_form"
+          fields:
+            - id: "username"
+              type: "text"
+              label: "用户名/手机号/邮箱"
+              required: true
+              validation:
+                min_length: 3
+                max_length: 50
+            - id: "password"
+              type: "password"
+              label: "密码"
+              required: true
+              validation:
+                min_length: 6
+            - id: "captcha"
+              type: "text"
+              label: "验证码"
+              required: true
+            - id: "remember_me"
+              type: "checkbox"
+              label: "记住我"
+              default: false
+          
+          submit_button:
+            id: "btn_login"
+            text: "登录"
+            action:
+              type: "api_call"
+              method: "POST"
+              endpoint: "/api/auth/login"
+              payload:
+                username: "${form.username}"
+                password: "${form.password}"
+                captcha: "${form.captcha}"
+                remember: "${form.remember_me}"
+              
+              on_success:
+                - action: "store_session"
+                  data:
+                    authenticated: true
+                    user_id: "${response.user_id}"
+                    username: "${response.username}"
+                    token: "${response.token}"
+                - action: "conditional_navigate"
+                  condition: "global_state.navigation.pending_action !== null"
+                  target_if_true: "${global_state.navigation.pending_action}"
+                  target_if_false: "/home"
+                  clear_pending: true
+              
+              on_error:
+                - action: "show_message"
+                  type: "error"
+                  message: "${response.error_message}"
+                - action: "refresh_captcha"
+        
+        links:
+          - id: "link_register"
+            text: "没有账号？立即注册"
+            action:
+              type: "navigate"
+              target: "/register"
+          - id: "link_forgot"
+            text: "忘记密码？"
+            action:
+              type: "navigate"
+              target: "/forgot-password"
+        
+        captcha:
+          id: "captcha_image"
+          api: "GET /api/auth/captcha"
+          refresh_action:
+            id: "btn_refresh_captcha"
+            text: "换一张"
+
+    # 注册页面
+    register:
+      path: "/register"
+      title: "用户注册"
+      requires_auth: false
+      redirect_if_auth: "/home"
+      
+      ui_elements:
+        form:
+          id: "register_form"
+          fields:
+            - id: "username"
+              type: "text"
+              label: "用户名"
+              required: true
+              validation:
+                pattern: "^[a-zA-Z0-9_]{4,20}$"
+                error_message: "用户名为4-20位字母、数字或下划线"
+              async_validation:
+                api: "GET /api/auth/check-username?username=${value}"
+                error_message: "用户名已被使用"
+            - id: "password"
+              type: "password"
+              label: "密码"
+              required: true
+              validation:
+                min_length: 8
+                pattern: "^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d).+$"
+                error_message: "密码需包含大小写字母和数字"
+            - id: "confirm_password"
+              type: "password"
+              label: "确认密码"
+              required: true
+              validation:
+                match_field: "password"
+                error_message: "两次密码输入不一致"
+            - id: "real_name"
+              type: "text"
+              label: "真实姓名"
+              required: true
+            - id: "id_card"
+              type: "text"
+              label: "身份证号"
+              required: true
+              validation:
+                pattern: "^[1-9]\\d{5}(18|19|20)\\d{2}(0[1-9]|1[0-2])(0[1-9]|[12]\\d|3[01])\\d{3}[\\dXx]$"
+                error_message: "请输入有效的身份证号"
+            - id: "phone"
+              type: "text"
+              label: "手机号"
+              required: true
+              validation:
+                pattern: "^1[3-9]\\d{9}$"
+                error_message: "请输入有效的手机号"
+            - id: "email"
+              type: "email"
+              label: "邮箱"
+              required: true
+            - id: "sms_code"
+              type: "text"
+              label: "短信验证码"
+              required: true
+          
+          sms_button:
+            id: "btn_send_sms"
+            text: "获取验证码"
+            cooldown: 60  # 秒
+            action:
+              type: "api_call"
+              method: "POST"
+              endpoint: "/api/auth/send-sms"
+              payload:
+                phone: "${form.phone}"
+          
+          submit_button:
+            id: "btn_register"
+            text: "注册"
+            action:
+              type: "api_call"
+              method: "POST"
+              endpoint: "/api/auth/register"
+              payload:
+                username: "${form.username}"
+                password: "${form.password}"
+                real_name: "${form.real_name}"
+                id_card: "${form.id_card}"
+                phone: "${form.phone}"
+                email: "${form.email}"
+                sms_code: "${form.sms_code}"
+              
+              on_success:
+                - action: "show_message"
+                  type: "success"
+                  message: "注册成功，请登录"
+                - action: "navigate"
+                  target: "/login"
+                  delay: 1500
+              
+              on_error:
+                - action: "show_message"
+                  type: "error"
+                  message: "${response.error_message}"
+        
+        links:
+          - id: "link_login"
+            text: "已有账号？立即登录"
+            action:
+              type: "navigate"
+              target: "/login"
+
+    # 找回密码页面
+    forgot_password:
+      path: "/forgot-password"
+      title: "找回密码"
+      requires_auth: false
+      
+      steps:
+        - step: 1
+          name: "验证身份"
+          fields:
+            - id: "phone"
+              type: "text"
+              label: "注册手机号"
+              required: true
+            - id: "sms_code"
+              type: "text"
+              label: "短信验证码"
+              required: true
+          next_action:
+            type: "api_call"
+            endpoint: "POST /api/auth/verify-phone"
+            on_success:
+              action: "go_to_step"
+              step: 2
+        
+        - step: 2
+          name: "设置新密码"
+          fields:
+            - id: "new_password"
+              type: "password"
+              label: "新密码"
+              required: true
+            - id: "confirm_password"
+              type: "password"
+              label: "确认密码"
+              required: true
+          submit_action:
+            type: "api_call"
+            endpoint: "POST /api/auth/reset-password"
+            on_success:
+              - action: "show_message"
+                message: "密码重置成功"
+              - action: "navigate"
+                target: "/login"
+
+# ============================================
+# 模块2: 车票查询模块
+# ============================================
+module_search:
+  name: "车票查询"
+  base_path: "/search"
+  
+  pages:
+    # 首页/查询表单
+    home:
+      path: "/"
+      alias: ["/home", "/search"]
+      title: "首页 - 车票查询"
+      requires_auth: false
+      
+      ui_elements:
+        search_form:
+          id: "ticket_search_form"
+          fields:
+            - id: "departure_station"
+              type: "autocomplete"
+              label: "出发地"
+              required: true
+              data_source:
+                api: "GET /api/stations/search?keyword=${input}"
+                display_field: "station_name"
+                value_field: "station_code"
+            - id: "arrival_station"
+              type: "autocomplete"
+              label: "目的地"
+              required: true
+              data_source:
+                api: "GET /api/stations/search?keyword=${input}"
+                display_field: "station_name"
+                value_field: "station_code"
+            - id: "swap_stations"
+              type: "button"
+              icon: "swap"
+              action:
+                type: "swap_values"
+                fields: ["departure_station", "arrival_station"]
+            - id: "departure_date"
+              type: "date"
+              label: "出发日期"
+              required: true
+              validation:
+                min: "today"
+                max: "today + 15 days"
+            - id: "train_type"
+              type: "checkbox_group"
+              label: "车次类型"
+              options:
+                - value: "G"
+                  label: "高铁/城际(G/C)"
+                - value: "D"
+                  label: "动车(D)"
+                - value: "Z"
+                  label: "直达(Z)"
+                - value: "T"
+                  label: "特快(T)"
+                - value: "K"
+                  label: "快速(K)"
+                - value: "O"
+                  label: "其他"
+            - id: "only_show_available"
+              type: "checkbox"
+              label: "只看有票"
+              default: false
+          
+          submit_button:
+            id: "btn_search"
+            text: "查询"
+            action:
+              type: "navigate_with_params"
+              target: "/search/results"
+              params:
+                from: "${form.departure_station}"
+                to: "${form.arrival_station}"
+                date: "${form.departure_date}"
+                types: "${form.train_type}"
+                available: "${form.only_show_available}"
+
+    # 查询结果页面
+    results:
+      path: "/search/results"
+      title: "车次查询结果"
+      requires_auth: false
+      
+      data_loading:
+        api: "GET /api/trains/search"
+        params:
+          from_station: "${query.from}"
+          to_station: "${query.to}"
+          departure_date: "${query.date}"
+          train_types: "${query.types}"
+        on_load: "display_results"
+        on_error: "show_no_results"
+      
+      ui_elements:
+        # 查询条件摘要（可修改）
+        search_summary:
+          id: "search_summary_bar"
+          display: "${query.from} → ${query.to} | ${query.date}"
+          edit_action:
+            type: "navigate"
+            target: "/home"
+            preserve_params: true
+        
+        # 筛选和排序
+        filters:
+          id: "result_filters"
+          items:
+            - id: "filter_time"
+              type: "time_range"
+              label: "出发时间"
+              options:
+                - value: "00:00-06:00"
+                  label: "凌晨(00:00-06:00)"
+                - value: "06:00-12:00"
+                  label: "上午(06:00-12:00)"
+                - value: "12:00-18:00"
+                  label: "下午(12:00-18:00)"
+                - value: "18:00-24:00"
+                  label: "晚上(18:00-24:00)"
+            - id: "filter_train_type"
+              type: "checkbox_group"
+              label: "车次类型"
+              options: "同搜索表单"
+            - id: "sort_by"
+              type: "select"
+              label: "排序"
+              options:
+                - value: "departure_time"
+                  label: "出发时间"
+                - value: "arrival_time"
+                  label: "到达时间"
+                - value: "duration"
+                  label: "历时"
+                - value: "price"
+                  label: "票价"
+        
+        # 结果列表
+        results_table:
+          id: "train_results_table"
+          columns:
+            - id: "train_number"
+              label: "车次"
+              click_action:
+                type: "open_modal"
+                modal: "train_detail_modal"
+                params:
+                  train_id: "${row.train_id}"
+                  date: "${query.date}"
+            - id: "departure_info"
+              label: "出发"
+              sub_fields:
+                - "departure_time"
+                - "departure_station"
+            - id: "arrival_info"
+              label: "到达"
+              sub_fields:
+                - "arrival_time"
+                - "arrival_station"
+            - id: "duration"
+              label: "历时"
+            - id: "seat_business"
+              label: "商务座"
+              display: "${count} | ¥${price}"
+              style_when_zero: "gray_out"
+            - id: "seat_first"
+              label: "一等座"
+              display: "${count} | ¥${price}"
+              style_when_zero: "gray_out"
+            - id: "seat_second"
+              label: "二等座"
+              display: "${count} | ¥${price}"
+              style_when_zero: "gray_out"
+            - id: "seat_soft_sleeper"
+              label: "软卧"
+              display: "${count} | ¥${price}"
+              style_when_zero: "gray_out"
+            - id: "seat_hard_sleeper"
+              label: "硬卧"
+              display: "${count} | ¥${price}"
+              style_when_zero: "gray_out"
+            - id: "seat_hard"
+              label: "硬座"
+              display: "${count} | ¥${price}"
+              style_when_zero: "gray_out"
+            - id: "action"
+              label: "操作"
+              button:
+                id: "btn_book_${row.train_id}"
+                text: "预订"
+                disabled_when: "all_seats_zero"
+                action:
+                  type: "conditional_action"
+                  condition: "session.authenticated === true"
+                  action_if_true:
+                    type: "navigate"
+                    target: "/booking/create"
+                    params:
+                      train_id: "${row.train_id}"
+                      date: "${query.date}"
+                      from: "${query.from}"
+                      to: "${query.to}"
+                  action_if_false:
+                    type: "sequence"
+                    steps:
+                      - action: "store_pending_action"
+                        value: "/booking/create?train_id=${row.train_id}&date=${query.date}&from=${query.from}&to=${query.to}"
+                      - action: "show_message"
+                        type: "info"
+                        message: "请先登录后再预订"
+                      - action: "navigate"
+                        target: "/login"
+        
+        # 车次详情弹窗
+        train_detail_modal:
+          id: "train_detail_modal"
+          title: "${train_number} 列车时刻表"
+          data_source:
+            api: "GET /api/trains/${train_id}/schedule?date=${date}"
+          content:
+            table:
+              columns:
+                - "station_no"
+                - "station_name"
+                - "arrival_time"
+                - "departure_time"
+                - "stopover_time"
+          close_button: true
+
+# ============================================
+# 模块3: 订票模块
+# ============================================
+module_booking:
+  name: "订票"
+  base_path: "/booking"
+  
+  pages:
+    # 创建订单页面
+    create:
+      path: "/booking/create"
+      title: "确认订单"
+      requires_auth: true
+      redirect_if_not_auth: "/login"
+      
+      # 页面初始化数据加载
+      on_init:
+        - action: "api_call"
+          endpoint: "GET /api/trains/${query.train_id}/seats"
+          params:
+            date: "${query.date}"
+            from_station: "${query.from}"
+            to_station: "${query.to}"
+          store_as: "available_seats"
+        - action: "api_call"
+          endpoint: "GET /api/passengers"
+          store_as: "passenger_list"
+      
+      ui_elements:
+        # 车次信息展示
+        train_info:
+          id: "selected_train_info"
+          display_fields:
+            - label: "车次"
+              value: "${train_data.train_number}"
+            - label: "出发"
+              value: "${train_data.departure_station} ${train_data.departure_time}"
+            - label: "到达"
+              value: "${train_data.arrival_station} ${train_data.arrival_time}"
+            - label: "日期"
+              value: "${query.date}"
+            - label: "历时"
+              value: "${train_data.duration}"
+          change_action:
+            text: "重新选择"
+            action:
+              type: "navigate"
+              target: "/search/results"
+              preserve_params: true
+        
+        # 座位类型选择
+        seat_selection:
+          id: "seat_type_selector"
+          type: "radio_group"
+          label: "选择席别"
+          data_source: "${available_seats}"
+          option_template:
+            value: "${seat_type_id}"
+            label: "${seat_type_name}"
+            price: "¥${price}"
+            count: "余票${remaining_count}张"
+            disabled_when: "${remaining_count} === 0"
+          on_change:
+            action: "update_total_price"
+        
+        # 乘车人选择
+        passenger_selection:
+          id: "passenger_selector"
+          type: "checkbox_list"
+          label: "选择乘车人"
+          max_selection: 5
+          data_source: "${passenger_list}"
+          item_template:
+            checkbox_id: "passenger_${id}"
+            display: "${name} | ${id_type_name} | ${id_number_masked}"
+          empty_state:
+            message: "暂无乘车人信息"
+            action:
+              type: "navigate"
+              target: "/passengers/add"
+              params:
+                return_url: "${current_url}"
+          add_button:
+            id: "btn_add_passenger"
+            text: "+ 添加乘车人"
+            action:
+              type: "open_modal"
+              modal: "add_passenger_modal"
+          on_change:
+            action: "update_total_price"
+        
+        # 联系人信息
+        contact_info:
+          id: "contact_form"
+          fields:
+            - id: "contact_name"
+              type: "text"
+              label: "联系人"
+              required: true
+              default: "${session.username}"
+            - id: "contact_phone"
+              type: "text"
+              label: "联系电话"
+              required: true
+              default: "${user_data.phone}"
+            - id: "contact_email"
+              type: "email"
+              label: "邮箱（用于接收行程通知）"
+              required: false
+        
+        # 订单摘要
+        order_summary:
+          id: "order_summary"
+          items:
+            - label: "乘车人数"
+              value: "${selected_passengers.length}人"
+            - label: "席别"
+              value: "${selected_seat.name}"
+            - label: "单价"
+              value: "¥${selected_seat.price}"
+            - label: "总价"
+              value: "¥${total_price}"
+              highlight: true
+        
+        # 提交按钮
+        submit_button:
+          id: "btn_submit_order"
+          text: "提交订单"
+          disabled_when: "selected_passengers.length === 0 || !selected_seat"
+          action:
+            type: "api_call"
+            method: "POST"
+            endpoint: "/api/orders"
+            payload:
+              train_id: "${query.train_id}"
+              departure_date: "${query.date}"
+              from_station: "${query.from}"
+              to_station: "${query.to}"
+              seat_type_id: "${selected_seat.id}"
+              passenger_ids: "${selected_passengers.map(p => p.id)}"
+              contact_name: "${form.contact_name}"
+              contact_phone: "${form.contact_phone}"
+              contact_email: "${form.contact_email}"
+            
+            on_success:
+              - action: "navigate"
+                target: "/booking/confirm/${response.order_id}"
+            
+            on_error:
+              - action: "show_message"
+                type: "error"
+                message: "${response.error_message}"
+              - condition: "response.error_code === 'TICKETS_SOLD_OUT'"
+                action: "navigate"
+                target: "/search/results"
+                preserve_params: true
+        
+        # 添加乘车人弹窗
+        add_passenger_modal:
+          id: "add_passenger_modal"
+          title: "快速添加乘车人"
+          form:
+            fields:
+              - id: "name"
+                type: "text"
+                label: "姓名"
+                required: true
+              - id: "id_type"
+                type: "select"
+                label: "证件类型"
+                options:
+                  - value: "ID_CARD"
+                    label: "身份证"
+                  - value: "PASSPORT"
+                    label: "护照"
+              - id: "id_number"
+                type: "text"
+                label: "证件号码"
+                required: true
+              - id: "phone"
+                type: "text"
+                label: "手机号"
+                required: true
+            submit:
+              action: "api_call"
+              endpoint: "POST /api/passengers"
+              on_success:
+                - action: "refresh_data"
+                  target: "passenger_list"
+                - action: "close_modal"
+                - action: "auto_select_passenger"
+                  passenger_id: "${response.id}"
+
+    # 订单确认/支付页面
+    confirm:
+      path: "/booking/confirm/:order_id"
+      title: "订单支付"
+      requires_auth: true
+      
+      # 页面初始化
+      on_init:
+        - action: "api_call"
+          endpoint: "GET /api/orders/${params.order_id}"
+          store_as: "order_data"
+        - action: "start_countdown"
+          duration: "${order_data.payment_deadline}"
+          on_expire:
+            action: "navigate"
+            target: "/orders"
+            message: "订单已超时取消"
+      
+      ui_elements:
+        # 倒计时提醒
+        countdown:
+          id: "payment_countdown"
+          display: "请在 ${remaining_time} 内完成支付，超时订单将自动取消"
+          style: "warning"
+        
+        # 订单信息
+        order_details:
+          id: "order_info_panel"
+          sections:
+            - title: "订单信息"
+              items:
+                - label: "订单号"
+                  value: "${order_data.order_no}"
+                - label: "创建时间"
+                  value: "${order_data.create_time}"
+            - title: "行程信息"
+              items:
+                - label: "车次"
+                  value: "${order_data.train_number}"
+                - label: "出发"
+                  value: "${order_data.departure_station} ${order_data.departure_time}"
+                - label: "到达"
+                  value: "${order_data.arrival_station} ${order_data.arrival_time}"
+                - label: "乘车日期"
+                  value: "${order_data.departure_date}"
+            - title: "乘车人"
+              list: "${order_data.passengers}"
+              item_template: "${name} | ${seat_type} | ${seat_number || '待分配'}"
+            - title: "联系人"
+              items:
+                - value: "${order_data.contact_name} ${order_data.contact_phone}"
+        
+        # 支付金额
+        payment_amount:
+          id: "payment_total"
+          label: "应付金额"
+          value: "¥${order_data.total_price}"
+          highlight: true
+        
+        # 支付方式选择
+        payment_methods:
+          id: "payment_method_selector"
+          type: "radio_group"
+          label: "选择支付方式"
+          options:
+            - id: "alipay"
+              value: "ALIPAY"
+              label: "支付宝"
+              icon: "alipay_icon"
+            - id: "wechat"
+              value: "WECHAT"
+              label: "微信支付"
+              icon: "wechat_icon"
+            - id: "unionpay"
+              value: "UNIONPAY"
+              label: "银联支付"
+              icon: "unionpay_icon"
+          default: "ALIPAY"
+        
+        # 操作按钮
+        actions:
+          pay_button:
+            id: "btn_pay"
+            text: "立即支付"
+            action:
+              type: "api_call"
+              method: "POST"
+              endpoint: "/api/payments"
+              payload:
+                order_id: "${params.order_id}"
+                payment_method: "${selected_payment_method}"
+              
+              on_success:
+                # 跳转到支付网关（模拟）
+                - action: "navigate"
+                  target: "/payment/gateway"
+                  params:
+                    payment_id: "${response.payment_id}"
+                    return_url: "/payment/result/${response.payment_id}"
+              
+              on_error:
+                - action: "show_message"
+                  type: "error"
+                  message: "${response.error_message}"
+          
+          cancel_button:
+            id: "btn_cancel_order"
+            text: "取消订单"
+            style: "secondary"
+            action:
+              type: "confirm_dialog"
+              message: "确定要取消该订单吗？"
+              on_confirm:
+                action: "api_call"
+                endpoint: "POST /api/orders/${params.order_id}/cancel"
+                on_success:
+                  - action: "show_message"
+                    type: "success"
+                    message: "订单已取消"
+                  - action: "navigate"
+                    target: "/orders"
+
+# ============================================
+# 模块4: 支付模块
+# ============================================
+module_payment:
+  name: "支付"
+  base_path: "/payment"
+  
+  pages:
+    # 支付网关页面（模拟）
+    gateway:
+      path: "/payment/gateway"
+      title: "支付中"
+      requires_auth: true
+      
+      ui_elements:
+        loading:
+          id: "payment_loading"
+          message: "正在跳转到支付页面..."
+        
+        # 模拟支付表单（实际应跳转第三方）
+        mock_payment:
+          id: "mock_payment_form"
+          note: "以下为模拟支付，实际项目中跳转第三方支付"
+          fields:
+            - id: "payment_password"
+              type: "password"
+              label: "支付密码"
+          buttons:
+            - id: "btn_confirm_pay"
+              text: "确认支付"
+              action:
+                type: "api_call"
+                endpoint: "POST /api/payments/${query.payment_id}/confirm"
+                on_success:
+                  action: "navigate"
+                  target: "${query.return_url}"
+            - id: "btn_cancel_pay"
+              text: "取消"
+              action:
+                type: "navigate"
+                target: "/orders"
+
+    # 支付结果页面
+    result:
+      path: "/payment/result/:payment_id"
+      title: "支付结果"
+      requires_auth: true
+      
+      on_init:
+        - action: "api_call"
+          endpoint: "GET /api/payments/${params.payment_id}"
+          store_as: "payment_result"
+      
+      ui_elements:
+        # 支付成功状态
+        success_state:
+          condition: "payment_result.status === 'SUCCESS'"
+          icon: "success_icon"
+          title: "支付成功"
+          message: "您的订单已支付成功，请按时乘车"
+          order_info:
+            - label: "订单号"
+              value: "${payment_result.order_no}"
+            - label: "支付金额"
+              value: "¥${payment_result.amount}"
+            - label: "支付时间"
+              value: "${payment_result.payment_time}"
+          actions:
+            - id: "btn_view_order"
+              text: "查看订单"
+              primary: true
+              action:
+                type: "navigate"
+                target: "/orders/${payment_result.order_id}"
+            - id: "btn_back_home"
+              text: "返回首页"
+              action:
+                type: "navigate"
+                target: "/home"
+        
+        # 支付失败状态
+        failure_state:
+          condition: "payment_result.status === 'FAILED'"
+          icon: "error_icon"
+          title: "支付失败"
+          message: "${payment_result.error_message}"
+          actions:
+            - id: "btn_retry_pay"
+              text: "重新支付"
+              primary: true
+              action:
+                type: "navigate"
+                target: "/booking/confirm/${payment_result.order_id}"
+            - id: "btn_view_orders"
+              text: "查看订单"
+              action:
+                type: "navigate"
+                target: "/orders"
+
+# ============================================
+# 模块5: 订单管理模块
+# ============================================
+module_orders:
+  name: "订单管理"
+  base_path: "/orders"
+  
+  pages:
+    # 订单列表页面
+    list:
+      path: "/orders"
+      title: "我的订单"
+      requires_auth: true
+      
+      data_loading:
+        api: "GET /api/orders"
+        params:
+          page: "${query.page || 1}"
+          size: 10
+          status: "${query.status || 'all'}"
+        store_as: "orders_data"
+      
+      ui_elements:
+        # 状态筛选标签
+        status_tabs:
+          id: "order_status_tabs"
+          items:
+            - id: "tab_all"
+              label: "全部"
+              value: "all"
+              count: "${orders_data.total_count}"
+            - id: "tab_pending"
+              label: "待支付"
+              value: "PENDING_PAYMENT"
+              count: "${orders_data.pending_count}"
+            - id: "tab_paid"
+              label: "已支付"
+              value: "PAID"
+              count: "${orders_data.paid_count}"
+            - id: "tab_completed"
+              label: "已完成"
+              value: "COMPLETED"
+              count: "${orders_data.completed_count}"
+            - id: "tab_cancelled"
+              label: "已取消"
+              value: "CANCELLED"
+              count: "${orders_data.cancelled_count}"
+            - id: "tab_refunded"
+              label: "已退票"
+              value: "REFUNDED"
+              count: "${orders_data.refunded_count}"
+          on_change:
+            action: "navigate"
+            target: "/orders?status=${selected_value}"
+        
+        # 订单列表
+        orders_list:
+          id: "orders_list"
+          empty_state:
+            message: "暂无相关订单"
+            action:
+              text: "去购票"
+              target: "/search"
+          
+          item_template:
+            id: "order_item_${order.id}"
+            header:
+              order_no: "${order.order_no}"
+              status: "${order.status_text}"
+              status_style: "${order.status_style}"  # success/warning/error/gray
+            body:
+              train_info: "${order.train_number} | ${order.departure_date}"
+              route: "${order.departure_station} ${order.departure_time} → ${order.arrival_station} ${order.arrival_time}"
+              passengers: "${order.passenger_names.join(', ')}"
+              seat_info: "${order.seat_type} × ${order.passenger_count}"
+              price: "¥${order.total_price}"
+            actions:
+              # 待支付状态的操作
+              - id: "btn_pay_${order.id}"
+                text: "去支付"
+                condition: "order.status === 'PENDING_PAYMENT'"
+                primary: true
+                action:
+                  type: "navigate"
+                  target: "/booking/confirm/${order.id}"
+              
+              - id: "btn_cancel_${order.id}"
+                text: "取消订单"
+                condition: "order.status === 'PENDING_PAYMENT'"
+                action:
+                  type: "confirm_then_api"
+                  message: "确定取消订单吗？"
+                  endpoint: "POST /api/orders/${order.id}/cancel"
+                  on_success:
+                    action: "refresh_list"
+              
+              # 已支付状态的操作
+              - id: "btn_refund_${order.id}"
+                text: "申请退票"
+                condition: "order.status === 'PAID' && order.can_refund"
+                action:
+                  type: "navigate"
+                  target: "/orders/${order.id}/refund"
+              
+              - id: "btn_change_${order.id}"
+                text: "改签"
+                condition: "order.status === 'PAID' && order.can_change"
+                action:
+                  type: "navigate"
+                  target: "/orders/${order.id}/change"
+              
+              # 通用操作
+              - id: "btn_detail_${order.id}"
+                text: "订单详情"
+                action:
+                  type: "navigate"
+                  target: "/orders/${order.id}"
+        
+        # 分页
+        pagination:
+          id: "orders_pagination"
+          total: "${orders_data.total}"
+          page_size: 10
+          current_page: "${query.page || 1}"
+          on_change:
+            action: "navigate"
+            target: "/orders?page=${page}&status=${query.status}"
+
+    # 订单详情页面
+    detail:
+      path: "/orders/:order_id"
+      title: "订单详情"
+      requires_auth: true
+      
+      on_init:
+        - action: "api_call"
+          endpoint: "GET /api/orders/${params.order_id}"
+          store_as: "order_detail"
+      
+      ui_elements:
+        # 订单状态
+        status_header:
+          id: "order_status_header"
+          status: "${order_detail.status}"
+          status_text: "${order_detail.status_text}"
+          countdown:
+            condition: "order_detail.status === 'PENDING_PAYMENT'"
+            deadline: "${order_detail.payment_deadline}"
+            message: "剩余支付时间"
+        
+        # 行程信息
+        trip_info:
+          id: "trip_info_section"
+          title: "行程信息"
+          fields:
+            - label: "车次"
+              value: "${order_detail.train_number}"
+            - label: "乘车日期"
+              value: "${order_detail.departure_date}"
+            - label: "出发站"
+              value: "${order_detail.departure_station} ${order_detail.departure_time}"
+            - label: "到达站"
+              value: "${order_detail.arrival_station} ${order_detail.arrival_time}"
+            - label: "历时"
+              value: "${order_detail.duration}"
+        
+        # 乘车人信息
+        passengers_info:
+          id: "passengers_info_section"
+          title: "乘车人信息"
+          list: "${order_detail.passengers}"
+          columns:
+            - "序号"
+            - "姓名"
+            - "证件类型"
+            - "证件号码"
+            - "席别"
+            - "车厢/座位"
+            - "票价"
+            - "状态"
+        
+        # 订单信息
+        order_info:
+          id: "order_info_section"
+          title: "订单信息"
+          fields:
+            - label: "订单号"
+              value: "${order_detail.order_no}"
+            - label: "创建时间"
+              value: "${order_detail.create_time}"
+            - label: "联系人"
+              value: "${order_detail.contact_name}"
+            - label: "联系电话"
+              value: "${order_detail.contact_phone}"
+            - label: "总金额"
+              value: "¥${order_detail.total_price}"
+              highlight: true
+        
+        # 支付信息（已支付时显示）
+        payment_info:
+          id: "payment_info_section"
+          condition: "order_detail.payment_info !== null"
+          title: "支付信息"
+          fields:
+            - label: "支付方式"
+              value: "${order_detail.payment_info.method_name}"
+            - label: "支付时间"
+              value: "${order_detail.payment_info.payment_time}"
+            - label: "交易号"
+              value: "${order_detail.payment_info.transaction_no}"
+        
+        # 操作按钮
+        actions:
+          id: "order_actions"
+          buttons:
+            - id: "btn_pay"
+              text: "立即支付"
+              condition: "order_detail.status === 'PENDING_PAYMENT'"
+              primary: true
+              action:
+                type: "navigate"
+                target: "/booking/confirm/${params.order_id}"
+            
+            - id: "btn_cancel"
+              text: "取消订单"
+              condition: "order_detail.status === 'PENDING_PAYMENT'"
+              action:
+                type: "confirm_then_api"
+                message: "确定取消订单吗？"
+                endpoint: "POST /api/orders/${params.order_id}/cancel"
+                on_success:
+                  action: "refresh_page"
+            
+            - id: "btn_refund"
+              text: "申请退票"
+              condition: "order_detail.status === 'PAID' && order_detail.can_refund"
+              action:
+                type: "navigate"
+                target: "/orders/${params.order_id}/refund"
+            
+            - id: "btn_change"
+              text: "改签"
+              condition: "order_detail.status === 'PAID' && order_detail.can_change"
+              action:
+                type: "navigate"
+                target: "/orders/${params.order_id}/change"
+            
+            - id: "btn_back"
+              text: "返回列表"
+              action:
+                type: "navigate"
+                target: "/orders"
+
+    # 退票页面
+    refund:
+      path: "/orders/:order_id/refund"
+      title: "申请退票"
+      requires_auth: true
+      
+      on_init:
+        - action: "api_call"
+          endpoint: "GET /api/orders/${params.order_id}"
+          store_as: "order_data"
+      
+      ui_elements:
+        # 退票说明
+        refund_notice:
+          id: "refund_notice"
+          type: "info"
+          content:
+            - "开车前15天以上退票，不收取退票费"
+            - "开车前48小时至15天，收取5%退票费"
+            - "开车前24小时至48小时，收取10%退票费"
+            - "开车前24小时以内，收取20%退票费"
+        
+        # 选择退票乘客
+        passenger_selection:
+          id: "refund_passenger_selector"
+          type: "checkbox_list"
+          label: "选择退票乘客"
+          data_source: "${order_data.passengers.filter(p => p.can_refund)}"
+          on_change:
+            action: "calculate_refund"
+        
+        # 退款预估
+        refund_estimate:
+          id: "refund_estimate"
+          fields:
+            - label: "票价"
+              value: "¥${total_ticket_price}"
+            - label: "退票费(${refund_rate}%)"
+              value: "¥${refund_fee}"
+            - label: "预计退款"
+              value: "¥${refund_amount}"
+              highlight: true
+        
+        # 提交按钮
+        submit_button:
+          id: "btn_submit_refund"
+          text: "确认退票"
+          action:
+            type: "confirm_then_api"
+            message: "确定要退票吗？退票后不可撤销。"
+            endpoint: "POST /api/orders/${params.order_id}/refund"
+            payload:
+              passenger_ids: "${selected_passenger_ids}"
+            on_success:
+              - action: "show_message"
+                type: "success"
+                message: "退票成功，退款将在3-7个工作日内退回原支付账户"
+              - action: "navigate"
+                target: "/orders/${params.order_id}"
+
+    # 改签页面
+    change:
+      path: "/orders/:order_id/change"
+      title: "改签"
+      requires_auth: true
+      
+      on_init:
+        - action: "api_call"
+          endpoint: "GET /api/orders/${params.order_id}"
+          store_as: "original_order"
+      
+      ui_elements:
+        # 原订单信息
+        original_info:
+          id: "original_order_info"
+          title: "原订单信息"
+          summary: "${original_order.train_number} | ${original_order.departure_date} | ${original_order.departure_station} → ${original_order.arrival_station}"
+        
+        # 选择改签乘客
+        passenger_selection:
+          id: "change_passenger_selector"
+          type: "checkbox_list"
+          data_source: "${original_order.passengers.filter(p => p.can_change)}"
+        
+        # 新车次查询（嵌入式）
+        new_train_search:
+          id: "new_train_search"
+          title: "选择新车次"
+          form:
+            fields:
+              - id: "new_date"
+                type: "date"
+                label: "新乘车日期"
+                default: "${original_order.departure_date}"
+          search_action:
+            api: "GET /api/trains/search"
+            params:
+              from_station: "${original_order.departure_station_code}"
+              to_station: "${original_order.arrival_station_code}"
+              date: "${form.new_date}"
+          results_selection:
+            on_select:
+              action: "store_selected_train"
+        
+        # 改签费用预估
+        change_estimate:
+          id: "change_estimate"
+          condition: "selected_train !== null"
+          fields:
+            - label: "原票价"
+              value: "¥${original_ticket_price}"
+            - label: "新票价"
+              value: "¥${new_ticket_price}"
+            - label: "差价"
+              value: "¥${price_difference}"
+              note: "${price_difference > 0 ? '需补差价' : '将退还差价'}"
+        
+        # 提交
+        submit_button:
+          id: "btn_submit_change"
+          text: "确认改签"
+          disabled_when: "!selected_train || selected_passengers.length === 0"
+          action:
+            type: "api_call"
+            endpoint: "POST /api/orders/${params.order_id}/change"
+            payload:
+              passenger_ids: "${selected_passenger_ids}"
+              new_train_id: "${selected_train.id}"
+              new_date: "${form.new_date}"
+              new_seat_type: "${selected_seat_type}"
+            on_success:
+              - action: "show_message"
+                type: "success"
+                message: "改签成功"
+              - action: "navigate"
+                target: "/orders/${response.new_order_id}"
+
+# ============================================
+# 模块6: 乘车人管理模块
+# ============================================
+module_passengers:
+  name: "乘车人管理"
+  base_path: "/passengers"
+  
+  pages:
+    # 乘车人列表
+    list:
+      path: "/passengers"
+      title: "乘车人管理"
+      requires_auth: true
+      
+      data_loading:
+        api: "GET /api/passengers"
+        store_as: "passengers"
+      
+      ui_elements:
+        # 添加按钮
+        add_button:
+          id: "btn_add_passenger"
+          text: "+ 添加乘车人"
+          action:
+            type: "navigate"
+            target: "/passengers/add"
+        
+        # 乘车人列表
+        passengers_list:
+          id: "passengers_list"
+          empty_state:
+            message: "暂无乘车人，请添加"
+          
+          item_template:
+            id: "passenger_${item.id}"
+            content:
+              name: "${item.name}"
+              id_type: "${item.id_type_name}"
+              id_number: "${item.id_number_masked}"
+              phone: "${item.phone_masked}"
+              passenger_type: "${item.passenger_type_name}"  # 成人/儿童/学生
+              is_default:
+                condition: "item.is_default"
+                badge: "默认"
+            
+            actions:
+              - id: "btn_edit_${item.id}"
+                text: "编辑"
+                icon: "edit"
+                action:
+                  type: "navigate"
+                  target: "/passengers/edit/${item.id}"
+              
+              - id: "btn_set_default_${item.id}"
+                text: "设为默认"
+                condition: "!item.is_default"
+                action:
+                  type: "api_call"
+                  endpoint: "PUT /api/passengers/${item.id}/set-default"
+                  on_success:
+                    action: "refresh_list"
+              
+              - id: "btn_delete_${item.id}"
+                text: "删除"
+                icon: "delete"
+                action:
+                  type: "confirm_then_api"
+                  message: "确定删除该乘车人吗？"
+                  endpoint: "DELETE /api/passengers/${item.id}"
+                  on_success:
+                    - action: "show_message"
+                      type: "success"
+                      message: "删除成功"
+                    - action: "refresh_list"
+
+    # 添加乘车人
+    add:
+      path: "/passengers/add"
+      title: "添加乘车人"
+      requires_auth: true
+      
+      ui_elements:
+        form:
+          id: "add_passenger_form"
+          fields:
+            - id: "name"
+              type: "text"
+              label: "姓名"
+              required: true
+              placeholder: "请输入真实姓名"
+            - id: "id_type"
+              type: "select"
+              label: "证件类型"
+              required: true
+              options:
+                - value: "ID_CARD"
+                  label: "中国居民身份证"
+                - value: "HK_MACAO_PASS"
+                  label: "港澳居民来往内地通行证"
+                - value: "TW_PASS"
+                  label: "台湾居民来往大陆通行证"
+                - value: "PASSPORT"
+                  label: "护照"
+              default: "ID_CARD"
+            - id: "id_number"
+              type: "text"
+              label: "证件号码"
+              required: true
+              validation:
+                dynamic: true  # 根据证件类型动态验证
+            - id: "passenger_type"
+              type: "select"
+              label: "乘客类型"
+              options:
+                - value: "ADULT"
+                  label: "成人"
+                - value: "CHILD"
+                  label: "儿童"
+                - value: "STUDENT"
+                  label: "学生"
+              default: "ADULT"
+            - id: "phone"
+              type: "text"
+              label: "手机号"
+              required: true
+            - id: "is_default"
+              type: "checkbox"
+              label: "设为默认乘车人"
+          
+          submit_button:
+            id: "btn_save"
+            text: "保存"
+            action:
+              type: "api_call"
+              method: "POST"
+              endpoint: "/api/passengers"
+              payload:
+                name: "${form.name}"
+                id_type: "${form.id_type}"
+                id_number: "${form.id_number}"
+                passenger_type: "${form.passenger_type}"
+                phone: "${form.phone}"
+                is_default: "${form.is_default}"
+              
+              on_success:
+                - action: "show_message"
+                  type: "success"
+                  message: "添加成功"
+                - action: "conditional_navigate"
+                  condition: "query.return_url !== null"
+                  target_if_true: "${query.return_url}"
+                  target_if_false: "/passengers"
+              
+              on_error:
+                - action: "show_message"
+                  type: "error"
+                  message: "${response.error_message}"
+          
+          cancel_button:
+            id: "btn_cancel"
+            text: "取消"
+            action:
+              type: "navigate"
+              target: "/passengers"
+
+    # 编辑乘车人
+    edit:
+      path: "/passengers/edit/:passenger_id"
+      title: "编辑乘车人"
+      requires_auth: true
+      
+      on_init:
+        - action: "api_call"
+          endpoint: "GET /api/passengers/${params.passenger_id}"
+          store_as: "passenger_data"
+          on_error:
+            action: "navigate"
+            target: "/passengers"
+      
+      ui_elements:
+        form:
+          id: "edit_passenger_form"
+          # 与添加表单结构相同，但预填数据
+          prefill_data: "${passenger_data}"
+          fields: "同add页面"
+          
+          submit_button:
+            id: "btn_save"
+            text: "保存修改"
+            action:
+              type: "api_call"
+              method: "PUT"
+              endpoint: "/api/passengers/${params.passenger_id}"
+              on_success:
+                - action: "show_message"
+                  type: "success"
+                  message: "修改成功"
+                - action: "navigate"
+                  target: "/passengers"
+
+# ============================================
+# 模块7: 用户中心模块
+# ============================================
+module_user:
+  name: "用户中心"
+  base_path: "/user"
+  
+  pages:
+    # 个人资料
+    profile:
+      path: "/user/profile"
+      title: "个人资料"
+      requires_auth: true
+      
+      on_init:
+        - action: "api_call"
+          endpoint: "GET /api/user/profile"
+          store_as: "profile_data"
+      
+      ui_elements:
+        # 左侧导航
+        side_nav:
+          id: "user_side_nav"
+          items:
+            - id: "nav_profile"
+              text: "个人资料"
+              target: "/user/profile"
+              active: true
+            - id: "nav_security"
+              text: "账户安全"
+              target: "/user/security"
+            - id: "nav_bindphone"
+              text: "绑定手机"
+              target: "/user/bindphone"
+        
+        # 资料表单
+        profile_form:
+          id: "profile_form"
+          prefill_data: "${profile_data}"
+          fields:
+            - id: "username"
+              type: "text"
+              label: "用户名"
+              readonly: true
+            - id: "real_name"
+              type: "text"
+              label: "真实姓名"
+              readonly: true  # 实名后不可修改
+            - id: "id_card"
+              type: "text"
+              label: "身份证号"
+              readonly: true
+              masked: true
+            - id: "phone"
+              type: "text"
+              label: "手机号"
+              readonly: true
+              action:
+                text: "修改"
+                target: "/user/bindphone"
+            - id: "email"
+              type: "email"
+              label: "邮箱"
+              editable: true
+          
+          submit_button:
+            id: "btn_save_profile"
+            text: "保存修改"
+            action:
+              type: "api_call"
+              endpoint: "PUT /api/user/profile"
+
+    # 账户安全
+    security:
+      path: "/user/security"
+      title: "账户安全"
+      requires_auth: true
+      
+      ui_elements:
+        side_nav: "同profile页面"
+        
+        security_items:
+          - id: "change_password"
+            title: "登录密码"
+            description: "定期更换密码可以保护账户安全"
+            action:
+              text: "修改"
+              type: "open_modal"
+              modal: "change_password_modal"
+          
+          - id: "change_pay_password"
+            title: "支付密码"
+            description: "用于支付时的安全验证"
+            action:
+              text: "设置"
+              type: "open_modal"
+              modal: "set_pay_password_modal"
+        
+        # 修改密码弹窗
+        change_password_modal:
+          id: "change_password_modal"
+          title: "修改密码"
+          form:
+            fields:
+              - id: "old_password"
+                type: "password"
+                label: "原密码"
+              - id: "new_password"
+                type: "password"
+                label: "新密码"
+              - id: "confirm_password"
+                type: "password"
+                label: "确认密码"
+            submit:
+              endpoint: "PUT /api/user/password"
+              on_success:
+                - action: "close_modal"
+                - action: "show_message"
+                  message: "密码修改成功，请重新登录"
+                - action: "logout"
+                - action: "navigate"
+                  target: "/login"
+
+# ============================================
+# 通用流程定义
+# ============================================
+common_flows:
+  # 需要登录的操作流程
+  require_auth_flow:
+    description: "当用户未登录时访问需要认证的页面或执行需要认证的操作"
+    steps:
+      1: "检查session.authenticated"
+      2: "如果false，保存当前目标URL到navigation.pending_action"
+      3: "显示提示消息'请先登录'"
+      4: "跳转到/login"
+      5: "登录成功后，检查pending_action"
+      6: "如果有pending_action，跳转到该URL并清除"
+      7: "否则跳转到/home"
+  
+  # 订票完整流程
+  booking_flow:
+    description: "从查询到支付完成的完整订票流程"
+    steps:
+      1:
+        page: "/home 或 /search"
+        action: "输入查询条件并搜索"
+        next: "/search/results"
+      2:
+        page: "/search/results"
+        action: "查看车次列表，点击预订"
+        condition: "需要登录"
+        next_if_auth: "/booking/create"
+        next_if_not_auth: "/login (保存目标URL)"
+      3:
+        page: "/booking/create"
+        action: "选择席别、乘车人，填写联系人，提交订单"
+        next: "/booking/confirm/:order_id"
+      4:
+        page: "/booking/confirm/:order_id"
+        action: "选择支付方式，点击支付"
+        next: "/payment/gateway"
+      5:
+        page: "/payment/gateway"
+        action: "完成支付"
+        next: "/payment/result/:payment_id"
+      6:
+        page: "/payment/result/:payment_id"
+        action: "查看支付结果"
+        next_options:
+          - "查看订单 -> /orders/:order_id"
+          - "返回首页 -> /home"
+  
+  # 退票流程
+  refund_flow:
+    description: "申请退票的完整流程"
+    steps:
+      1:
+        page: "/orders 或 /orders/:order_id"
+        action: "点击申请退票"
+        next: "/orders/:order_id/refund"
+      2:
+        page: "/orders/:order_id/refund"
+        action: "选择退票乘客，确认退票"
+        next: "/orders/:order_id"
+      3:
+        result: "订单状态更新为已退票，退款将在3-7工作日内退回"
+
+# ============================================
+# API端点汇总
+# ============================================
+api_endpoints:
+  auth:
+    - "POST /api/auth/login"
+    - "POST /api/auth/logout"
+    - "POST /api/auth/register"
+    - "GET /api/auth/captcha"
+    - "POST /api/auth/send-sms"
+    - "GET /api/auth/check-username"
+    - "POST /api/auth/verify-phone"
+    - "POST /api/auth/reset-password"
+  
+  trains:
+    - "GET /api/stations/search"
+    - "GET /api/trains/search"
+    - "GET /api/trains/:train_id/schedule"
+    - "GET /api/trains/:train_id/seats"
+  
+  orders:
+    - "POST /api/orders"
+    - "GET /api/orders"
+    - "GET /api/orders/:order_id"
+    - "POST /api/orders/:order_id/cancel"
+    - "POST /api/orders/:order_id/refund"
+    - "POST /api/orders/:order_id/change"
+  
+  payments:
+    - "POST /api/payments"
+    - "POST /api/payments/:payment_id/confirm"
+    - "GET /api/payments/:payment_id"
+  
+  passengers:
+    - "GET /api/passengers"
+    - "POST /api/passengers"
+    - "GET /api/passengers/:passenger_id"
+    - "PUT /api/passengers/:passenger_id"
+    - "DELETE /api/passengers/:passenger_id"
+    - "PUT /api/passengers/:passenger_id/set-default"
+  
+  user:
+    - "GET /api/user/profile"
+    - "PUT /api/user/profile"
+    - "PUT /api/user/password"
