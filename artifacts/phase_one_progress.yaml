@@ -3,9 +3,9 @@
 - id: REQ-UI-1
   status: processed
 - id: REQ-UI-2
-  status: unprocessed
+  status: processed
 - id: REQ-UI-2-1
-  status: unprocessed
+  status: processed
 - id: REQ-UI-2-2
   status: unprocessed
 - id: REQ-UI-3
