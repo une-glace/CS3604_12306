@@ -153,7 +153,7 @@ export interface FormattedOrder {
   tripDate?: string;
   passenger: string;
   seat: string;
-  passengers?: Array<{ name: string; seatNumber?: string; seatType?: string; carriage?: string | number }>;
+  passengers?: Array<{ name: string; seatNumber?: string; seatType?: string; carriage?: string | number; price?: number }>;
   price: number;
   status: 'paid' | 'unpaid' | 'cancelled' | 'refunded' | 'completed' | 'changed';
 }
@@ -177,7 +177,7 @@ export const fetchUserOrdersFormatted = async (page = 1, limit = 10, status?: st
       orderDate?: string;
       bookDate?: string;
       createdAt?: unknown;
-      passengers?: Array<{ passengerName?: string; name?: string; seatNumber?: string; seatType?: string; carriage?: string | number }>;
+      passengers?: Array<{ passengerName?: string; name?: string; seatNumber?: string; seatType?: string; carriage?: string | number; price?: number }>;
       seat?: string;
       totalPrice?: number;
       price?: number;
@@ -203,6 +203,7 @@ export const fetchUserOrdersFormatted = async (page = 1, limit = 10, status?: st
             seatNumber: p.seatNumber,
             seatType: p.seatType,
             carriage: p.carriage,
+            price: Number(p.price || 0)
           }))
         : undefined,
       price: o.totalPrice ?? o.price ?? 0,
