@@ -215,7 +215,7 @@ const ProfilePage: React.FC = () => {
   const fetchOrders = React.useCallback(async (page = 1) => {
     try {
       setIsLoadingOrders(true);
-      const { fetchUserOrdersFormatted, getOrderDetail } = await import('../services/orderService');
+      const { fetchUserOrdersFormatted } = await import('../services/orderService');
       const primaryStatus = ((): string => {
         if (orderFilter === 'unpaid') return 'unpaid';
         if (orderFilter === 'paid') return 'paid';
@@ -319,7 +319,9 @@ const ProfilePage: React.FC = () => {
               const base = {
                 orderNumber: o.orderId || '', trainNumber: o.trainNumber || '', departure: o.fromStation || '', arrival: o.toStation || '',
                 departureTime: o.departureTime || '', arrivalTime: o.arrivalTime || '', date: o.departureDate || '',
-                bookDate: o.orderDate || o.bookDate || (o.createdAt ? String(o.createdAt).slice(0,10) : undefined), tripDate: o.departureDate || '', status: status as any
+                bookDate: o.orderDate || o.bookDate || (o.createdAt ? String(o.createdAt).slice(0,10) : undefined),
+                tripDate: o.departureDate || '',
+                status: status as Order['status']
               };
 
               if (Array.isArray(o.passengers) && o.passengers.length > 0) {
@@ -1494,7 +1496,11 @@ const ProfilePage: React.FC = () => {
                                       <div className="price-col">
                                         <div>成人票</div>
                                         <div className="price-val">
-                                          {(p as any).price ? `${(p as any).price}元` : (typeof order.price === 'number' ? `${(order.price / order.passengers!.length).toFixed(1)}元` : order.price)}
+                                          {typeof p.price === 'number'
+                                            ? `${p.price}元`
+                                            : (typeof order.price === 'number'
+                                              ? `${(order.price / order.passengers!.length).toFixed(1)}元`
+                                              : order.price)}
                                         </div>
                                       </div>
                                     </div>
