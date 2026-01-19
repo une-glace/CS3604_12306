@@ -7,16 +7,33 @@
 ## 项目结构
 ```
 12306/
-├── frontend/          # 前端 React + TypeScript + Vite
-├── backend/           # 后端 Express + Sequelize (SQLite/MySQL)
-├── docs/              # 文档（测试指南、项目计划等）
-└── README.md          # 使用与部署指南（当前文件）
+├── frontend/           # 前端 React + TypeScript + Vite
+├── backend/            # 后端 Express + Sequelize (SQLite/MySQL)
+├── docs/               # 文字文档（需求场景、页面分析、测试指南、项目计划等）
+├── requirements.yaml   # 机器可读的需求树（功能/场景/UI 规格）
+├── requirements/       # 与 requirements.yaml 对齐的 UI 参考图片与资源
+├── report/             # 课程报告与自动生成的架构图/流程图
+└── README.md           # 使用与部署指南（当前文件）
 ```
 
 ## 技术栈（与当前代码一致）
 - 前端：React 19 + TypeScript、Vite 7、React Router 7
 - 后端：Node.js、Express 5、Sequelize 6、SQLite3、MySQL2
-- 测试：Jest（后端）、Playwright（E2E）、Vitest（前端单测）
+- 测试：Jest（后端）、Playwright（前端 E2E）、Vitest（前端单测）
+
+## 需求与 UI 规格
+
+- 顶层需求树：`requirements.yaml`
+  - 根节点 `ROOT` 描述 12306 购票系统与首页 UI 结构；
+  - 一级模块：`REQ-1` 用户认证、`REQ-2` 车票查询、`REQ-3` 个人中心、`REQ-4` 订单管理、`REQ-5` 餐饮服务等；
+  - 二级及以下节点：如 `REQ-1-1` 用户注册、`REQ-1-2` 用户登录、`REQ-1-3` 找回密码流程等。
+- 每个需求节点包含：
+  - `scenarios`：可执行的场景（进入页面、成功路径、异常路径等），与 E2E 用例一一对应；
+  - `ui_spec`：页面路由、分区结构、像素级样式描述与交互细节；
+  - `assets`：引用 `requirements/assets/` 下的截图资源，保证 UI 设计与实现一致。
+- 补充文档：
+  - `docs/12306_需求场景与需求树.md`：按 S1–S8 场景描述业务流程与需求树；
+  - `12306_test.md`：面向人工或 E2E 的逐步操作说明，与课程验收用例保持一致。
 
 ## 快速开始（本地试用）
 **环境要求**
@@ -107,7 +124,10 @@ server {
 }
 ```
 
-注意：前端当前使用绝对地址 `http://127.0.0.1:3000/api/v1`（`frontend/src/services/api.ts:1`）。若部署到远程域名，请确保后端可通过该地址访问，或将该常量调整为部署域名的 API 根路径并相应设置 `CORS_ORIGIN`。
+注意：当前前端在浏览器环境下使用相对路径 `/api/v1` 调用后端（`frontend/src/services/api.ts`），开发模式下通过 Vite 代理到 `http://localhost:3000/api/v1`。  
+若部署到远程域名，请：
+- 在前端部署环境中保持 `/api/v1` 由网关或 Nginx 反向代理到后端；
+- 或根据需要调整 `API_BASE_URL` 以及后端的 `CORS_ORIGIN` 配置。
 
 ### Docker Compose 示例（MySQL + Backend）
 ```yaml
@@ -148,13 +168,18 @@ services:
 
 ## 测试与质量
 - 测试与运行指南：详见 `docs/测试与运行指南.md`
-- 后端 SQLite 测试：`npm test --prefix backend`
-- 后端 MySQL 测试：`npm run test:mysql --prefix backend`
-- 前端 E2E（需服务就绪）：
+- 需求到用例映射与人工验收步骤：`12306_test.md`
+- 后端 SQLite 集成测试：`npm test --prefix backend`
+- 后端 MySQL 兼容性测试：`npm run test:mysql --prefix backend`
+- 前端 E2E（需服务就绪，覆盖登录、乘车人、订票、支付、订单中心等核心路径）：
   - 安装浏览器：`npx playwright install`
   - 启动服务后执行：`npm run test:e2e --prefix frontend`
 - 前端单测：`npm run test:unit --prefix frontend -- --coverage`
 - 质量检查：`npm run lint --prefix frontend && npm run typecheck --prefix frontend`
+- 课程验收前建议流程：
+  1. 后端：`npm test --prefix backend`
+  2. 前端：`npm run lint --prefix frontend && npm run typecheck --prefix frontend`
+  3. 启动服务后运行：`npm run test:e2e --prefix frontend`
 
 ## 功能范围（融合项目计划）
 - 首页与购票入口、公告与导航
@@ -172,7 +197,7 @@ services:
 - E2E 登录不稳定：使用统一登录工具 `frontend/tests/e2e/utils/auth.ts` 的 `ensureLogin(page)`
 - SQLite 并发写锁：已启用 WAL 与 `busy_timeout`；若仍异常，确认单机负载与并发测试设置
 - MySQL 兼容：`users.passenger_type` 使用中文枚举；`order_passengers.phone` 为 `VARCHAR(15)`，超长后端返回 400
-- 生产部署注意：前端默认调用 `http://127.0.0.1:3000/api/v1`，跨域部署时请配置后端 `CORS_ORIGIN` 为前端域名，或调整前端 `API_BASE_URL` 与 Nginx 代理。
+- 生产部署注意：前端默认通过 `/api/v1` 相对路径访问后端，跨域部署时请配置网关或 Nginx 将该前缀转发到后端服务，并在后端设置合适的 `CORS_ORIGIN`，或根据需要调整前端 `API_BASE_URL` 与代理配置。
 
 ## 开发与贡献
 - 代码规范：ESLint、TypeScript 严格模式、组件命名 PascalCase、文件命名 kebab-case
