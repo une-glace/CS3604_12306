@@ -56,22 +56,23 @@
 
 \subsection{用 YAML 文件代替传统文档}
 
-传统的软件工程作业中，需求文档（SRS）往往写完就丢在一边，和代码严重脱节。为了解决这个问题，我们建立了一棵“活着的需求树”，存放在 \texttt{requirements\_mcp.yaml} 文件中。
+传统的软件工程作业中，需求文档（SRS）往往写完就丢在一边，和代码严重脱节。为了解决这个问题，我们建立了一棵“活着的需求树”，存放在项目根目录的 \texttt{requirements.yaml} 文件中。
 
 这个文件主要包含：
 \begin{itemize}
-    \item \textbf{需求节点}：每个功能点都有唯一的 ID（如 \texttt{REQ-UI-3}）。
+    \item \textbf{需求节点}：每个功能点都有唯一的 ID（如 \texttt{REQ-1-1}、\texttt{REQ-2-2-1}）。
     \item \textbf{场景描述}：每个功能点下都有具体的 Scenario，描述用户怎么操作（Action）以及系统应该有什么反应（Expectation）。
-    \item \textbf{代码映射}：我们在需求里直接写明了对应的 UI 文件路径（如 \texttt{TrainListPage.tsx}）和后端接口。
+    \item \textbf{UI 规格}：通过 \texttt{ui\_spec} 字段，给出页面路径、分区结构以及细致到像素级的 UI 描述。
+    \item \textbf{资源引用}：在描述里直接关联参考图片（如 \texttt{./reference/auth/login.png}）和静态资源（如 Logo、轮播图等）。
 \end{itemize}
 
 这样做的最大好处是：AI 可以直接读取这个文件，知道当前项目有哪些功能，每个功能对应哪些代码文件。
 
 具体例子包括：
 \begin{itemize}
-    \item ROOT 和 REQ-ENV-1 约定了必须使用根目录的 \texttt{database.sqlite}，并检查里面是否包含 G101、D313 等示例车次。
-    \item REQ-UI-3（车票查询）要求从首页携带 \texttt{from/to/date} 参数跳转到 \texttt{/train-list}，并通过 \texttt{TrainListPage.tsx} 和 \texttt{trainService.searchTrains} 渲染列表。
-    \item REQ-UI-7（餐饮特产）把 \texttt{/catering}、\texttt{/catering/book}、\texttt{/catering/vendor} 三类页面都写在描述里，方便从需求直接跳到对应的 React 组件。
+    \item 在 REQ-1（用户认证模块）下，REQ-1-1（用户注册）和 REQ-1-2（用户登录）不仅描述了“注册成功要写入 users 表”“登录成功要建立会话”，还通过 \texttt{ui\_spec} 详细规定了注册/登录页面的布局、输入校验规则和交互细节，并引用了对应的参考截图。
+    \item 在 REQ-2（车票查询模块）下，REQ-2:SCE-0 详细说明了需要初始化的车站表、车次表及经停信息表，并约定北京、上海、南京三地之间至少 42 个车次的数据规模；REQ-2-2（车次列表页）及其子节点则拆分了 URL 参数解析、列表展示、预订按钮行为等多个场景。
+    \item 在首页相关节点（例如 ROOT 的 \texttt{ui\_spec}）中，写清楚了首页品牌区、导航栏、轮播图和快捷查询面板的结构和样式，并通过 \texttt{assets} 字段关联到实际使用的图片资源。
 \end{itemize}
 
 \subsection{进度追踪}
@@ -92,7 +93,7 @@
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=0.8\textwidth]{figs/req_architecture_graph.png}
+    \includegraphics[width=0.6\textwidth]{figs/req_architecture_graph.png}
     \caption{需求结构图（示意）}
     \label{fig:req-architecture}
 \end{figure}
@@ -103,27 +104,21 @@
 
 \subsection{顶层模块数量}
 
-顶层的功能模块（ROOT 的子节点）包括：
+在新的 \texttt{requirements.yaml} 中，ROOT 下按功能拆出了多个大类模块，例如：
 
-\begin{enumerate}
-    \item \textbf{REQ-UI-1 首页}：系统入口与导航。
-    \item \textbf{REQ-UI-2 用户认证}：包含登录、注册页面。
-    \item \textbf{REQ-UI-3 车票查询}：核心功能，支持按城市、日期查询车次，并进行筛选。
-    \item \textbf{REQ-UI-4 订单流程}：从预订、填写乘车人到提交订单。
-    \item \textbf{REQ-UI-5 个人中心}：管理个人信息和乘车人列表。
-    \item \textbf{REQ-UI-6 忘记密码}：模拟了找回密码的四步流程。
-    \item \textbf{REQ-UI-7 餐饮特产}：这是我们额外扩展的模块，包含餐饮首页、商家列表、商品选择等功能。
-\end{enumerate}
-
-此外还有 REQ-ENV-1（环境与数据库初始化），用来单独固定运行时所需的数据状态。
+\begin{itemize}
+    \item \textbf{REQ-1 用户认证模块}：负责注册、登录、找回密码等功能；
+    \item \textbf{REQ-2 车票查询模块}：负责车票数据初始化、首页快捷查询、车次列表页等；
+    \item 其他模块：订单流程、个人中心、站车服务/餐饮等也分别作为独立的 REQ-x 节点存在。
+\end{itemize}
 
 \subsection{子需求和场景数量}
 
 在顶层之下，我们又拆出若干子需求和具体场景，例如：
 \begin{itemize}
-    \item 用户认证下拆出了 REQ-UI-2-1（注册）和 REQ-UI-2-2（登录），分别对应独立的页面和接口。
-    \item 忘记密码模块用 REQ-UI-6:SCE-0\textasciitilde3 四个场景覆盖了“填写账号信息—输入验证码—设置新密码—完成提示”四步。
-    \item 车票查询模块（REQ-UI-3）中用 SCE-0\textasciitilde2 分别描述了页面初始化、筛选条件变化和点击“预订”跳转订单页。
+    \item 在 REQ-1（用户认证模块）下，拆出了 REQ-1-1（用户注册）、REQ-1-2（用户登录）、REQ-1-3-x（找回密码四个页面）等子节点，对应不同的页面和接口。
+    \item 找回密码流程通过 REQ-1-3-1\textasciitilde4 四个节点覆盖了“填写账号信息—短信验证—设置新密码—完成提示”四步，每一步都有自己的 UI 规格和场景描述。
+    \item 在 REQ-2（车票查询模块）下，REQ-2-1 系列节点拆分了首页快捷查询面板的各个输入（出发地、目的地、日期），REQ-2-2 系列节点覆盖了车次列表页初始化、从导航进入列表、点击“预订”等场景。
 \end{itemize}
 
 整个 YAML 文件里，每个需求节点下至少有 1 个场景，完整覆盖了用户从打开首页到完成购票、管理乘车人、下单餐饮的主要路径。相比只写“功能列表”，这样的拆分更贴近真实用户操作，也更方便后续写测试。
@@ -132,9 +127,9 @@
 
 如果从“规模”的角度简单总结，可以认为：
 \begin{itemize}
-    \item 顶层功能模块：1 个 ROOT + 1 个环境需求 + 7 个核心 UI 模块；
-    \item 子需求：在认证、忘记密码等模块下拆出了若干更细的子节点（如注册、登录、四步向导等）；
-    \item 场景数量：每个节点至少 1 个场景，覆盖了从打开首页到完成购票、管理乘车人和下单餐饮的一整条用户路径。
+    \item 顶层功能模块：1 个 ROOT + 若干个核心业务模块（认证、车票查询、订单、个人中心、站车服务/餐饮等）；
+    \item 子需求：在认证、查询等模块下拆出了多级子节点（如注册、登录、快捷查询、车次列表等），方便精细化地描述每一块 UI 和交互；
+    \item 场景数量：每个节点至少 1 个场景，从首页到购票、管理乘车人、以及扩展服务的完整路径都被覆盖到了。
 \end{itemize}
 
 \begin{figure}[H]
@@ -156,7 +151,7 @@
     \item \texttt{register\_ui\_component}：告诉 AI “这个页面的 UI 组件在哪里，参数是什么”。
 \end{itemize}
 
-基于这套工具链，我们可以让 AI 按顺序“从 ROOT 走到 REQ-UI-1\textasciitilde7”，每次只关注一个需求节点，减少遗漏。
+基于这套工具链，我们可以让 AI 按顺序沿着需求树“从 ROOT 走到各个 REQ 节点”（例如 REQ-1、REQ-1-1、REQ-2-2-1 等），每次只关注一个需求节点，减少遗漏。
 
 \subsection{AI 怎么帮我们干活}
 
@@ -167,15 +162,15 @@
 \end{enumerate}
 
 \subsection{如何保证可复现}
-
-为了让老师和助教能稳定复现我们的运行结果，我们做了一个关键的决定：\textbf{把数据库文件纳入版本控制}。
-
+ 
+为了让老师和助教能稳定复现我们的运行结果，我们把“数据初始化规则”也写进了需求里，让数据库可以\textbf{根据 YAML 自动生成}，而不是依赖某个固定快照。
+ 
 \begin{itemize}
-    \item 我们在根目录下准备了一个 \texttt{database.sqlite} 文件。
-    \item 在需求文档的第一项（REQ-ENV-1）就明确规定：系统启动时必须使用这个数据库文件。
+    \item 在需求文档中，我们通过与数据初始化相关的场景（例如 REQ-2:SCE-0）约定了表结构、城市集合以及车次数量等约束；
+    \item 实际运行时，由脚本读取这些约束，\textbf{随机生成}符合要求的车站和车次数据，不再提交单独的数据库文件。
 \end{itemize}
-
-这样，无论谁来运行我们的代码，看到的都是同一天的车次、同一个价格，不会出现“我这里能查到票，你那里查不到”的情况。对 AI 而言，也只需要照着 REQ-ENV-1 先把数据库就绪，再依次跑各个 UI 场景，就能复现实验结果。
+ 
+这样，无论谁来运行我们的代码，只要按照相同的 YAML 需求执行初始化脚本，就能得到一份“结构和规模一致、满足约束”的数据库，用来完成查票和购票流程。对 AI 而言，也只需要先按需求文档中的初始化约定生成数据，再依次跑各个 UI 场景，就能复现实验结果。
 
 \section{测试用例与通过率}
 
@@ -184,7 +179,9 @@
 我们主要进行了三类测试：
 \begin{itemize}
     \item \textbf{后端接口测试}：针对 Login、Query、Order 等核心 API，验证数据返回是否正确。
-    \item \textbf{前端自动化测试}：使用前端测试框架跑单元/组件测试（最近一次运行结果记录在 \texttt{frontend/test-results/.last-run.json} 中，状态为 \texttt{passed}）。
+    \item \textbf{前端自动化测试}：使用前端测试框架跑单元/组件测试（最近一次运行结果记录在 
+    
+    \texttt{frontend/test-results/.last-run.json} 中，状态为 \texttt{passed}）。
     \item \textbf{界面功能测试}：手动验证了从登录到下单的完整流程，确保页面跳转逻辑通顺。
 \end{itemize}
 
@@ -229,11 +226,16 @@
 通过这个项目，我们不仅复刻了 12306 的核心功能，更重要的是实践了一种“文档驱动开发”的新模式。
 
 \begin{itemize}
-    \item 需求不再是死文档，而是 AI 可读的 YAML。
-    \item 数据库快照保证了环境的一致性。
+    \item 需求不再是死文档，而是 AI 可读的 YAML；
+    \item 数据库不再以快照形式提交，而是由脚本根据 YAML 中的约束自动生成，保证了环境的一致性；
     \item 智能体工具链让开发和测试变得更有条理。
 \end{itemize}
 
-这种方法让我们的项目不仅“能跑”，而且“好懂”、“好复现”。
+这种方法让我们的项目不仅“能跑”，而且“好懂”、“好复现”。在此基础上，我们还特别强调了两点后续注意事项：
+
+\begin{itemize}
+    \item 在生成或修改代码之后，要\textbf{补齐并运行端到端（E2E）测试}，不能只依赖 AI 的自然语言说明“已经通过”，而是要以真实的测试结果为准，确保所有代码版本都能稳定通过 E2E 测试；
+    \item 在最终提交时，我们会\textbf{连同 YAML 需求文档和对应的 UI 截图一起交付}，其中 YAML 中会给出更详细的 UI 描述、数据初始化约束和截图引用，方便老师或智能体在没有源码上下文的情况下，仍然可以对照界面和数据规则来检查每个需求是否被满足，而数据库则由评测环境按同一套约束自动生成。
+\end{itemize}
 
 \end{document}

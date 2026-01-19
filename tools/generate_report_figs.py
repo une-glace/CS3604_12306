@@ -1,5 +1,6 @@
 import os
 from PIL import Image, ImageDraw, ImageFont
+import yaml
 
 # 确保输出目录存在
 output_dir = r"e:\sync\courses\CS3604\12306\report\figs"
@@ -23,7 +24,7 @@ def get_font(size=20):
 def draw_rect_text(draw, xy, text, font, fill=(230, 240, 255), outline=(0, 100, 200)):
     # xy is (center_x, center_y)
     try:
-        # Pillow >= 9.2.0
+        # Pillow >= 9.2.0，直接测多行文本包围盒
         left, top, right, bottom = draw.textbbox((0, 0), text, font=font)
         text_width = right - left
         text_height = bottom - top
@@ -31,9 +32,10 @@ def draw_rect_text(draw, xy, text, font, fill=(230, 240, 255), outline=(0, 100, 
         # Older Pillow
         text_width, text_height = draw.textsize(text, font=font)
     
-    padding = 15
+    padding = 20
     w = text_width + padding * 2
-    h = text_height + padding * 2
+    extra_height = 16
+    h = text_height + padding * 2 + extra_height
     
     x0 = xy[0] - w / 2
     y0 = xy[1] - h / 2
@@ -41,9 +43,13 @@ def draw_rect_text(draw, xy, text, font, fill=(230, 240, 255), outline=(0, 100, 
     y1 = xy[1] + h / 2
     
     draw.rectangle([x0, y0, x1, y1], fill=fill, outline=outline, width=2)
-    # multiline text alignment is tricky, simple loop
+    # multiline text alignment
     lines = text.split('\n')
-    line_height = text_height / len(lines)
+    line_spacing = 6
+    if len(lines) > 1:
+        line_height = max((text_height - line_spacing * (len(lines) - 1)) / len(lines), 1)
+    else:
+        line_height = text_height
     current_y = y0 + padding
     for line in lines:
         # Center each line
@@ -54,59 +60,93 @@ def draw_rect_text(draw, xy, text, font, fill=(230, 240, 255), outline=(0, 100, 
              lw, _ = draw.textsize(line, font=font)
         
         draw.text((xy[0] - lw/2, current_y), line, font=font, fill=(0, 0, 0))
-        current_y += line_height + 5 # adding some line spacing
+        current_y += line_height + line_spacing
 
     return (x0, y0, x1, y1)
 
+def load_requirements():
+    base_dir = os.path.dirname(os.path.dirname(__file__))
+    req_path = os.path.join(base_dir, "requirements.yaml")
+    with open(req_path, "r", encoding="utf-8") as f:
+        return yaml.safe_load(f)
+
+
 def generate_architecture_graph():
+    data = load_requirements()
+    root_name = data.get("name", "ROOT")
+    root_id = data.get("id", "ROOT")
+    level1_nodes = data.get("children", [])
+    
     img_width = 1200
     img_height = 800
     image = Image.new('RGB', (img_width, img_height), (255, 255, 255))
     draw = ImageDraw.Draw(image)
     font = get_font(24)
     
-    # Nodes positions
-    # Root
     root_pos = (img_width // 2, 100)
     
-    # Level 1: UI-1 to UI-7
-    # 7 nodes
     level1_y = 300
-    count = 7
-    spacing = img_width // (count + 1)
+    count = len(level1_nodes)
+    spacing = img_width // (count + 1) if count > 0 else img_width
     level1_positions = []
+    edges = []
     
-    labels = [
-        "首页\n(REQ-UI-1)", "认证\n(REQ-UI-2)", "查询\n(REQ-UI-3)", 
-        "订单\n(REQ-UI-4)", "个人\n(REQ-UI-5)", "密码\n(REQ-UI-6)", "餐饮\n(REQ-UI-7)"
-    ]
-    
-    # Draw connections first (to be behind boxes)
     for i in range(count):
         x = spacing * (i + 1)
         y = level1_y
-        level1_positions.append((x, y))
-        
-        # Line from root
-        draw.line([root_pos, (x, y)], fill=(100, 100, 100), width=2)
-        
-    # Level 2: UI-2 children
-    ui2_pos = level1_positions[1]
-    level2_y = 500
-    ui2_children = ["注册\n(UI-2-1)", "登录\n(UI-2-2)"]
-    ui2_child_positions = [(ui2_pos[0] - 60, level2_y), (ui2_pos[0] + 60, level2_y)]
+        pos = (x, y)
+        level1_positions.append(pos)
+        edges.append((root_pos, pos))
     
-    for pos in ui2_child_positions:
-        draw.line([ui2_pos, pos], fill=(100, 100, 100), width=2)
-
-    # Draw boxes
-    draw_rect_text(draw, root_pos, "12306系统\n(ROOT)", font)
+    req1_node = None
+    req1_index = None
+    for i, node in enumerate(level1_nodes):
+        if node.get("id") == "REQ-1":
+            req1_node = node
+            req1_index = i
+            break
+    if req1_node is None and level1_nodes:
+        req1_node = level1_nodes[0]
+        req1_index = 0
+    
+    level2_nodes = []
+    level2_positions = []
+    parent_pos = None
+    if req1_node is not None:
+        level2_nodes = req1_node.get("children", [])
+        if level2_nodes:
+            level2_y = 500
+            parent_pos = level1_positions[req1_index]
+            dx = 160
+            total_width = dx * (len(level2_nodes) - 1) if len(level2_nodes) > 1 else 0
+            start_x = parent_pos[0] - total_width / 2
+            raw_positions = []
+            for i, node in enumerate(level2_nodes):
+                x = start_x + i * dx
+                y = level2_y
+                raw_positions.append((x, y))
+            if raw_positions:
+                min_margin_x = 140
+                min_x = min(p[0] for p in raw_positions)
+                shift = max(0, min_margin_x - min_x)
+                level2_positions = [(x + shift, y) for (x, y) in raw_positions]
+                for pos in level2_positions:
+                    edges.append((parent_pos, pos))
+    
+    for start, end in edges:
+        draw.line([start, end], fill=(100, 100, 100), width=2)
+    
+    draw_rect_text(draw, root_pos, f"{root_name}\n({root_id})", font)
     
     for i, pos in enumerate(level1_positions):
-        draw_rect_text(draw, pos, labels[i], font)
-        
-    for i, pos in enumerate(ui2_child_positions):
-        draw_rect_text(draw, pos, ui2_children[i], font)
+        node = level1_nodes[i]
+        label = f"{node.get('name', '')}\n({node.get('id', '')})"
+        draw_rect_text(draw, pos, label, font)
+    
+    for i, pos in enumerate(level2_positions):
+        node = level2_nodes[i]
+        label = f"{node.get('name', '')}\n({node.get('id', '')})"
+        draw_rect_text(draw, pos, label, font)
         
     save_path = os.path.join(output_dir, "req_architecture_graph.png")
     image.save(save_path)

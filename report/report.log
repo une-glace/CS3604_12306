@@ -1,4 +1,4 @@
-This is XeTeX, Version 3.141592653-2.6-0.999996 (TeX Live 2024) (preloaded format=xelatex 2025.2.25)  15 JAN 2026 17:44
+This is XeTeX, Version 3.141592653-2.6-0.999996 (TeX Live 2024) (preloaded format=xelatex 2025.2.25)  19 JAN 2026 20:07
 entering extended mode
  restricted \write18 enabled.
  file:line:error style messages enabled.
@@ -448,25 +448,25 @@ File: figs/req_architecture_graph.png Graphic file (type bmp)
 File: figs/agent_flow.png Graphic file (type bmp)
 <figs/agent_flow.png>
  [5] [6]
-Overfull \hbox (136.88571pt too wide) in paragraph at lines 187--188
-[]\TU/SimSun(0)/b/n/10.53937 前 端 自 动 化 测 试\TU/SimSun(0)/m/n/10.53937 ：|  使 用 前 端 测 试 框 架 跑 单 元\TU/lmr/m/n/10.53937 /\TU/SimSun(0)/m/n/10.53937 组 件 测 试  |（最 近 一 次 运 行 结 果 记 录 在 \TU/lmtt/m/n/10.53937 frontend/test-results/.last-run.json
- []
-
 File: figs/test_results.png Graphic file (type bmp)
 <figs/test_results.png>
 File: figs/ga_results.png Graphic file (type bmp)
 <figs/ga_results.png>
-[7] [8] (./report.aux)
+ [7] [8] (./report.aux)
  ***********
 LaTeX2e <2023-11-01> patch level 1
 L3 programming layer <2022/08/05>
  ***********
+
+
+LaTeX Warning: Label(s) may have changed. Rerun to get cross-references right.
+
  ) 
 Here is how much of TeX's memory you used:
- 9279 strings out of 474772
- 247310 string characters out of 5757263
- 1939842 words of memory out of 5000000
- 31304 multiletter control sequences out of 15000+600000
+ 9330 strings out of 474772
+ 250779 string characters out of 5757263
+ 1940842 words of memory out of 5000000
+ 31355 multiletter control sequences out of 15000+600000
  563635 words of font info for 84 fonts, out of 8000000 for 9000
  1348 hyphenation exceptions out of 8191
  93i,6n,97p,362b,300s stack positions out of 10000i,1000n,20000p,200000b,200000s
